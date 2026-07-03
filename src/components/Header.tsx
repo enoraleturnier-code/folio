@@ -35,7 +35,7 @@ export function Header({ role }: HeaderProps) {
         <div className="flex items-center gap-3 md:gap-6">
           {showVisitorNav && (
             <nav className="hidden items-center gap-6 md:flex">
-              <VisitorLink to="/$slug" params={{ slug: designer.slug }} label="À propos" />
+              
               <VisitorLink
                 to="/$slug/projects"
                 params={{ slug: designer.slug }}
