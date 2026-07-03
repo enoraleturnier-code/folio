@@ -100,16 +100,16 @@ function ProjectDetailPage() {
                 Étiquettes
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {project.tags.designType.map((l) => (
+                {project.tags.designType.map((l: string) => (
                   <TagBadge key={"d" + l} category="designType" label={l} />
                 ))}
-                {project.tags.sector.map((l) => (
+                {project.tags.sector.map((l: string) => (
                   <TagBadge key={"s" + l} category="sector" label={l} />
                 ))}
-                {project.tags.tools.map((l) => (
+                {project.tags.tools.map((l: string) => (
                   <TagBadge key={"t" + l} category="tools" label={l} />
                 ))}
-                {project.tags.keywords.map((l) => (
+                {project.tags.keywords.map((l: string) => (
                   <TagBadge key={"k" + l} category="keywords" label={l} />
                 ))}
               </div>
