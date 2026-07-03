@@ -3,9 +3,7 @@ import { useState } from "react";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
-import { CalEmbed } from "@/components/CalEmbed";
 import { ContactForm } from "@/components/ContactForm";
-import { ProjectCard } from "@/components/ProjectCard";
 import { designer } from "@/data/designer";
 import { projects } from "@/data/projects";
 
@@ -19,9 +17,6 @@ export const Route = createFileRoute("/$slug/")({
 
 function ProfilePage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const featured = projects
-    .filter((p) => p.status !== "deleted" && p.status !== "draft")
-    .slice(0, 3);
   const hasConfidential = projects.some(
     (p) => p.sensitivity === "confidentielle" && p.status !== "deleted",
   );
@@ -30,115 +25,135 @@ function ProfilePage() {
     <>
       <AuroraBackground />
       <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
-        {/* HERO */}
-        <section className="grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-8">
-            <p className="mb-6 text-xs font-medium uppercase tracking-[0.3em] text-primary">
-              01 — Portrait
+        {/* HERO — 01 */}
+        <section className="mb-32 grid grid-cols-1 items-center gap-6 md:grid-cols-12">
+          <div className="hidden md:col-span-1 md:block">
+            <span className="text-6xl font-medium text-primary/90">01</span>
+            <div className="mt-2 h-px w-8 bg-primary/20" />
+          </div>
+
+          <div className="rounded-[32px] border border-white/10 bg-surface-container/30 p-8 backdrop-blur-sm md:col-span-7 md:p-12">
+            <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
+              Designeuse produit
             </p>
-            <h1 className="text-5xl font-medium leading-[1.05] text-on-surface md:text-7xl">
-              Vos meilleurs projets,{" "}
-              <span className="font-display-accent italic text-primary">enfin</span> vus.
+            <h1 className="text-5xl font-medium leading-[1.1] text-on-surface md:text-6xl">
+              {designer.fullName}
             </h1>
-            <p className="mt-8 max-w-2xl text-lg font-light leading-relaxed text-on-surface-variant">
+            <p className="mt-2 font-display-accent text-5xl italic leading-tight text-primary md:text-6xl">
+              Précise
+            </p>
+            <p className="mt-8 max-w-md text-base font-light leading-relaxed text-on-surface">
               {designer.bio}
             </p>
+
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link
                 to="/$slug/projects"
                 params={{ slug: designer.slug }}
-                className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
+                aria-label={`Voir les projets de ${designer.fullName}`}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
               >
-                Voir les projets publics
+                Voir les projets
+                <span aria-hidden="true" className="material-symbols-outlined text-base">
+                  arrow_forward
+                </span>
               </Link>
-              {hasConfidential && (
+              <div className="flex gap-3">
+                <a
+                  href={designer.website}
+                  aria-label={`Visiter le site web de ${designer.fullName}`}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined">public</span>
+                </a>
+                <a
+                  href={`mailto:${designer.email}`}
+                  aria-label="M'envoyer un e-mail"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined">alternate_email</span>
+                </a>
+                <a
+                  href={designer.linkedin}
+                  aria-label="Ouvrir le profil LinkedIn"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined">link</span>
+                </a>
+              </div>
+            </div>
+
+            {hasConfidential && (
+              <div className="mt-8">
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-full bg-secondary px-6 py-3 text-sm font-bold text-white hover:opacity-90"
+                  className="inline-flex items-center gap-3 rounded-full border border-primary px-6 py-3 text-primary transition-colors hover:bg-primary/10"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-base">
                     lock
                   </span>
-                  Accéder aux projets confidentiels
+                  <span className="text-sm font-bold uppercase tracking-wider">
+                    Accéder aux projets confidentiels
+                  </span>
                 </button>
-              )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-center md:col-span-4 md:justify-end">
+            <div className="relative w-full max-w-[360px]">
+              <div className="aspect-square overflow-hidden rounded-[48px] border border-white/10">
+                <img
+                  src={designer.avatar}
+                  alt={`Portrait professionnel de ${designer.fullName}`}
+                  className="h-full w-full object-cover grayscale-[0.2] transition-all duration-700 hover:grayscale-0"
+                />
+              </div>
             </div>
           </div>
-          <aside className="md:col-span-4">
-            <div className="glass-card sticky top-28 rounded-2xl p-6">
-              <img
-                src={designer.avatar}
-                alt={designer.fullName}
-                className="h-20 w-20 rounded-full object-cover"
-              />
-              <p className="mt-4 text-lg font-medium text-on-surface">{designer.fullName}</p>
-              <p className="text-sm text-on-surface-variant">{designer.headline}</p>
-              <div className="mt-6 space-y-2 text-sm text-on-surface-variant">
-                <p className="flex items-center gap-2">
-                  <span aria-hidden="true" className="material-symbols-outlined text-base">
-                    place
+        </section>
+
+        {/* CONTACT & CALENDAR — 02 */}
+        <section id="contact" className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="hidden lg:col-span-1 lg:block">
+            <span className="whitespace-nowrap text-6xl font-medium text-secondary/90">02</span>
+            <div className="mt-2 h-px w-8 bg-secondary/20" />
+          </div>
+
+          {/* Contact form */}
+          <div className="rounded-[32px] border border-white/10 bg-surface-container-low p-8 backdrop-blur-md lg:col-span-5 md:p-12">
+            <h2 className="mb-8 text-4xl font-medium text-on-surface">Collaborons ensemble</h2>
+            <ContactForm />
+          </div>
+
+          {/* Calendar widget */}
+          <div className="flex min-h-[500px] flex-col overflow-hidden rounded-[32px] border border-white/10 bg-surface-container-low backdrop-blur-md lg:col-span-6">
+            <div className="border-b border-white/5 p-8 md:p-12">
+              <h2 className="mb-4 text-4xl font-medium text-on-surface">Réserver un créneau</h2>
+              <p className="text-base leading-relaxed text-on-surface">
+                Discutons de vos besoins lors d'un appel découverte de 15 minutes pour explorer
+                votre vision.
+              </p>
+            </div>
+            <div className="relative flex-grow bg-background/30">
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <span
+                    aria-hidden="true"
+                    className="material-symbols-outlined text-4xl text-primary"
+                  >
+                    calendar_month
                   </span>
-                  {designer.location}
+                </div>
+                <p className="mb-2 text-base text-on-surface">
+                  Chargement du calendrier interactif…
                 </p>
-                <p className="flex items-center gap-2">
-                  <span aria-hidden="true" className="material-symbols-outlined text-base">
-                    mail
-                  </span>
-                  {designer.email}
+                <p className="text-xs text-on-surface-variant">
+                  cal.com/<span className="text-primary">{designer.calUsername}</span>
                 </p>
               </div>
             </div>
-          </aside>
-        </section>
-
-        {/* FEATURED PROJECTS */}
-        <section className="mt-32">
-          <div className="mb-10 flex items-end justify-between">
-            <div>
-              <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-[#A78BFA]">
-                02 — Sélection
-              </p>
-              <h2 className="text-4xl font-medium text-on-surface md:text-5xl">
-                Trois projets, trois{" "}
-                <span className="font-display-accent italic text-primary">décisions</span>.
-              </h2>
-            </div>
-            <Link
-              to="/$slug/projects"
-              params={{ slug: designer.slug }}
-              className="hidden text-sm font-medium text-on-surface-variant hover:text-primary md:block"
-            >
-              Voir tout →
-            </Link>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {featured.map((p, i) => (
-              <ProjectCard key={p.id} project={p} index={i} onRequestAccess={() => setModalOpen(true)} />
-            ))}
-          </div>
-        </section>
-
-        {/* CONTACT */}
-        <section id="contact" className="mt-32 grid gap-10 md:grid-cols-2">
-          <div>
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
-              03 — Contact
-            </p>
-            <h2 className="text-4xl font-medium text-on-surface md:text-5xl">
-              Une conversation{" "}
-              <span className="font-display-accent italic text-primary">précise</span> vaut mieux qu'un long brief.
-            </h2>
-            <p className="mt-6 text-base text-on-surface-variant">
-              Réponse sous 48 heures ouvrées. Pour un premier échange, préférez le calendrier
-              ci-contre — 30 minutes, agenda partagé.
-            </p>
-            <div className="mt-8">
-              <CalEmbed calUsername={designer.calUsername} />
-            </div>
-          </div>
-          <div className="glass-card rounded-2xl p-6 md:p-8">
-            <ContactForm />
           </div>
         </section>
       </main>
