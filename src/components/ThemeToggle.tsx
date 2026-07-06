@@ -64,7 +64,7 @@ export function ThemeToggle() {
   const options: { key: ThemeMode; icon: string; label: string }[] = [
     { key: "dark", icon: "dark_mode", label: "Sombre" },
     { key: "light", icon: "light_mode", label: "Clair" },
-    { key: "system", icon: "contrast", label: "Système" },
+    { key: "system", icon: "contrast", label: "Auto" },
   ];
 
   const triggerIcon =
