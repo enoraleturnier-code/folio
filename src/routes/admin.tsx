@@ -21,9 +21,9 @@ import type {
 
 const searchSchema = z.object({
   tab: z
-    .enum(["projets", "demandes", "contacts", "parametres"])
-    .catch("projets")
-    .default("projets"),
+    .enum(["dashboard", "projets", "demandes", "contacts", "parametres"])
+    .catch("dashboard")
+    .default("dashboard"),
 });
 
 type TabKey = z.infer<typeof searchSchema>["tab"];
