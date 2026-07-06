@@ -38,14 +38,27 @@ const labels: Record<StatusKind, string> = {
   archive: "Archivé",
 };
 
+const icons: Partial<Record<StatusKind, string>> = {
+  public: "check",
+  confidential: "lock",
+  draft: "edit_note",
+  deleted: "delete",
+};
+
 export function StatusBadge({ kind }: { kind: StatusKind }) {
+  const icon = icons[kind];
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest",
+        "inline-flex items-center gap-1 rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest",
         styles[kind],
       )}
     >
+      {icon && (
+        <span aria-hidden="true" className="material-symbols-outlined text-[14px] leading-none">
+          {icon}
+        </span>
+      )}
       {labels[kind]}
     </span>
   );
