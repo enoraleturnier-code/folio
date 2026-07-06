@@ -63,6 +63,7 @@ function AdminPage() {
         }
       >
         <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
+          {tab === "dashboard" && <DashboardTab setTab={setTab} />}
           {tab === "projets" && <ProjetsTab />}
           {tab === "demandes" && <DemandesTab />}
           {tab === "contacts" && <ContactsTab />}
