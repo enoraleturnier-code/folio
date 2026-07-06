@@ -27,7 +27,7 @@ const styles: Record<StatusKind, string> = {
 
 const labels: Record<StatusKind, string> = {
   public: "Publique",
-  confidential: "Confidentielle",
+  confidential: "CONFIDENTIEL",
   draft: "Brouillon",
   deleted: "Supprimé",
   pending: "En attente",
