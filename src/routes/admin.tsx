@@ -265,7 +265,7 @@ function ProjetsTab() {
               <div
                 className={
                   "w-14 shrink-0 font-headline text-3xl font-medium " +
-                  (statusKind === "public"
+                  (p.published
                     ? "text-primary"
                     : "text-on-surface-variant opacity-90")
                 }
