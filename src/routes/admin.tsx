@@ -21,9 +21,9 @@ import type {
 
 const searchSchema = z.object({
   tab: z
-    .enum(["projets", "demandes", "contacts", "parametres"])
-    .catch("projets")
-    .default("projets"),
+    .enum(["dashboard", "projets", "demandes", "contacts", "parametres"])
+    .catch("dashboard")
+    .default("dashboard"),
 });
 
 type TabKey = z.infer<typeof searchSchema>["tab"];
@@ -63,6 +63,7 @@ function AdminPage() {
         }
       >
         <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
+          {tab === "dashboard" && <DashboardTab setTab={setTab} />}
           {tab === "projets" && <ProjetsTab />}
           {tab === "demandes" && <DemandesTab />}
           {tab === "contacts" && <ContactsTab />}
@@ -140,15 +141,21 @@ function AdminSidebar({
       </div>
 
       <nav className="mt-8 flex flex-col items-center gap-3">
-        <Link
-          to="/admin"
-          aria-label="Dashboard"
-          className="flex h-12 w-12 items-center justify-center rounded-xl text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined">
-            dashboard
-          </span>
-        </Link>
+      <Link
+        to="/admin"
+        aria-label="Dashboard"
+        aria-current={tab === "dashboard" ? "page" : undefined}
+        className={
+          "relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+          (tab === "dashboard"
+            ? "bg-primary/10 text-primary"
+            : "text-on-surface-variant/65 hover:text-on-surface")
+        }
+      >
+        <span aria-hidden="true" className="material-symbols-outlined">
+          dashboard
+        </span>
+      </Link>
         {items.map((it) => {
           const active = tab === it.key;
           return (
@@ -187,7 +194,115 @@ function AdminSidebar({
     </aside>
   );
 }
+/* ---------- Dashboard Tab ---------- */
 
+function DashboardTab({ setTab }: { setTab: (t: TabKey) => void }) {
+  const pendingRequests = seedRequests.filter((r) => r.status === "pending");
+  const newMessages = seedContacts.filter((c) => c.status === "nouveau");
+  const publishedProjects = seedProjects.filter((p) => p.published);
+  const draftProjects = seedProjects.filter((p) => p.status === "draft");
+
+  return (
+    <>
+      <TabHeader
+        eyebrow="00 — Vue d'ensemble"
+        title="Tableau de "
+        emphasis="bord"
+        subtitle="Récapitulatif de vos projets, demandes d'accès et messages en un coup d'œil."
+      />
+
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <button
+          type="button"
+          onClick={() => setTab("projets")}
+          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
+        >
+          <span className="material-symbols-outlined text-2xl text-primary">folder</span>
+          <span className="mt-4 text-3xl font-bold text-on-surface">{seedProjects.length}</span>
+          <span className="mt-1 text-sm text-on-surface-variant">Projets</span>
+          <span className="mt-2 text-xs text-primary">{publishedProjects.length} publiés · {draftProjects.length} brouillon</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTab("demandes")}
+          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
+        >
+          <span className="material-symbols-outlined text-2xl text-primary">vpn_key</span>
+          <span className="mt-4 text-3xl font-bold text-on-surface">{pendingRequests.length}</span>
+          <span className="mt-1 text-sm text-on-surface-variant">Demandes en attente</span>
+          <span className="mt-2 text-xs text-primary">À valider ou refuser</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTab("contacts")}
+          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
+        >
+          <span className="material-symbols-outlined text-2xl text-primary">mail</span>
+          <span className="mt-4 text-3xl font-bold text-on-surface">{newMessages.length}</span>
+          <span className="mt-1 text-sm text-on-surface-variant">Messages nouveaux</span>
+          <span className="mt-2 text-xs text-primary">À traiter</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTab("parametres")}
+          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
+        >
+          <span className="material-symbols-outlined text-2xl text-primary">settings</span>
+          <span className="mt-4 text-3xl font-bold text-on-surface">1</span>
+          <span className="mt-1 text-sm text-on-surface-variant">Paramètres</span>
+          <span className="mt-2 text-xs text-primary">Profil public</span>
+        </button>
+      </div>
+
+      {(pendingRequests.length > 0 || newMessages.length > 0) && (
+        <div className="mt-10">
+          <h2 className="text-xl font-bold text-on-surface">Actions en attente</h2>
+          <div className="mt-4 space-y-3">
+            {pendingRequests.map((r) => (
+              <div
+                key={r.id}
+                className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-on-surface">{r.fullName}</p>
+                  <p className="text-sm text-on-surface-variant">{r.company} — Demande d'accès</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTab("demandes")}
+                  className="shrink-0 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
+                >
+                  Traiter
+                </button>
+              </div>
+            ))}
+            {newMessages.map((m) => (
+              <div
+                key={m.id}
+                className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-on-surface">{m.fullName}</p>
+                  <p className="text-sm text-on-surface-variant">{m.email} — Nouveau message</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTab("contacts")}
+                  className="shrink-0 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
+                >
+                  Lire
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 /* ---------- Projets Tab ---------- */
 
