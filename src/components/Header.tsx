@@ -18,7 +18,7 @@ export function Header({ role }: HeaderProps) {
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 md:px-16">
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className={`flex items-center gap-4 md:gap-6 ${isAdminRoute ? "ml-20 md:ml-24" : ""}`}>
           {!isAdminRoute && (
             <>
               <Link
