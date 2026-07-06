@@ -140,15 +140,21 @@ function AdminSidebar({
       </div>
 
       <nav className="mt-8 flex flex-col items-center gap-3">
-        <Link
-          to="/admin"
-          aria-label="Dashboard"
-          className="flex h-12 w-12 items-center justify-center rounded-xl text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined">
-            dashboard
-          </span>
-        </Link>
+      <Link
+        to="/admin"
+        aria-label="Dashboard"
+        aria-current={tab === "dashboard" ? "page" : undefined}
+        className={
+          "relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+          (tab === "dashboard"
+            ? "bg-primary/10 text-primary"
+            : "text-on-surface-variant/65 hover:text-on-surface")
+        }
+      >
+        <span aria-hidden="true" className="material-symbols-outlined">
+          dashboard
+        </span>
+      </Link>
         {items.map((it) => {
           const active = tab === it.key;
           return (
