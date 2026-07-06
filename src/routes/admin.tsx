@@ -675,52 +675,66 @@ function ContactsTab() {
         emphasis="reçus"
         subtitle="Traitez, archivez, revenez-y. Le statut se met à jour d'un clic."
       />
-      <div className="mt-10 space-y-3">
-        {items.map((m) => (
-          <div
-            key={m.id}
-            className="flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5 md:flex-row md:items-start"
+      {items.length === 0 ? (
+        <div className="mt-16 flex flex-col items-center justify-center gap-3">
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined text-6xl text-on-surface-variant/40"
           >
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="text-base font-medium text-on-surface">{m.fullName}</p>
-                <span className="text-sm text-on-surface-variant">{m.email}</span>
+            inbox
+          </span>
+          <p className="text-sm font-light text-on-surface-variant">Aucun message reçu</p>
+        </div>
+      ) : (
+        <ul role="list" className="mt-10 space-y-4">
+          {items.map((m) => (
+            <li
+              key={m.id}
+              className="glass-panel flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:flex-row md:items-center md:justify-between"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="text-base font-medium text-on-surface">{m.fullName}</p>
+                  <span className="text-sm text-on-surface-variant">{m.email}</span>
+                </div>
+                <p
+                  className="mt-2 text-sm font-light text-on-surface-variant"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  {m.message}
+                </p>
+                <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
+                  {new Date(m.date)
+                    .toLocaleDateString("fr-FR", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })
+                    .toUpperCase()}
+                </p>
               </div>
-              <p
-                className="mt-2 text-sm text-on-surface-variant"
-                style={{
-                  display: "-webkit-box",
-                  WebkitBoxOrient: "vertical",
-                  WebkitLineClamp: 2,
-                  overflow: "hidden",
-                }}
-              >
-                {m.message}
-              </p>
-              <p className="mt-2 text-xs text-on-surface-variant/70">
-                {new Date(m.date).toLocaleDateString("fr-FR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <StatusBadge kind={m.status} />
-              <button
-                type="button"
-                onClick={() => cycle(m.id)}
-                aria-label="Changer le statut du message"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
-              >
-                <span aria-hidden="true" className="material-symbols-outlined text-base">
-                  sync
-                </span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+              <div className="flex shrink-0 items-center gap-3" aria-live="polite">
+                <StatusBadge kind={m.status} />
+                <button
+                  type="button"
+                  onClick={() => cycle(m.id)}
+                  aria-label={`Changer le statut du message de ${m.fullName}`}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined text-base">
+                    swap_horiz
+                  </span>
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }

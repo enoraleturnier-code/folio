@@ -22,7 +22,7 @@ const styles: Record<StatusKind, string> = {
   rejected: "bg-[#F87171]/10 border-[#F87171]/30 text-[#F87171]",
   nouveau: "bg-indigo-500/10 border-indigo-500/30 text-[#818CF8]",
   traite: "bg-[#34D399]/10 border-[#34D399]/30 text-[#34D399]",
-  archive: "bg-slate-500/10 border-slate-500/30 text-slate-300",
+  archive: "bg-white/5 border-white/10 text-on-surface-variant",
 };
 
 const labels: Record<StatusKind, string> = {
