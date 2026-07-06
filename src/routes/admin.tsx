@@ -249,10 +249,9 @@ function ProjetsTab() {
               : p.status === "confidential"
                 ? "confidential"
                 : "draft";
-          const rowBorder =
-            statusKind === "public"
-              ? "border-primary/30"
-              : "border-white/5";
+          const rowBorder = p.published
+            ? "border-primary/30"
+            : "border-white/5";
           return (
             <li
               key={p.id}
@@ -266,7 +265,7 @@ function ProjetsTab() {
               <div
                 className={
                   "w-14 shrink-0 font-headline text-3xl font-medium " +
-                  (statusKind === "public"
+                  (p.published
                     ? "text-primary"
                     : "text-on-surface-variant opacity-90")
                 }
