@@ -6,24 +6,12 @@ import { z } from "zod";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProjectDrawer } from "@/components/ProjectDrawer";
-import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
-import { contactMessages as seedContacts } from "@/data/contacts";
 import { projects as seedProjects } from "@/data/projects";
-import { accessRequests as seedRequests } from "@/data/requests";
-import type {
-  ContactMessage,
-  ContactStatus,
-  Project,
-  AccessRequest,
-  RequestStatus,
-} from "@/data/types";
+import type { Project } from "@/data/types";
 
 const searchSchema = z.object({
-  tab: z
-    .enum(["projets", "demandes", "contacts", "parametres"])
-    .catch("projets")
-    .default("projets"),
+  tab: z.enum(["projets", "parametres"]).catch("projets").default("projets"),
 });
 
 type TabKey = z.infer<typeof searchSchema>["tab"];
@@ -37,6 +25,7 @@ function AdminPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const tab: TabKey = search.tab;
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const setTab = (t: TabKey) => navigate({ search: { tab: t } });
 
@@ -44,12 +33,15 @@ function AdminPage() {
     <div className="relative min-h-screen bg-background">
       <Header role="admin" />
       <div className="flex pt-20">
-        <AdminSidebar tab={tab} setTab={setTab} />
+        <AdminSidebar
+          tab={tab}
+          setTab={setTab}
+          open={sidebarOpen}
+          onToggle={() => setSidebarOpen((v) => !v)}
+        />
         <main className="flex-1 px-6 pb-16 pt-10 md:px-12">
           <div className="mx-auto max-w-6xl">
             {tab === "projets" && <ProjetsTab />}
-            {tab === "demandes" && <DemandesTab />}
-            {tab === "contacts" && <ContactsTab />}
             {tab === "parametres" && <ParametresTab />}
           </div>
         </main>
@@ -61,39 +53,73 @@ function AdminPage() {
 
 /* ---------- Sidebar ---------- */
 
-function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
+function AdminSidebar({
+  tab,
+  setTab,
+  open,
+  onToggle,
+}: {
+  tab: TabKey;
+  setTab: (t: TabKey) => void;
+  open: boolean;
+  onToggle: () => void;
+}) {
   const items: { key: TabKey; icon: string; label: string }[] = [
-    { key: "projets", icon: "grid_view", label: "Projets" },
-    { key: "demandes", icon: "lock_open", label: "Demandes d'accès" },
-    { key: "contacts", icon: "mail", label: "Contacts" },
+    { key: "projets", icon: "folder_special", label: "Mon catalogue projets" },
     { key: "parametres", icon: "settings", label: "Paramètres" },
   ];
   return (
-    <aside className="sticky top-20 hidden h-[calc(100vh-5rem)] w-24 shrink-0 border-r border-white/5 md:block">
-      <nav className="flex flex-col items-center gap-2 py-8">
-        {items.map((it) => {
-          const active = tab === it.key;
-          return (
-            <button
-              key={it.key}
-              type="button"
-              onClick={() => setTab(it.key)}
-              aria-label={it.label}
-              aria-current={active ? "page" : undefined}
-              className={
-                "flex h-12 w-12 items-center justify-center rounded-xl transition-colors " +
-                (active
-                  ? "bg-primary/10 text-primary"
-                  : "text-on-surface-variant/65 hover:text-on-surface")
-              }
-            >
-              <span aria-hidden="true" className="material-symbols-outlined">
-                {it.icon}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+    <aside
+      className={
+        "sticky top-20 hidden h-[calc(100vh-5rem)] shrink-0 border-r border-white/5 transition-[width] duration-300 md:block " +
+        (open ? "w-64" : "w-24")
+      }
+    >
+      <div className="flex flex-col items-stretch gap-2 py-8">
+        <div className={"mb-4 flex " + (open ? "justify-end pr-4" : "justify-center")}>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label={open ? "Réduire la barre de navigation" : "Étendre la barre de navigation"}
+            aria-expanded={open}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-on-surface-variant/65 transition-all hover:bg-white/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95"
+          >
+            <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+              {open ? "chevron_left" : "chevron_right"}
+            </span>
+          </button>
+        </div>
+        <nav className={"flex flex-col " + (open ? "gap-2 px-3" : "items-center gap-4")}>
+          {items.map((it) => {
+            const active = tab === it.key;
+            return (
+              <button
+                key={it.key}
+                type="button"
+                onClick={() => setTab(it.key)}
+                aria-label={it.label}
+                aria-current={active ? "page" : undefined}
+                className={
+                  "flex items-center rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
+                  (open ? "w-full gap-3 px-3 py-3 text-sm " : "h-12 w-12 justify-center ") +
+                  (active
+                    ? "bg-primary/10 text-primary"
+                    : "text-on-surface-variant/65 hover:bg-white/5 hover:text-on-surface")
+                }
+              >
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-[24px]"
+                  style={active ? { fontVariationSettings: '"FILL" 1' } : undefined}
+                >
+                  {it.icon}
+                </span>
+                {open && <span className="truncate font-medium">{it.label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
     </aside>
   );
 }
@@ -125,7 +151,9 @@ function ProjetsTab() {
     setDrawerOpen(false);
   };
   const softDelete = (id: string) =>
-    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, status: "deleted", published: false } : x)));
+    setItems((xs) =>
+      xs.map((x) => (x.id === id ? { ...x, status: "deleted", published: false } : x)),
+    );
   const restore = (id: string) =>
     setItems((xs) => xs.map((x) => (x.id === id ? { ...x, status: "draft" } : x)));
   const togglePublish = (id: string) =>
@@ -133,122 +161,127 @@ function ProjetsTab() {
 
   return (
     <>
-      <TabHeader
-        eyebrow="01 — Catalogue"
-        title="Vos"
-        emphasis="projets"
-        subtitle="Six entrées — publiez, éditez ou archivez sans jamais perdre l'historique."
-        cta={
-          <button
-            type="button"
-            onClick={openNew}
-            className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
-          >
-            + Créer un nouveau projet
-          </button>
-        }
-      />
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex items-baseline gap-4">
+          <h1 className="text-[44px] font-bold tracking-tight text-on-surface">Mon catalogue</h1>
+          <span className="font-display-accent text-[44px] italic text-primary">Projets</span>
+        </div>
+        <button
+          type="button"
+          onClick={openNew}
+          className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+            add
+          </span>
+          Créer un nouveau projet
+        </button>
+      </header>
 
-      <div className="mt-10 space-y-3">
+      <ul className="mt-10 space-y-6">
         {items.map((p, i) => {
           const deleted = p.status === "deleted";
+          const isFirst = i === 0 && !deleted;
           return (
-            <div
+            <li
               key={p.id}
               className={
-                "flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5 md:flex-row md:items-center " +
-                (deleted ? "opacity-35" : "")
+                "flex items-center justify-between rounded-2xl border bg-surface-container-low p-6 backdrop-blur-md " +
+                (isFirst ? "border-primary/30" : "border-white/5")
               }
             >
-              <div className="w-10 shrink-0 text-sm font-medium text-on-surface-variant">
-                {String(i + 1).padStart(2, "0")}
-              </div>
-              <img
-                src={p.cover}
-                alt=""
-                aria-hidden="true"
-                className="h-16 w-24 shrink-0 rounded-xl object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-medium text-on-surface">{p.title}</p>
-                <p className="truncate text-sm text-on-surface-variant">{p.subtitle}</p>
-              </div>
-              <div className="shrink-0">
-                <StatusBadge
-                  kind={
-                    deleted
-                      ? "deleted"
-                      : p.status === "public"
-                        ? "public"
-                        : p.status === "confidential"
-                          ? "confidential"
-                          : "draft"
+              <div className="flex items-center gap-8">
+                <span
+                  className={
+                    "text-3xl font-medium " +
+                    (isFirst ? "text-primary" : "text-on-surface-variant/90")
                   }
-                />
+                >
+                  {String(i + 1).padStart(2, "0")}.
+                </span>
+                <div>
+                  <h3
+                    className={
+                      "text-xl font-bold text-on-surface " + (deleted ? "opacity-60" : "")
+                    }
+                  >
+                    {p.title}
+                  </h3>
+                  <p className="mt-1 text-[10px] tracking-widest text-on-surface-variant">
+                    {deleted ? "Supprimé il y a 1 semaine" : "Dernière mise à jour : il y a 2 jours"}
+                  </p>
+                </div>
               </div>
 
-              <div className="flex shrink-0 items-center gap-2">
-                {deleted ? (
-                  <button
-                    type="button"
-                    onClick={() => restore(p.id)}
-                    aria-label="Restaurer le projet"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
-                  >
-                    <span aria-hidden="true" className="material-symbols-outlined text-base">
-                      restore_from_trash
-                    </span>
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => openEdit(p)}
-                      aria-label={`Éditer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        edit
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(p.id)}
-                      aria-label={`Supprimer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-[#F87171]/30 text-[#F87171] hover:bg-[#F87171]/10"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        delete
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={p.published}
-                      aria-label={p.published ? "Dépublier le projet" : "Publier le projet"}
-                      onClick={() => togglePublish(p.id)}
-                      className={
-                        "relative h-6 w-11 rounded-full border transition-colors " +
-                        (p.published
-                          ? "border-primary bg-primary/60"
-                          : "border-white/15 bg-white/5")
-                      }
-                    >
-                      <span
-                        aria-hidden="true"
+              <div className="flex items-center gap-8">
+                <StatusPill status={deleted ? "deleted" : p.status} />
+                <div className="flex items-center gap-4">
+                  {deleted ? (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => restore(p.id)}
+                        aria-label={`Restaurer le projet ${p.title}`}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+                          settings_backup_restore
+                        </span>
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={p.published}
+                        aria-label={p.published ? "Dépublier le projet" : "Publier le projet"}
+                        onClick={() => togglePublish(p.id)}
                         className={
-                          "absolute top-0.5 h-5 w-5 rounded-full bg-on-primary transition-transform " +
-                          (p.published ? "translate-x-5" : "translate-x-0.5")
+                          "relative h-5 w-9 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
+                          (p.published ? "bg-primary" : "bg-white/10")
                         }
-                      />
-                    </button>
-                  </>
-                )}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={
+                            "absolute top-[3px] h-3.5 w-3.5 rounded-full transition-all " +
+                            (p.published
+                              ? "left-[19px] bg-background"
+                              : "left-[3px] bg-on-surface-variant")
+                          }
+                        />
+                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(p)}
+                          aria-label={`Éditer le projet ${p.title}`}
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+                            edit
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(p.id)}
+                          aria-label={`Supprimer le projet ${p.title}`}
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-error focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+                            delete_sweep
+                          </span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
 
       <ProjectDrawer
         open={drawerOpen}
@@ -264,7 +297,7 @@ function ProjetsTab() {
             onClick={() => setConfirmDelete(null)}
             aria-hidden="true"
           />
-          <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
+          <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-low p-6">
             <h3 className="text-lg font-medium text-on-surface">Supprimer ce projet ?</h3>
             <p className="mt-2 text-sm text-on-surface-variant">
               Le projet passera en statut « Supprimé ». Vous pourrez le restaurer plus tard.
@@ -283,7 +316,7 @@ function ProjetsTab() {
                   softDelete(confirmDelete);
                   setConfirmDelete(null);
                 }}
-                className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-6 py-2.5 text-sm font-bold text-[#F87171]"
+                className="rounded-full border border-error/30 bg-error/10 px-6 py-2.5 text-sm font-bold text-error"
               >
                 Supprimer
               </button>
@@ -295,210 +328,54 @@ function ProjetsTab() {
   );
 }
 
-/* ---------- Demandes Tab ---------- */
+/* ---------- Status Pill ---------- */
 
-function DemandesTab() {
-  const [items, setItems] = useState<AccessRequest[]>(() =>
-    [...seedRequests].sort((a, b) => (a.date < b.date ? 1 : -1)),
-  );
-  const [rejecting, setRejecting] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
-
-  const update = (id: string, patch: Partial<AccessRequest>) =>
-    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, ...patch } : x)));
-
-  const approve = (id: string) => update(id, { status: "approved" as RequestStatus });
-  const reject = (id: string) => {
-    if (!reason.trim()) return;
-    update(id, { status: "rejected" as RequestStatus, rejectionReason: reason.trim() });
-    setRejecting(null);
-    setReason("");
-  };
-
-  return (
-    <>
-      <TabHeader
-        eyebrow="02 — Accès"
-        title="Demandes d'"
-        emphasis="accès"
-        subtitle="Validez ou refusez l'accès aux projets confidentiels — chaque refus doit être motivé."
-      />
-      <div className="mt-10 space-y-3">
-        {items.map((r) => (
-          <div
-            key={r.id}
-            className="flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-base font-medium text-on-surface">{r.fullName}</p>
-                <p className="text-sm text-on-surface-variant">
-                  {r.company} · <span className="text-primary">{r.email}</span>
-                </p>
-                <p className="mt-2 text-sm text-on-surface-variant">
-                  <span className="text-on-surface">Projets :</span>{" "}
-                  {r.projectTitles.join(", ")}
-                </p>
-                <p className="mt-1 text-xs text-on-surface-variant/70">
-                  {new Date(r.date).toLocaleDateString("fr-FR", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <StatusBadge kind={r.status} />
-              </div>
-            </div>
-
-            {r.status === "pending" && (
-              <div className="flex flex-col gap-3">
-                {rejecting === r.id ? (
-                  <div className="rounded-xl border border-[#F87171]/30 bg-[#F87171]/5 p-4">
-                    <label
-                      htmlFor={`reason-${r.id}`}
-                      className="block text-sm font-medium text-on-surface-variant"
-                    >
-                      Motif du refus (obligatoire)
-                    </label>
-                    <textarea
-                      id={`reason-${r.id}`}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      rows={2}
-                      required
-                      className="mt-2 w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                      placeholder="Expliquez brièvement le refus."
-                    />
-                    <div className="mt-3 flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRejecting(null);
-                          setReason("");
-                        }}
-                        className="rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface"
-                      >
-                        Annuler
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => reject(r.id)}
-                        disabled={!reason.trim()}
-                        className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-2 text-xs font-bold text-[#F87171] disabled:opacity-50"
-                      >
-                        Confirmer le refus
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setRejecting(r.id)}
-                      className="rounded-full border border-[#F87171]/30 px-5 py-2 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10"
-                    >
-                      Refuser
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => approve(r.id)}
-                      className="rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90"
-                    >
-                      Valider
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {r.status === "rejected" && r.rejectionReason && (
-              <p className="rounded-xl border border-white/5 bg-surface-container p-3 text-xs text-on-surface-variant">
-                <span className="font-medium text-[#F87171]">Motif du refus :</span>{" "}
-                {r.rejectionReason}
-              </p>
-            )}
-          </div>
-        ))}
+function StatusPill({ status }: { status: Project["status"] }) {
+  if (status === "public") {
+    return (
+      <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/20 px-4 py-1.5">
+        <span aria-hidden="true" className="material-symbols-outlined text-[14px] text-primary">
+          check
+        </span>
+        <span className="text-[10px] font-bold tracking-widest text-primary">Public</span>
       </div>
-    </>
-  );
-}
-
-/* ---------- Contacts Tab ---------- */
-
-const nextContactStatus: Record<ContactStatus, ContactStatus> = {
-  nouveau: "traite",
-  traite: "archive",
-  archive: "nouveau",
-};
-
-function ContactsTab() {
-  const [items, setItems] = useState<ContactMessage[]>(() =>
-    [...seedContacts].sort((a, b) => (a.date < b.date ? 1 : -1)),
-  );
-
-  const cycle = (id: string) =>
-    setItems((xs) =>
-      xs.map((x) => (x.id === id ? { ...x, status: nextContactStatus[x.status] } : x)),
     );
-
-  return (
-    <>
-      <TabHeader
-        eyebrow="03 — Contacts"
-        title="Messages"
-        emphasis="reçus"
-        subtitle="Traitez, archivez, revenez-y. Le statut se met à jour d'un clic."
-      />
-      <div className="mt-10 space-y-3">
-        {items.map((m) => (
-          <div
-            key={m.id}
-            className="flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5 md:flex-row md:items-start"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="text-base font-medium text-on-surface">{m.fullName}</p>
-                <span className="text-sm text-on-surface-variant">{m.email}</span>
-              </div>
-              <p
-                className="mt-2 text-sm text-on-surface-variant"
-                style={{
-                  display: "-webkit-box",
-                  WebkitBoxOrient: "vertical",
-                  WebkitLineClamp: 2,
-                  overflow: "hidden",
-                }}
-              >
-                {m.message}
-              </p>
-              <p className="mt-2 text-xs text-on-surface-variant/70">
-                {new Date(m.date).toLocaleDateString("fr-FR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <StatusBadge kind={m.status} />
-              <button
-                type="button"
-                onClick={() => cycle(m.id)}
-                aria-label="Changer le statut du message"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
-              >
-                <span aria-hidden="true" className="material-symbols-outlined text-base">
-                  sync
-                </span>
-              </button>
-            </div>
-          </div>
-        ))}
+  }
+  if (status === "confidential") {
+    return (
+      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-secondary/80 px-4 py-1.5">
+        <span
+          aria-hidden="true"
+          className="material-symbols-outlined text-[12px] text-on-surface"
+          style={{ fontVariationSettings: '"FILL" 1' }}
+        >
+          lock
+        </span>
+        <span className="text-[10px] font-bold tracking-widest text-on-surface">Confidentiel</span>
       </div>
-    </>
+    );
+  }
+  if (status === "deleted") {
+    return (
+      <div className="flex items-center gap-2 rounded-full border border-error/30 bg-error/10 px-4 py-1.5 text-error">
+        <span
+          aria-hidden="true"
+          className="material-symbols-outlined text-[12px]"
+          style={{ fontVariationSettings: '"FILL" 1' }}
+        >
+          delete
+        </span>
+        <span className="text-[10px] font-bold tracking-widest">Supprimé</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5">
+      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-white/20" />
+      <span className="text-[10px] font-bold tracking-widest text-on-surface-variant">
+        Brouillon
+      </span>
+    </div>
   );
 }
 
@@ -538,12 +415,10 @@ function ParametresTab() {
 
   return (
     <>
-      <TabHeader
-        eyebrow="04 — Profil"
-        title="Vos"
-        emphasis="paramètres"
-        subtitle="Mise à jour de votre profil public — visible à l'adresse ci-dessous."
-      />
+      <header className="flex items-baseline gap-4">
+        <h1 className="text-[44px] font-bold tracking-tight text-on-surface">Vos</h1>
+        <span className="font-display-accent text-[44px] italic text-primary">paramètres</span>
+      </header>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -667,47 +542,15 @@ function ParametresTab() {
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          {saved && (
-            <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>
-          )}
+          {saved && <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>}
           <button
             type="submit"
-            className="ml-auto rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
+            className="ml-auto rounded-full bg-primary px-6 py-3 text-sm font-bold text-background hover:opacity-90"
           >
             Enregistrer les modifications
           </button>
         </div>
       </form>
     </>
-  );
-}
-
-/* ---------- Shared ---------- */
-
-function TabHeader({
-  eyebrow,
-  title,
-  emphasis,
-  subtitle,
-  cta,
-}: {
-  eyebrow: string;
-  title: string;
-  emphasis: string;
-  subtitle: string;
-  cta?: React.ReactNode;
-}) {
-  return (
-    <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-      <div>
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">{eyebrow}</p>
-        <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-5xl">
-          {title}
-          <span className="font-display-accent italic text-primary">{emphasis}</span>.
-        </h1>
-        <p className="mt-3 max-w-xl text-sm text-on-surface-variant">{subtitle}</p>
-      </div>
-      {cta}
-    </header>
   );
 }
