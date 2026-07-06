@@ -104,7 +104,7 @@ function AdminSidebar({
       badge: pendingCount,
     },
     { key: "contacts", icon: "mail", label: "Messages" },
-    { key: "parametres", icon: "settings", label: "Paramètres système" },
+    { key: "parametres", icon: "settings", label: "Paramètres\u00a0" },
   ];
   return (
     <aside
