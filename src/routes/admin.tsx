@@ -109,30 +109,55 @@ function AdminSidebar({
   return (
     <aside
       className={
-        "fixed left-0 top-0 z-[70] flex h-screen flex-col items-center border-r border-white/5 bg-background py-10 transition-[width] " +
-        (collapsed ? "w-16 md:w-20" : "w-20 md:w-24")
+        "fixed left-0 top-0 z-[70] flex h-screen flex-col border-r border-white/5 bg-background py-10 transition-[width] " +
+        (collapsed ? "w-16 items-center md:w-20" : "w-20 items-center px-3 md:w-56 md:items-stretch md:px-5")
       }
     >
       <Link
         to="/admin"
-        className="text-2xl font-black tracking-tighter text-primary"
+        className={
+          collapsed
+            ? "text-2xl font-black tracking-tighter text-primary"
+            : "text-2xl font-black tracking-tighter text-primary md:text-xl md:font-medium md:text-on-surface"
+        }
         aria-label="Folio+ — Accéder au dashboard"
       >
-        F<span className="text-on-surface">+</span>
+        {collapsed ? (
+          <>
+            F<span className="text-on-surface">+</span>
+          </>
+        ) : (
+          <>
+            <span className="md:hidden">
+              F<span className="text-on-surface">+</span>
+            </span>
+            <span className="hidden md:inline">
+              Folio<span className="text-primary">+</span>
+            </span>
+          </>
+        )}
       </Link>
 
       <button
         type="button"
         onClick={onToggleCollapsed}
         aria-label={collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"}
-        className="mt-8 flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className={
+          "mt-8 flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+          (collapsed ? "" : "md:self-end")
+        }
       >
         <span aria-hidden="true" className="material-symbols-outlined text-base">
           {collapsed ? "chevron_right" : "chevron_left"}
         </span>
       </button>
 
-      <div className="mt-6 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-bold text-primary">
+      <div
+        className={
+          "mt-6 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-bold text-primary " +
+          (collapsed ? "" : "md:self-center")
+        }
+      >
         {designer.fullName
           .split(" ")
           .map((w) => w[0])
@@ -140,22 +165,29 @@ function AdminSidebar({
           .join("")}
       </div>
 
-      <nav className="mt-8 flex flex-col items-center gap-3">
-      <Link
-        to="/admin"
-        aria-label="Dashboard"
-        aria-current={tab === "dashboard" ? "page" : undefined}
+      <nav
         className={
-          "relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
-          (tab === "dashboard"
-            ? "bg-primary/10 text-primary"
-            : "text-on-surface-variant/65 hover:text-on-surface")
+          "mt-8 flex flex-col gap-2 " + (collapsed ? "items-center" : "items-center md:items-stretch")
         }
       >
-        <span aria-hidden="true" className="material-symbols-outlined">
-          dashboard
-        </span>
-      </Link>
+        <Link
+          to="/admin"
+          aria-label="Dashboard"
+          aria-current={tab === "dashboard" ? "page" : undefined}
+          className={
+            "relative flex h-12 items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+            (collapsed ? "w-12 justify-center" : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
+            " " +
+            (tab === "dashboard"
+              ? "bg-primary/10 text-primary"
+              : "text-on-surface-variant/65 hover:text-on-surface")
+          }
+        >
+          <span aria-hidden="true" className="material-symbols-outlined">
+            dashboard
+          </span>
+          {!collapsed && <span className="hidden text-sm md:inline">Dashboard</span>}
+        </Link>
         {items.map((it) => {
           const active = tab === it.key;
           return (
@@ -170,7 +202,9 @@ function AdminSidebar({
               }
               aria-current={active ? "page" : undefined}
               className={
-                "relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+                "relative flex h-12 items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+                (collapsed ? "w-12 justify-center" : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
+                " " +
                 (active
                   ? "bg-primary/10 text-primary"
                   : "text-on-surface-variant/65 hover:text-on-surface")
@@ -179,10 +213,17 @@ function AdminSidebar({
               <span aria-hidden="true" className="material-symbols-outlined">
                 {it.icon}
               </span>
+              {!collapsed && (
+                <span className="hidden flex-1 text-left text-sm md:inline">{it.label}</span>
+              )}
               {it.badge && it.badge > 0 ? (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-on-surface"
+                  className={
+                    collapsed
+                      ? "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-on-surface"
+                      : "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-on-surface md:static md:ml-auto md:h-5 md:w-5"
+                  }
                 >
                   {it.badge}
                 </span>
