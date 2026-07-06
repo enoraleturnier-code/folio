@@ -313,20 +313,23 @@ function ProjetsTab() {
                       aria-label={p.published ? "Dépublier le projet" : "Publier le projet"}
                       onClick={() => togglePublish(p.id)}
                       className={
-                        "relative h-6 w-11 rounded-full border transition-colors " +
+                        "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border p-0.5 transition-colors " +
                         (p.published
-                          ? "border-primary bg-primary/60"
+                          ? "border-primary/40 bg-primary/30"
                           : "border-white/15 bg-white/5")
                       }
                     >
                       <span
                         aria-hidden="true"
                         className={
-                          "absolute top-0.5 h-5 w-5 rounded-full bg-on-primary transition-transform " +
-                          (p.published ? "translate-x-5" : "translate-x-0.5")
+                          "block h-5 w-5 rounded-full shadow-sm transition-transform " +
+                          (p.published
+                            ? "translate-x-5 bg-primary"
+                            : "translate-x-0 bg-on-surface-variant/60")
                         }
                       />
                     </button>
+
                     <button
                       type="button"
                       onClick={() => openEdit(p)}
