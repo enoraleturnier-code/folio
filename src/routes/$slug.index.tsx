@@ -93,7 +93,7 @@ function ProfilePage() {
                   <span aria-hidden="true" className="material-symbols-outlined text-base">
                     lock
                   </span>
-                  <span className="text-sm font-bold uppercase tracking-wider">
+                  <span className="text-sm font-bold tracking-wider">
                     Accéder aux projets confidentiels
                   </span>
                 </button>
