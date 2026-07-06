@@ -95,7 +95,7 @@ function AdminSidebar({
     label: string;
     badge?: number;
   }[] = [
-    { key: "projets", icon: "grid_view", label: "Projets" },
+    { key: "projets", icon: "folder", label: "Projets" },
     {
       key: "demandes",
       icon: "vpn_key",
