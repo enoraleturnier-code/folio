@@ -59,7 +59,7 @@ function AdminPage() {
       <main
         className={
           "flex-1 pb-16 pt-[80px] transition-[margin] " +
-          (collapsed ? "ml-16 md:ml-20" : "ml-20 md:ml-24")
+          (collapsed ? "ml-16 md:ml-20" : "ml-20 md:ml-56")
         }
       >
         <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
