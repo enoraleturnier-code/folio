@@ -1,18 +1,17 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
-import { designer } from "@/data/designer";
+import { designerQueryOptions, useDesigner } from "@/hooks/useDesigner";
 import { projects } from "@/data/projects";
 import type { Project } from "@/data/types";
 
 export const Route = createFileRoute("/$slug/projects/")({
-  loader: ({ params }) => {
-    if (params.slug !== designer.slug) throw notFound();
-    return { designer };
+  loader: ({ params, context }) => {
+    context.queryClient.prefetchQuery(designerQueryOptions(params.slug));
   },
   component: CataloguePage,
 });
@@ -22,6 +21,8 @@ function uniq(xs: string[]) {
 }
 
 function CataloguePage() {
+  const { slug } = Route.useParams();
+  const { isLoading } = useDesigner(slug);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [filters, setFilters] = useState<FilterState>({
@@ -74,23 +75,35 @@ function CataloguePage() {
           </p>
         </header>
 
-        <FilterBar options={options} value={filters} onChange={setFilters} />
-
-        <div className="mt-10">
-          <p className="mb-6 text-xs font-medium uppercase tracking-widest text-on-surface-variant">
-            {filtered.length} projet{filtered.length > 1 ? "s" : ""}
-          </p>
+        {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p, i) => (
-              <ProjectCard key={p.id} project={p} index={i} onRequestAccess={openRequest} />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-[360px] animate-pulse rounded-2xl border border-white/5 bg-surface-container-low"
+              />
             ))}
           </div>
-          {filtered.length === 0 && (
-            <p className="rounded-2xl border border-white/5 bg-surface-container-low p-10 text-center text-sm text-on-surface-variant">
-              Aucun projet ne correspond à ce filtre.
-            </p>
-          )}
-        </div>
+        ) : (
+          <>
+            <FilterBar options={options} value={filters} onChange={setFilters} />
+            <div className="mt-10">
+              <p className="mb-6 text-xs font-medium uppercase tracking-widest text-on-surface-variant">
+                {filtered.length} projet{filtered.length > 1 ? "s" : ""}
+              </p>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filtered.map((p, i) => (
+                  <ProjectCard key={p.id} project={p} index={i} onRequestAccess={openRequest} />
+                ))}
+              </div>
+              {filtered.length === 0 && (
+                <p className="rounded-2xl border border-white/5 bg-surface-container-low p-10 text-center text-sm text-on-surface-variant">
+                  Aucun projet ne correspond à ce filtre.
+                </p>
+              )}
+            </div>
+          </>
+        )}
       </main>
       <AccessRequestModal
         open={modalOpen}

@@ -1,7 +1,8 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
-import { designer } from "@/data/designer";
+import { DesignerInlineSkeleton } from "./DesignerSkeleton";
+import { DEFAULT_DESIGNER_SLUG, useDesigner } from "@/hooks/useDesigner";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type HeaderRole = "anon" | "visitor" | "admin";
@@ -14,6 +15,16 @@ export function Header({ role }: HeaderProps) {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
   const showVisitorNav = role === "visitor";
+  const params = useParams({ strict: false }) as { slug?: string };
+  const slug = params.slug ?? DEFAULT_DESIGNER_SLUG;
+  const { data: designer, isLoading } = useDesigner(slug);
+
+  const initials =
+    designer?.fullName
+      .split(" ")
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("") ?? "";
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
@@ -23,7 +34,7 @@ export function Header({ role }: HeaderProps) {
             <>
               <Link
                 to="/$slug"
-                params={{ slug: designer.slug }}
+                params={{ slug }}
                 className="text-2xl font-medium tracking-tight text-on-surface"
               >
                 Folio<span className="text-primary">+</span>
@@ -32,38 +43,22 @@ export function Header({ role }: HeaderProps) {
             </>
           )}
           <span className="whitespace-nowrap text-sm font-medium text-on-surface md:text-base">
-            {designer.fullName}
+            {isLoading || !designer ? <DesignerInlineSkeleton /> : designer.fullName}
           </span>
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
           {showVisitorNav && (
             <nav className="hidden items-center gap-6 md:flex">
-              <VisitorLink
-                to="/$slug"
-                params={{ slug: designer.slug }}
-                label="Profil"
-              />
-              <VisitorLink
-                to="/$slug/projects"
-                params={{ slug: designer.slug }}
-                label="Projets"
-              />
+              <VisitorLink to="/$slug" params={{ slug }} label="Profil" />
+              <VisitorLink to="/$slug/projects" params={{ slug }} label="Projets" />
             </nav>
           )}
 
           {role === "admin" && (
             <nav className="hidden items-center gap-6 md:flex">
-              <VisitorLink
-                to="/$slug"
-                params={{ slug: designer.slug }}
-                label="Profil"
-              />
-              <VisitorLink
-                to="/$slug/projects"
-                params={{ slug: designer.slug }}
-                label="Projets"
-              />
+              <VisitorLink to="/$slug" params={{ slug }} label="Profil" />
+              <VisitorLink to="/$slug/projects" params={{ slug }} label="Projets" />
             </nav>
           )}
 
@@ -87,7 +82,7 @@ export function Header({ role }: HeaderProps) {
             </a>
           )}
 
-          {role === "admin" && <AdminAccountMenu />}
+          {role === "admin" && <AdminAccountMenu initials={initials} />}
         </div>
       </div>
     </header>
@@ -116,7 +111,7 @@ function VisitorLink({
   );
 }
 
-function AdminAccountMenu() {
+function AdminAccountMenu({ initials }: { initials: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -146,7 +141,7 @@ function AdminAccountMenu() {
         className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <span className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/30 bg-primary/20 text-[10px] font-bold text-primary">
-          LM
+          {initials || "…"}
         </span>
         Mon compte
         <span aria-hidden="true" className="material-symbols-outlined text-sm">
