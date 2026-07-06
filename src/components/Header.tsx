@@ -49,12 +49,6 @@ export function Header({ role }: HeaderProps) {
                 params={{ slug: designer.slug }}
                 label="Projets"
               />
-              <a
-                href="#contact"
-                className="text-sm font-medium text-on-surface-variant transition-colors hover:text-primary"
-              >
-                Contact
-              </a>
             </nav>
           )}
 
