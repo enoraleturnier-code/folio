@@ -19,14 +19,18 @@ export function Header({ role }: HeaderProps) {
     <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 md:px-16">
         <div className="flex items-center gap-4 md:gap-6">
-          <Link
-            to={isAdminRoute ? "/admin" : "/$slug"}
-            params={isAdminRoute ? undefined : { slug: designer.slug }}
-            className="text-2xl font-medium tracking-tight text-on-surface"
-          >
-            Folio<span className="text-primary">+</span>
-          </Link>
-          <div className="h-3.5 w-px bg-white/15" />
+          {!isAdminRoute && (
+            <>
+              <Link
+                to="/$slug"
+                params={{ slug: designer.slug }}
+                className="text-2xl font-medium tracking-tight text-on-surface"
+              >
+                Folio<span className="text-primary">+</span>
+              </Link>
+              <div className="h-3.5 w-px bg-white/15" />
+            </>
+          )}
           <span className="whitespace-nowrap text-sm font-medium text-on-surface md:text-base">
             {designer.fullName}
           </span>
@@ -35,7 +39,11 @@ export function Header({ role }: HeaderProps) {
         <div className="flex items-center gap-3 md:gap-6">
           {showVisitorNav && (
             <nav className="hidden items-center gap-6 md:flex">
-              
+              <VisitorLink
+                to="/$slug"
+                params={{ slug: designer.slug }}
+                label="Profil"
+              />
               <VisitorLink
                 to="/$slug/projects"
                 params={{ slug: designer.slug }}
@@ -47,6 +55,21 @@ export function Header({ role }: HeaderProps) {
               >
                 Contact
               </a>
+            </nav>
+          )}
+
+          {role === "admin" && (
+            <nav className="hidden items-center gap-6 md:flex">
+              <VisitorLink
+                to="/$slug"
+                params={{ slug: designer.slug }}
+                label="Profil"
+              />
+              <VisitorLink
+                to="/$slug/projects"
+                params={{ slug: designer.slug }}
+                label="Projets"
+              />
             </nav>
           )}
 
