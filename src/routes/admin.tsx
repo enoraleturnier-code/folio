@@ -37,23 +37,38 @@ function AdminPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const tab: TabKey = search.tab;
+  const [collapsed, setCollapsed] = useState(false);
 
   const setTab = (t: TabKey) => navigate({ search: { tab: t } });
+
+  const pendingCount = useMemo(
+    () => seedRequests.filter((r) => r.status === "pending").length,
+    [],
+  );
 
   return (
     <div className="relative min-h-screen bg-background">
       <Header role="admin" />
-      <div className="flex pt-20">
-        <AdminSidebar tab={tab} setTab={setTab} />
-        <main className="flex-1 px-6 pb-16 pt-10 md:px-12">
-          <div className="mx-auto max-w-6xl">
-            {tab === "projets" && <ProjetsTab />}
-            {tab === "demandes" && <DemandesTab />}
-            {tab === "contacts" && <ContactsTab />}
-            {tab === "parametres" && <ParametresTab />}
-          </div>
-        </main>
-      </div>
+      <AdminSidebar
+        tab={tab}
+        setTab={setTab}
+        collapsed={collapsed}
+        onToggleCollapsed={() => setCollapsed((v) => !v)}
+        pendingCount={pendingCount}
+      />
+      <main
+        className={
+          "flex-1 pb-16 pt-[80px] transition-[margin] " +
+          (collapsed ? "ml-16 md:ml-20" : "ml-20 md:ml-24")
+        }
+      >
+        <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
+          {tab === "projets" && <ProjetsTab />}
+          {tab === "demandes" && <DemandesTab />}
+          {tab === "contacts" && <ContactsTab />}
+          {tab === "parametres" && <ParametresTab />}
+        </div>
+      </main>
       <Footer />
     </div>
   );
@@ -61,16 +76,79 @@ function AdminPage() {
 
 /* ---------- Sidebar ---------- */
 
-function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
-  const items: { key: TabKey; icon: string; label: string }[] = [
+function AdminSidebar({
+  tab,
+  setTab,
+  collapsed,
+  onToggleCollapsed,
+  pendingCount,
+}: {
+  tab: TabKey;
+  setTab: (t: TabKey) => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  pendingCount: number;
+}) {
+  const items: {
+    key: TabKey;
+    icon: string;
+    label: string;
+    badge?: number;
+  }[] = [
     { key: "projets", icon: "grid_view", label: "Projets" },
-    { key: "demandes", icon: "lock_open", label: "Demandes d'accès" },
-    { key: "contacts", icon: "mail", label: "Contacts" },
-    { key: "parametres", icon: "settings", label: "Paramètres" },
+    {
+      key: "demandes",
+      icon: "vpn_key",
+      label: "Accès et Clés",
+      badge: pendingCount,
+    },
+    { key: "contacts", icon: "mail", label: "Messages" },
+    { key: "parametres", icon: "settings", label: "Paramètres système" },
   ];
   return (
-    <aside className="sticky top-20 hidden h-[calc(100vh-5rem)] w-24 shrink-0 border-r border-white/5 md:block">
-      <nav className="flex flex-col items-center gap-2 py-8">
+    <aside
+      className={
+        "fixed left-0 top-0 z-[70] flex h-screen flex-col items-center border-r border-white/5 bg-background py-10 transition-[width] " +
+        (collapsed ? "w-16 md:w-20" : "w-20 md:w-24")
+      }
+    >
+      <Link
+        to="/admin"
+        className="text-2xl font-black tracking-tighter text-primary"
+        aria-label="Folio+ — Accéder au dashboard"
+      >
+        F<span className="text-on-surface">+</span>
+      </Link>
+
+      <button
+        type="button"
+        onClick={onToggleCollapsed}
+        aria-label={collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"}
+        className="mt-8 flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <span aria-hidden="true" className="material-symbols-outlined text-base">
+          {collapsed ? "chevron_right" : "chevron_left"}
+        </span>
+      </button>
+
+      <div className="mt-6 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-bold text-primary">
+        {designer.fullName
+          .split(" ")
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join("")}
+      </div>
+
+      <nav className="mt-8 flex flex-col items-center gap-3">
+        <Link
+          to="/admin"
+          aria-label="Dashboard"
+          className="flex h-12 w-12 items-center justify-center rounded-xl text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined">
+            dashboard
+          </span>
+        </Link>
         {items.map((it) => {
           const active = tab === it.key;
           return (
@@ -78,10 +156,14 @@ function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => voi
               key={it.key}
               type="button"
               onClick={() => setTab(it.key)}
-              aria-label={it.label}
+              aria-label={
+                it.badge && it.badge > 0
+                  ? `${it.label} — ${it.badge} demandes en attente`
+                  : it.label
+              }
               aria-current={active ? "page" : undefined}
               className={
-                "flex h-12 w-12 items-center justify-center rounded-xl transition-colors " +
+                "relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
                 (active
                   ? "bg-primary/10 text-primary"
                   : "text-on-surface-variant/65 hover:text-on-surface")
@@ -90,6 +172,14 @@ function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => voi
               <span aria-hidden="true" className="material-symbols-outlined">
                 {it.icon}
               </span>
+              {it.badge && it.badge > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-on-surface"
+                >
+                  {it.badge}
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -97,6 +187,7 @@ function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => voi
     </aside>
   );
 }
+
 
 /* ---------- Projets Tab ---------- */
 
@@ -133,58 +224,72 @@ function ProjetsTab() {
 
   return (
     <>
-      <TabHeader
-        eyebrow="01 — Catalogue"
-        title="Vos"
-        emphasis="projets"
-        subtitle="Six entrées — publiez, éditez ou archivez sans jamais perdre l'historique."
-        cta={
-          <button
-            type="button"
-            onClick={openNew}
-            className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
-          >
-            + Créer un nouveau projet
-          </button>
-        }
-      />
+      <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
+        <h1 className="text-4xl font-bold text-on-surface md:text-[44px]">
+          Mon catalogue{" "}
+          <span className="font-display-accent italic text-primary">Projets</span>
+        </h1>
+        <button
+          type="button"
+          onClick={openNew}
+          className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-transform hover:scale-105"
+        >
+          + Créer un nouveau projet
+        </button>
+      </header>
 
-      <div className="mt-10 space-y-3">
+      <ul className="mt-10 space-y-6">
         {items.map((p, i) => {
           const deleted = p.status === "deleted";
+          const num = String(i + 1).padStart(2, "0");
+          const statusKind = deleted
+            ? "deleted"
+            : p.status === "public"
+              ? "public"
+              : p.status === "confidential"
+                ? "confidential"
+                : "draft";
+          const rowBorder =
+            statusKind === "public"
+              ? "border-primary/30"
+              : "border-white/5";
           return (
-            <div
+            <li
               key={p.id}
               className={
-                "flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5 md:flex-row md:items-center " +
+                "flex flex-col gap-4 rounded-2xl border bg-surface-container-low p-6 md:flex-row md:items-center " +
+                rowBorder +
+                " " +
                 (deleted ? "opacity-35" : "")
               }
             >
-              <div className="w-10 shrink-0 text-sm font-medium text-on-surface-variant">
-                {String(i + 1).padStart(2, "0")}
+              <div
+                className={
+                  "w-14 shrink-0 font-headline text-3xl font-medium " +
+                  (statusKind === "public"
+                    ? "text-primary"
+                    : "text-on-surface-variant opacity-90")
+                }
+              >
+                {num}.
               </div>
-              <img
-                src={p.cover}
-                alt=""
-                aria-hidden="true"
-                className="h-16 w-24 shrink-0 rounded-xl object-cover"
-              />
+
               <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-medium text-on-surface">{p.title}</p>
-                <p className="truncate text-sm text-on-surface-variant">{p.subtitle}</p>
-              </div>
-              <div className="shrink-0">
-                <StatusBadge
-                  kind={
-                    deleted
-                      ? "deleted"
-                      : p.status === "public"
-                        ? "public"
-                        : p.status === "confidential"
-                          ? "confidential"
-                          : "draft"
+                <h3
+                  className={
+                    "truncate text-xl font-bold text-on-surface " +
+                    (deleted ? "opacity-60" : "")
                   }
-                />
+                >
+                  {p.title}
+                </h3>
+                <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
+                  {deleted ? "Supprimé il y a 1 semaine" : p.period}
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                <StatusBadge kind={statusKind} />
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
@@ -192,8 +297,8 @@ function ProjetsTab() {
                   <button
                     type="button"
                     onClick={() => restore(p.id)}
-                    aria-label="Restaurer le projet"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
+                    aria-label={`Restaurer le projet ${p.title}`}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
                   >
                     <span aria-hidden="true" className="material-symbols-outlined text-base">
                       restore_from_trash
@@ -201,26 +306,6 @@ function ProjetsTab() {
                   </button>
                 ) : (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => openEdit(p)}
-                      aria-label={`Éditer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        edit
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(p.id)}
-                      aria-label={`Supprimer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-[#F87171]/30 text-[#F87171] hover:bg-[#F87171]/10"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        delete
-                      </span>
-                    </button>
                     <button
                       type="button"
                       role="switch"
@@ -242,13 +327,34 @@ function ProjetsTab() {
                         }
                       />
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => openEdit(p)}
+                      aria-label={`Éditer ${p.title}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-base">
+                        edit
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(p.id)}
+                      aria-label={`Supprimer ${p.title}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-base">
+                        delete
+                      </span>
+                    </button>
                   </>
                 )}
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
+
 
       <ProjectDrawer
         open={drawerOpen}
