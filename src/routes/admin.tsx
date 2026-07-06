@@ -224,58 +224,72 @@ function ProjetsTab() {
 
   return (
     <>
-      <TabHeader
-        eyebrow="01 — Catalogue"
-        title="Vos"
-        emphasis="projets"
-        subtitle="Six entrées — publiez, éditez ou archivez sans jamais perdre l'historique."
-        cta={
-          <button
-            type="button"
-            onClick={openNew}
-            className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
-          >
-            + Créer un nouveau projet
-          </button>
-        }
-      />
+      <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
+        <h1 className="text-4xl font-bold text-on-surface md:text-[44px]">
+          Mon catalogue{" "}
+          <span className="font-display-accent italic text-primary">Projets</span>
+        </h1>
+        <button
+          type="button"
+          onClick={openNew}
+          className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-transform hover:scale-105"
+        >
+          + Créer un nouveau projet
+        </button>
+      </header>
 
-      <div className="mt-10 space-y-3">
+      <ul className="mt-10 space-y-6">
         {items.map((p, i) => {
           const deleted = p.status === "deleted";
+          const num = String(i + 1).padStart(2, "0");
+          const statusKind = deleted
+            ? "deleted"
+            : p.status === "public"
+              ? "public"
+              : p.status === "confidential"
+                ? "confidential"
+                : "draft";
+          const rowBorder =
+            statusKind === "public"
+              ? "border-primary/30"
+              : "border-white/5";
           return (
-            <div
+            <li
               key={p.id}
               className={
-                "flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5 md:flex-row md:items-center " +
+                "flex flex-col gap-4 rounded-2xl border bg-surface-container-low p-6 md:flex-row md:items-center " +
+                rowBorder +
+                " " +
                 (deleted ? "opacity-35" : "")
               }
             >
-              <div className="w-10 shrink-0 text-sm font-medium text-on-surface-variant">
-                {String(i + 1).padStart(2, "0")}
+              <div
+                className={
+                  "w-14 shrink-0 font-headline text-3xl font-medium " +
+                  (statusKind === "public"
+                    ? "text-primary"
+                    : "text-on-surface-variant opacity-90")
+                }
+              >
+                {num}.
               </div>
-              <img
-                src={p.cover}
-                alt=""
-                aria-hidden="true"
-                className="h-16 w-24 shrink-0 rounded-xl object-cover"
-              />
+
               <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-medium text-on-surface">{p.title}</p>
-                <p className="truncate text-sm text-on-surface-variant">{p.subtitle}</p>
-              </div>
-              <div className="shrink-0">
-                <StatusBadge
-                  kind={
-                    deleted
-                      ? "deleted"
-                      : p.status === "public"
-                        ? "public"
-                        : p.status === "confidential"
-                          ? "confidential"
-                          : "draft"
+                <h3
+                  className={
+                    "truncate text-xl font-bold text-on-surface " +
+                    (deleted ? "opacity-60" : "")
                   }
-                />
+                >
+                  {p.title}
+                </h3>
+                <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
+                  {deleted ? "Supprimé il y a 1 semaine" : p.period}
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                <StatusBadge kind={statusKind} />
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
@@ -283,8 +297,8 @@ function ProjetsTab() {
                   <button
                     type="button"
                     onClick={() => restore(p.id)}
-                    aria-label="Restaurer le projet"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
+                    aria-label={`Restaurer le projet ${p.title}`}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
                   >
                     <span aria-hidden="true" className="material-symbols-outlined text-base">
                       restore_from_trash
@@ -292,26 +306,6 @@ function ProjetsTab() {
                   </button>
                 ) : (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => openEdit(p)}
-                      aria-label={`Éditer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        edit
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(p.id)}
-                      aria-label={`Supprimer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-[#F87171]/30 text-[#F87171] hover:bg-[#F87171]/10"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        delete
-                      </span>
-                    </button>
                     <button
                       type="button"
                       role="switch"
@@ -333,13 +327,34 @@ function ProjetsTab() {
                         }
                       />
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => openEdit(p)}
+                      aria-label={`Éditer ${p.title}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-base">
+                        edit
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(p.id)}
+                      aria-label={`Supprimer ${p.title}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-base">
+                        delete
+                      </span>
+                    </button>
                   </>
                 )}
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
+
 
       <ProjectDrawer
         open={drawerOpen}
