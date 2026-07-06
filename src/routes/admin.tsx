@@ -37,23 +37,38 @@ function AdminPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const tab: TabKey = search.tab;
+  const [collapsed, setCollapsed] = useState(false);
 
   const setTab = (t: TabKey) => navigate({ search: { tab: t } });
+
+  const pendingCount = useMemo(
+    () => seedRequests.filter((r) => r.status === "pending").length,
+    [],
+  );
 
   return (
     <div className="relative min-h-screen bg-background">
       <Header role="admin" />
-      <div className="flex pt-20">
-        <AdminSidebar tab={tab} setTab={setTab} />
-        <main className="flex-1 px-6 pb-16 pt-10 md:px-12">
-          <div className="mx-auto max-w-6xl">
-            {tab === "projets" && <ProjetsTab />}
-            {tab === "demandes" && <DemandesTab />}
-            {tab === "contacts" && <ContactsTab />}
-            {tab === "parametres" && <ParametresTab />}
-          </div>
-        </main>
-      </div>
+      <AdminSidebar
+        tab={tab}
+        setTab={setTab}
+        collapsed={collapsed}
+        onToggleCollapsed={() => setCollapsed((v) => !v)}
+        pendingCount={pendingCount}
+      />
+      <main
+        className={
+          "flex-1 pb-16 pt-[80px] transition-[margin] " +
+          (collapsed ? "ml-16 md:ml-20" : "ml-20 md:ml-24")
+        }
+      >
+        <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
+          {tab === "projets" && <ProjetsTab />}
+          {tab === "demandes" && <DemandesTab />}
+          {tab === "contacts" && <ContactsTab />}
+          {tab === "parametres" && <ParametresTab />}
+        </div>
+      </main>
       <Footer />
     </div>
   );
@@ -61,16 +76,79 @@ function AdminPage() {
 
 /* ---------- Sidebar ---------- */
 
-function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
-  const items: { key: TabKey; icon: string; label: string }[] = [
+function AdminSidebar({
+  tab,
+  setTab,
+  collapsed,
+  onToggleCollapsed,
+  pendingCount,
+}: {
+  tab: TabKey;
+  setTab: (t: TabKey) => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  pendingCount: number;
+}) {
+  const items: {
+    key: TabKey;
+    icon: string;
+    label: string;
+    badge?: number;
+  }[] = [
     { key: "projets", icon: "grid_view", label: "Projets" },
-    { key: "demandes", icon: "lock_open", label: "Demandes d'accès" },
-    { key: "contacts", icon: "mail", label: "Contacts" },
-    { key: "parametres", icon: "settings", label: "Paramètres" },
+    {
+      key: "demandes",
+      icon: "vpn_key",
+      label: "Accès et Clés",
+      badge: pendingCount,
+    },
+    { key: "contacts", icon: "mail", label: "Messages" },
+    { key: "parametres", icon: "settings", label: "Paramètres système" },
   ];
   return (
-    <aside className="sticky top-20 hidden h-[calc(100vh-5rem)] w-24 shrink-0 border-r border-white/5 md:block">
-      <nav className="flex flex-col items-center gap-2 py-8">
+    <aside
+      className={
+        "fixed left-0 top-0 z-[70] flex h-screen flex-col items-center border-r border-white/5 bg-background py-10 transition-[width] " +
+        (collapsed ? "w-16 md:w-20" : "w-20 md:w-24")
+      }
+    >
+      <Link
+        to="/admin"
+        className="text-2xl font-black tracking-tighter text-primary"
+        aria-label="Folio+ — Accéder au dashboard"
+      >
+        F<span className="text-on-surface">+</span>
+      </Link>
+
+      <button
+        type="button"
+        onClick={onToggleCollapsed}
+        aria-label={collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"}
+        className="mt-8 flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <span aria-hidden="true" className="material-symbols-outlined text-base">
+          {collapsed ? "chevron_right" : "chevron_left"}
+        </span>
+      </button>
+
+      <div className="mt-6 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-bold text-primary">
+        {designer.fullName
+          .split(" ")
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join("")}
+      </div>
+
+      <nav className="mt-8 flex flex-col items-center gap-3">
+        <Link
+          to="/admin"
+          aria-label="Dashboard"
+          className="flex h-12 w-12 items-center justify-center rounded-xl text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined">
+            dashboard
+          </span>
+        </Link>
         {items.map((it) => {
           const active = tab === it.key;
           return (
@@ -78,10 +156,14 @@ function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => voi
               key={it.key}
               type="button"
               onClick={() => setTab(it.key)}
-              aria-label={it.label}
+              aria-label={
+                it.badge && it.badge > 0
+                  ? `${it.label} — ${it.badge} demandes en attente`
+                  : it.label
+              }
               aria-current={active ? "page" : undefined}
               className={
-                "flex h-12 w-12 items-center justify-center rounded-xl transition-colors " +
+                "relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
                 (active
                   ? "bg-primary/10 text-primary"
                   : "text-on-surface-variant/65 hover:text-on-surface")
@@ -90,6 +172,14 @@ function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => voi
               <span aria-hidden="true" className="material-symbols-outlined">
                 {it.icon}
               </span>
+              {it.badge && it.badge > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-on-surface"
+                >
+                  {it.badge}
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -97,6 +187,7 @@ function AdminSidebar({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => voi
     </aside>
   );
 }
+
 
 /* ---------- Projets Tab ---------- */
 
