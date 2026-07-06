@@ -2,12 +2,12 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
-import { designerQueryOptions, useDesigner } from "@/hooks/useDesigner";
+import { designer } from "@/data/designer";
 import { projects } from "@/data/projects";
 
 export const Route = createFileRoute("/$slug/projects/$id")({
-  loader: ({ params, context }) => {
-    context.queryClient.prefetchQuery(designerQueryOptions(params.slug));
+  loader: ({ params }) => {
+    if (params.slug !== designer.slug) throw notFound();
     const project = projects.find((p) => p.id === params.id);
     if (!project || project.status === "deleted") throw notFound();
     return { project };
@@ -16,15 +16,13 @@ export const Route = createFileRoute("/$slug/projects/$id")({
 });
 
 function ProjectDetailPage() {
-  const { slug } = Route.useParams();
   const { project } = Route.useLoaderData();
-  const { data: designer } = useDesigner(slug);
 
   return (
     <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-28 md:px-16">
       <Link
         to="/$slug/projects"
-        params={{ slug }}
+        params={{ slug: designer.slug }}
         className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-background/60 px-4 py-2 text-xs font-medium text-on-surface hover:border-primary hover:text-primary"
       >
         <span aria-hidden="true" className="material-symbols-outlined text-base">
@@ -47,11 +45,6 @@ function ProjectDetailPage() {
             {project.title}
           </h1>
           <p className="mt-3 max-w-2xl text-lg text-on-surface-variant">{project.subtitle}</p>
-          {designer && (
-            <p className="mt-2 text-xs text-on-surface-variant/70">
-              Par {designer.fullName}
-            </p>
-          )}
         </div>
       </section>
 

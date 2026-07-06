@@ -1,6 +1,6 @@
-import { Link, useParams } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 
-import { DEFAULT_DESIGNER_SLUG } from "@/hooks/useDesigner";
+import { designer } from "@/data/designer";
 import type { Project } from "@/data/types";
 import { StatusBadge } from "./StatusBadge";
 import { TagBadge } from "./TagBadge";
@@ -15,8 +15,6 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, index, accessState = "none", onRequestAccess }: ProjectCardProps) {
-  const params = useParams({ strict: false }) as { slug?: string };
-  const slug = params.slug ?? DEFAULT_DESIGNER_SLUG;
   const isConfidential = project.sensitivity === "confidentielle";
   const isTeaser = isConfidential && accessState !== "granted";
 
@@ -70,7 +68,7 @@ export function ProjectCard({ project, index, accessState = "none", onRequestAcc
         <h3 className="text-lg font-medium text-on-surface">
           <Link
             to="/$slug/projects/$id"
-            params={{ slug, id: project.id }}
+            params={{ slug: designer.slug, id: project.id }}
             className="hover:text-primary transition-colors"
           >
             {project.title}

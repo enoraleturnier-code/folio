@@ -1,39 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { ContactForm } from "@/components/ContactForm";
-import { DesignerHeroSkeleton } from "@/components/DesignerSkeleton";
-import { designerQueryOptions, useDesigner } from "@/hooks/useDesigner";
+import { designer } from "@/data/designer";
 import { projects } from "@/data/projects";
 
 export const Route = createFileRoute("/$slug/")({
-  loader: ({ params, context }) => {
-    // Prefetch (no await) so the component can show a skeleton on first render.
-    context.queryClient.prefetchQuery(designerQueryOptions(params.slug));
+  loader: ({ params }) => {
+    if (params.slug !== designer.slug) throw notFound();
+    return { designer };
   },
   component: ProfilePage,
 });
 
 function ProfilePage() {
-  const { slug } = Route.useParams();
   const [modalOpen, setModalOpen] = useState(false);
-  const { data: designer, isLoading } = useDesigner(slug);
   const hasConfidential = projects.some(
     (p) => p.sensitivity === "confidentielle" && p.status !== "deleted",
   );
-
-  if (isLoading || !designer) {
-    return (
-      <>
-        <AuroraBackground />
-        <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
-          <DesignerHeroSkeleton />
-        </main>
-      </>
-    );
-  }
 
   return (
     <>
@@ -135,11 +121,13 @@ function ProfilePage() {
             <div className="mt-2 h-px w-8 bg-secondary/20" />
           </div>
 
+          {/* Contact form */}
           <div className="rounded-[32px] border border-white/10 bg-surface-container-low p-8 backdrop-blur-md lg:col-span-5 md:p-12">
             <h2 className="mb-8 text-4xl font-medium text-on-surface">Collaborons ensemble</h2>
             <ContactForm />
           </div>
 
+          {/* Calendar widget */}
           <div className="flex min-h-[500px] flex-col overflow-hidden rounded-[32px] border border-white/10 bg-surface-container-low backdrop-blur-md lg:col-span-6">
             <div className="border-b border-white/5 p-8 md:p-12">
               <h2 className="mb-4 text-4xl font-medium text-on-surface">Réserver un créneau</h2>
