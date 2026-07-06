@@ -96,11 +96,11 @@ function AdminSidebar({
     label: string;
     badge?: number;
   }[] = [
-    { key: "projets", icon: "folder", label: "Projets" },
+    { key: "projets", icon: "folder", label: "Catalogue projets" },
     {
       key: "demandes",
       icon: "vpn_key",
-      label: "Accès et Clés",
+      label: "Accès",
       badge: pendingCount,
     },
     { key: "contacts", icon: "mail", label: "Messages" },
