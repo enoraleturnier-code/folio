@@ -10,15 +10,10 @@ import { ProjectDrawer } from "@/components/ProjectDrawer";
 import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
 import { contactMessages as seedContacts } from "@/data/contacts";
-import { projects as seedProjects } from "@/data/projects";
+import { getProjects, restoreProject, softDeleteProject } from "@/data/projects";
 import { accessRequests as seedRequests } from "@/data/requests";
-import type {
-  ContactMessage,
-  ContactStatus,
-  Project,
-  AccessRequest,
-  RequestStatus,
-} from "@/data/types";
+import type { AccessRequest, ContactMessage, ContactStatus, RequestStatus } from "@/data/types";
+import type { Project } from "@/types/project";
 
 const searchSchema = z.object({
   tab: z
@@ -38,27 +33,49 @@ function AdminPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const routerNavigate = useNavigate();
-  const { session, loading } = useAuth();
+  const { session, loading, role, roleLoading } = useAuth();
   const tab: TabKey = search.tab;
   const [collapsed, setCollapsed] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !session) {
+    if (loading || roleLoading) return;
+    if (!session) {
       routerNavigate({ to: "/auth" });
+      return;
     }
-  }, [loading, session, routerNavigate]);
+    if (role !== "admin") {
+      routerNavigate({ to: "/" });
+    }
+  }, [loading, roleLoading, session, role, routerNavigate]);
 
-  if (loading || !session) {
-    return <div className="min-h-screen bg-background" />;
-  }
-
-
-  const setTab = (t: TabKey) => navigate({ search: { tab: t } });
+  useEffect(() => {
+    if (loading || roleLoading || !session || role !== "admin") return;
+    let cancelled = false;
+    setProjectsLoading(true);
+    getProjects()
+      .then((data) => {
+        if (!cancelled) setProjects(data);
+      })
+      .finally(() => {
+        if (!cancelled) setProjectsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, roleLoading, session, role]);
 
   const pendingCount = useMemo(
     () => seedRequests.filter((r) => r.status === "pending").length,
     [],
   );
+
+  if (loading || roleLoading || !session || role !== "admin") {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  const setTab = (t: TabKey) => navigate({ search: { tab: t } });
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -77,8 +94,14 @@ function AdminPage() {
         }
       >
         <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
-          {tab === "dashboard" && <DashboardTab setTab={setTab} />}
-          {tab === "projets" && <ProjetsTab />}
+          {tab === "dashboard" && <DashboardTab setTab={setTab} projects={projects} />}
+          {tab === "projets" && (
+            <ProjetsTab
+              projects={projects}
+              loading={projectsLoading}
+              onProjectsChange={setProjects}
+            />
+          )}
           {tab === "demandes" && <DemandesTab />}
           {tab === "contacts" && <ContactsTab />}
           {tab === "parametres" && <ParametresTab />}
@@ -118,7 +141,7 @@ function AdminSidebar({
       badge: pendingCount,
     },
     { key: "contacts", icon: "mail", label: "Messages" },
-    { key: "parametres", icon: "settings", label: "Paramètres\u00a0" },
+    { key: "parametres", icon: "settings", label: "Paramètres " },
   ];
   return (
     <aside
@@ -251,11 +274,14 @@ function AdminSidebar({
 }
 /* ---------- Dashboard Tab ---------- */
 
-function DashboardTab({ setTab }: { setTab: (t: TabKey) => void }) {
+function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; projects: Project[] }) {
   const pendingRequests = seedRequests.filter((r) => r.status === "pending");
   const newMessages = seedContacts.filter((c) => c.status === "nouveau");
-  const publishedProjects = seedProjects.filter((p) => p.published);
-  const draftProjects = seedProjects.filter((p) => p.status === "draft");
+  const activeProjects = projects.filter((p) => !p.deleted_at);
+  const publishedProjects = activeProjects.filter(
+    (p) => p.status === "public" || p.status === "confidential",
+  );
+  const draftProjects = activeProjects.filter((p) => p.status === "draft");
 
   return (
     <>
@@ -273,7 +299,7 @@ function DashboardTab({ setTab }: { setTab: (t: TabKey) => void }) {
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
           <span className="material-symbols-outlined text-2xl text-primary">folder</span>
-          <span className="mt-4 text-3xl font-bold text-on-surface">{seedProjects.length}</span>
+          <span className="mt-4 text-3xl font-bold text-on-surface">{activeProjects.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Projets</span>
           <span className="mt-2 text-xs text-primary">{publishedProjects.length} publiés · {draftProjects.length} brouillon</span>
         </button>
@@ -361,11 +387,26 @@ function DashboardTab({ setTab }: { setTab: (t: TabKey) => void }) {
 
 /* ---------- Projets Tab ---------- */
 
-function ProjetsTab() {
-  const [items, setItems] = useState<Project[]>(seedProjects);
+function formatPeriod(start: string | null, end: string | null): string {
+  const startYear = start ? new Date(start).getFullYear() : null;
+  const endYear = end ? new Date(end).getFullYear() : null;
+  if (startYear && endYear && startYear !== endYear) return `${startYear} — ${endYear}`;
+  return String(startYear ?? endYear ?? "");
+}
+
+function ProjetsTab({
+  projects,
+  loading,
+  onProjectsChange,
+}: {
+  projects: Project[];
+  loading: boolean;
+  onProjectsChange: (projects: Project[]) => void;
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const openNew = () => {
     setEditing(null);
@@ -375,22 +416,42 @@ function ProjetsTab() {
     setEditing(p);
     setDrawerOpen(true);
   };
+
+  // TODO: no createProject()/updateProject() yet (only updateProjectStatus,
+  // softDeleteProject, restoreProject were built), and ProjectDrawer itself
+  // isn't migrated yet — creating a project or editing its fields here only
+  // updates local state, it does not persist to Supabase. Only soft-delete
+  // and restore below are real writes.
   const save = (p: Project) => {
-    setItems((xs) => {
-      const idx = xs.findIndex((x) => x.id === p.id);
-      if (idx === -1) return [...xs, p];
-      const next = [...xs];
-      next[idx] = p;
-      return next;
-    });
+    onProjectsChange(
+      projects.some((x) => x.id === p.id)
+        ? projects.map((x) => (x.id === p.id ? p : x))
+        : [...projects, p],
+    );
     setDrawerOpen(false);
   };
-  const softDelete = (id: string) =>
-    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, status: "deleted", published: false } : x)));
-  const restore = (id: string) =>
-    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, status: "draft" } : x)));
-  const togglePublish = (id: string) =>
-    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, published: !x.published } : x)));
+
+  const softDelete = async (id: string) => {
+    setBusyId(id);
+    try {
+      await softDeleteProject(id);
+      onProjectsChange(
+        projects.map((x) => (x.id === id ? { ...x, deleted_at: new Date().toISOString() } : x)),
+      );
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const restore = async (id: string) => {
+    setBusyId(id);
+    try {
+      await restoreProject(id);
+      onProjectsChange(projects.map((x) => (x.id === id ? { ...x, deleted_at: null } : x)));
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return (
     <>
@@ -408,125 +469,104 @@ function ProjetsTab() {
         </button>
       </header>
 
-      <ul className="mt-10 space-y-6">
-        {items.map((p, i) => {
-          const deleted = p.status === "deleted";
-          const num = String(i + 1).padStart(2, "0");
-          const statusKind = deleted
-            ? "deleted"
-            : p.status === "public"
-              ? "public"
-              : p.status === "confidential"
-                ? "confidential"
-                : "draft";
-          const rowBorder = p.published
-            ? "border-primary/30"
-            : "border-white/5";
-          return (
-            <li
-              key={p.id}
-              className={
-                "flex flex-col gap-4 rounded-2xl border bg-surface-container-low p-6 md:flex-row md:items-center " +
-                rowBorder +
-                " " +
-                (deleted ? "opacity-35" : "")
-              }
-            >
-              <div
+      {loading ? (
+        <p className="mt-10 text-sm text-on-surface-variant">Chargement des projets…</p>
+      ) : (
+        <ul className="mt-10 space-y-6">
+          {projects.map((p, i) => {
+            const deleted = Boolean(p.deleted_at);
+            const num = String(i + 1).padStart(2, "0");
+            const statusKind = deleted
+              ? "deleted"
+              : p.status === "public"
+                ? "public"
+                : p.status === "confidential"
+                  ? "confidential"
+                  : "draft";
+            const published = p.status === "public" || p.status === "confidential";
+            const rowBorder = published ? "border-primary/30" : "border-white/5";
+            return (
+              <li
+                key={p.id}
                 className={
-                  "w-14 shrink-0 font-headline text-3xl font-medium " +
-                  (p.published
-                    ? "text-primary"
-                    : "text-on-surface-variant opacity-90")
+                  "flex flex-col gap-4 rounded-2xl border bg-surface-container-low p-6 md:flex-row md:items-center " +
+                  rowBorder +
+                  " " +
+                  (deleted ? "opacity-35" : "")
                 }
               >
-                {num}.
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <h3
+                <div
                   className={
-                    "truncate text-xl font-bold text-on-surface " +
-                    (deleted ? "opacity-60" : "")
+                    "w-14 shrink-0 font-headline text-3xl font-medium " +
+                    (published ? "text-primary" : "text-on-surface-variant opacity-90")
                   }
                 >
-                  {p.title}
-                </h3>
-                <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
-                  {deleted ? "Supprimé il y a 1 semaine" : p.period}
-                </p>
-              </div>
+                  {num}.
+                </div>
 
-              <div className="shrink-0">
-                <StatusBadge kind={statusKind} />
-              </div>
-
-              <div className="flex shrink-0 items-center gap-2">
-                {deleted ? (
-                  <button
-                    type="button"
-                    onClick={() => restore(p.id)}
-                    aria-label={`Restaurer le projet ${p.title}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
+                <div className="min-w-0 flex-1">
+                  <h3
+                    className={
+                      "truncate text-xl font-bold text-on-surface " + (deleted ? "opacity-60" : "")
+                    }
                   >
-                    <span aria-hidden="true" className="material-symbols-outlined text-base">
-                      restore_from_trash
-                    </span>
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={p.published}
-                      aria-label={p.published ? "Dépublier le projet" : "Publier le projet"}
-                      onClick={() => togglePublish(p.id)}
-                      className={
-                        "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border p-0.5 transition-colors " +
-                        (p.published
-                          ? "border-primary/40 bg-primary/30"
-                          : "border-white/15 bg-white/5")
-                      }
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={
-                          "block h-5 w-5 rounded-full shadow-sm transition-transform " +
-                          (p.published
-                            ? "translate-x-5 bg-primary"
-                            : "translate-x-0 bg-on-surface-variant/60")
-                        }
-                      />
-                    </button>
+                    {p.title}
+                  </h3>
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
+                    {deleted && p.deleted_at
+                      ? `Supprimé le ${new Date(p.deleted_at).toLocaleDateString("fr-FR")}`
+                      : formatPeriod(p.start_date, p.end_date)}
+                  </p>
+                </div>
 
+                <div className="shrink-0">
+                  <StatusBadge kind={statusKind} />
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  {deleted ? (
                     <button
                       type="button"
-                      onClick={() => openEdit(p)}
-                      aria-label={`Éditer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
+                      onClick={() => restore(p.id)}
+                      disabled={busyId === p.id}
+                      aria-label={`Restaurer le projet ${p.title}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
                     >
                       <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        edit
+                        restore_from_trash
                       </span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(p.id)}
-                      aria-label={`Supprimer ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        delete
-                      </span>
-                    </button>
-                  </>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => openEdit(p)}
+                        aria-label={`Éditer ${p.title}`}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-base">
+                          edit
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete(p.id)}
+                        disabled={busyId === p.id}
+                        aria-label={`Supprimer ${p.title}`}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50"
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-base">
+                          delete
+                        </span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       <ProjectDrawer
         open={drawerOpen}
@@ -545,7 +585,7 @@ function ProjetsTab() {
           <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
             <h3 className="text-lg font-medium text-on-surface">Supprimer ce projet ?</h3>
             <p className="mt-2 text-sm text-on-surface-variant">
-              Le projet passera en statut « Supprimé ». Vous pourrez le restaurer plus tard.
+              Le projet sera masqué du catalogue public. Vous pourrez le restaurer plus tard.
             </p>
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
@@ -558,8 +598,9 @@ function ProjetsTab() {
               <button
                 type="button"
                 onClick={() => {
-                  softDelete(confirmDelete);
+                  const id = confirmDelete;
                   setConfirmDelete(null);
+                  softDelete(id);
                 }}
                 className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-6 py-2.5 text-sm font-bold text-[#F87171]"
               >

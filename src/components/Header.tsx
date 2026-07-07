@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { initials } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const location = useLocation();
-  const { session } = useAuth();
+  const { session, role, roleLoading, fullName } = useAuth();
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const isAdmin = !!session;
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
@@ -34,49 +34,26 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
-          {!isAdmin && (
-            <nav className="hidden items-center gap-6 md:flex">
-              <VisitorLink
-                to="/$slug"
-                params={{ slug: designer.slug }}
-                label="Profil"
-              />
-              <VisitorLink
-                to="/$slug/projects"
-                params={{ slug: designer.slug }}
-                label="Projets"
-              />
-            </nav>
-          )}
-
-          {isAdmin && (
-            <nav className="hidden items-center gap-6 md:flex">
-              <VisitorLink
-                to="/$slug"
-                params={{ slug: designer.slug }}
-                label="Profil"
-              />
-              <VisitorLink
-                to="/$slug/projects"
-                params={{ slug: designer.slug }}
-                label="Projets"
-              />
-            </nav>
-          )}
+          <nav className="hidden items-center gap-6 md:flex">
+            <VisitorLink to="/$slug" params={{ slug: designer.slug }} label="Profil" />
+            <VisitorLink to="/$slug/projects" params={{ slug: designer.slug }} label="Projets" />
+          </nav>
 
           <ThemeToggle />
 
-          {!isAdmin && (
+          {!session && (
             <Link
               to="/auth"
               aria-label="Se connecter"
-              className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary"
+              className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-on-surface transition-colors hover:border-primary"
             >
               Se connecter
             </Link>
           )}
 
-          {isAdmin && <AdminAccountMenu />}
+          {session && (
+            <AccountMenu fullName={fullName} role={role} roleLoading={roleLoading} />
+          )}
         </div>
       </div>
     </header>
@@ -105,15 +82,24 @@ function VisitorLink({
   );
 }
 
-function AdminAccountMenu() {
+function AccountMenu({
+  fullName,
+  role,
+  roleLoading,
+}: {
+  fullName: string | null;
+  role: string | null;
+  roleLoading: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const isAdmin = role === "admin";
 
   const handleSignOut = async () => {
     setOpen(false);
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/", replace: true });
   };
 
   useEffect(() => {
@@ -142,10 +128,17 @@ function AdminAccountMenu() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/20 text-xs font-bold text-primary">
-          LM
+        <span
+          className={
+            "flex items-center justify-center rounded-full font-bold text-primary " +
+            (isAdmin
+              ? "h-6 w-6 border border-primary/30 bg-primary/20 text-[10px]"
+              : "h-8 w-8 bg-primary/10 text-xs")
+          }
+        >
+          {fullName ? initials(fullName) : "?"}
         </span>
-        Mon compte
+        {fullName ?? "Mon compte"}
         <span aria-hidden="true" className="material-symbols-outlined text-sm">
           expand_more
         </span>
@@ -158,38 +151,42 @@ function AdminAccountMenu() {
           className="absolute right-0 z-[80] mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-surface-container-low shadow-2xl"
         >
           <div className="flex flex-col py-2">
-            <Link
-              to="/admin"
-              role="menuitem"
-              aria-label="Accéder au dashboard"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
-            >
-              <span aria-hidden="true" className="material-symbols-outlined text-base text-on-surface-variant">
-                dashboard
-              </span>
-              Accéder au dashboard
-            </Link>
-            <Link
-              to="/admin"
-              search={{ tab: "parametres" }}
-              role="menuitem"
-              aria-label="Paramètres"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
-            >
-              <span aria-hidden="true" className="material-symbols-outlined text-base text-on-surface-variant">
-                settings
-              </span>
-              Paramètres
-            </Link>
+            {!roleLoading && isAdmin && (
+              <Link
+                to="/admin"
+                search={{ tab: "parametres" }}
+                role="menuitem"
+                aria-label="Paramètres"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+              >
+                <span aria-hidden="true" className="material-symbols-outlined text-base text-on-surface-variant">
+                  settings
+                </span>
+                Paramètres
+              </Link>
+            )}
+            {!roleLoading && (role === "pending" || role === "validated_visitor") && (
+              <Link
+                to="/account"
+                role="menuitem"
+                aria-label="Mon profil"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+              >
+                <span aria-hidden="true" className="material-symbols-outlined text-base text-on-surface-variant">
+                  person
+                </span>
+                Mon profil
+              </Link>
+            )}
             <div className="my-1 border-t border-white/8" />
             <button
               type="button"
               role="menuitem"
               aria-label="Se déconnecter"
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-[#F87171] transition-colors hover:bg-[#F87171]/10"
+              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary/10"
             >
               <span aria-hidden="true" className="material-symbols-outlined text-base">
                 logout

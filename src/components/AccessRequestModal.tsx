@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { projects as allProjects } from "@/data/projects";
-import type { Project } from "@/data/types";
+import { getProjects } from "@/data/projects";
+import type { Project } from "@/types/project";
 
 interface AccessRequestModalProps {
   open: boolean;
@@ -11,6 +11,12 @@ interface AccessRequestModalProps {
 
 export function AccessRequestModal({ open, onClose, initialProject }: AccessRequestModalProps) {
   const [submitted, setSubmitted] = useState(false);
+  // Populated via projects_catalog_view, which anon/pending can now read for
+  // status='confidential' rows (see projects_select_unified migration) —
+  // limited to the view's non-sensitive columns (title, company_name, etc.),
+  // never long_desc/ai_structured_desc/client_name/team. Visitors whose
+  // access request was rejected intentionally still see an empty picker.
+  const [confidentialProjects, setConfidentialProjects] = useState<Project[]>([]);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -27,6 +33,9 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
         ...f,
         projectIds: initialProject ? [initialProject.id] : [],
       }));
+      getProjects()
+        .then((all) => setConfidentialProjects(all.filter((p) => p.status === "confidential")))
+        .catch(() => setConfidentialProjects([]));
     }
   }, [open, initialProject]);
 
@@ -38,10 +47,6 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
   }, [open, onClose]);
 
   if (!open) return null;
-
-  const confidentialProjects = allProjects.filter(
-    (p) => p.sensitivity === "confidentielle" && p.status !== "deleted",
-  );
 
   const toggleProject = (id: string) =>
     setForm((f) => ({

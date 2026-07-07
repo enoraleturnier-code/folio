@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { Project, ProjectStatus, Sensitivity } from "@/data/types";
+import type { Project, ProjectStatus, SensitivityLevel } from "@/types/project";
 
 interface ProjectDrawerProps {
   open: boolean;
@@ -11,23 +11,24 @@ interface ProjectDrawerProps {
 
 const emptyProject: Project = {
   id: "",
-  slug: "",
   title: "",
-  subtitle: "",
-  cover: "",
-  gallery: [],
+  short_desc: "",
+  long_desc: null,
+  ai_structured_desc: { probleme: "", decisions: "", resultat: "" },
+  thumbnail_url: null,
   status: "draft",
-  sensitivity: "publique",
-  published: false,
-  company: "",
-  client: "",
+  sensitivity_level: "sensible",
+  secteur_activite: null,
+  client_name: "",
+  company_name: "",
   role: "",
   team: "",
-  period: "",
-  problem: "",
-  decisions: "",
-  result: "",
-  tags: { designType: [], sector: [], tools: [], keywords: [] },
+  start_date: "",
+  end_date: "",
+  deleted_at: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  tags: { tools: [], keywords: [], types: [] },
 };
 
 export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerProps) {
@@ -104,8 +105,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             </label>
             <input
               id="pd-subtitle"
-              value={draft.subtitle}
-              onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
+              value={draft.short_desc ?? ""}
+              onChange={(e) => setDraft({ ...draft, short_desc: e.target.value })}
               className={inputCls + " mt-2"}
             />
           </div>
@@ -117,8 +118,13 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <textarea
               id="pd-problem"
               rows={3}
-              value={draft.problem}
-              onChange={(e) => setDraft({ ...draft, problem: e.target.value })}
+              value={draft.ai_structured_desc?.probleme ?? ""}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  ai_structured_desc: { ...draft.ai_structured_desc, probleme: e.target.value },
+                })
+              }
               className={inputCls + " mt-2 resize-y"}
             />
           </div>
@@ -129,8 +135,13 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <textarea
               id="pd-decisions"
               rows={3}
-              value={draft.decisions}
-              onChange={(e) => setDraft({ ...draft, decisions: e.target.value })}
+              value={draft.ai_structured_desc?.decisions ?? ""}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  ai_structured_desc: { ...draft.ai_structured_desc, decisions: e.target.value },
+                })
+              }
               className={inputCls + " mt-2 resize-y"}
             />
           </div>
@@ -141,8 +152,13 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <textarea
               id="pd-result"
               rows={3}
-              value={draft.result}
-              onChange={(e) => setDraft({ ...draft, result: e.target.value })}
+              value={draft.ai_structured_desc?.resultat ?? ""}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  ai_structured_desc: { ...draft.ai_structured_desc, resultat: e.target.value },
+                })
+              }
               className={inputCls + " mt-2 resize-y"}
             />
           </div>
@@ -183,14 +199,14 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </label>
               <select
                 id="pd-sensitivity"
-                value={draft.sensitivity}
+                value={draft.sensitivity_level}
                 onChange={(e) =>
-                  setDraft({ ...draft, sensitivity: e.target.value as Sensitivity })
+                  setDraft({ ...draft, sensitivity_level: e.target.value as SensitivityLevel })
                 }
                 className={inputCls + " mt-2"}
               >
-                <option value="publique">Publique</option>
-                <option value="confidentielle">Confidentielle</option>
+                <option value="sensible">Sensible</option>
+                <option value="tres_sensible">Très sensible</option>
               </select>
             </div>
             <div>
@@ -199,8 +215,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </label>
               <input
                 id="pd-company"
-                value={draft.company}
-                onChange={(e) => setDraft({ ...draft, company: e.target.value })}
+                value={draft.company_name ?? ""}
+                onChange={(e) => setDraft({ ...draft, company_name: e.target.value })}
                 className={inputCls + " mt-2"}
               />
             </div>
@@ -210,8 +226,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </label>
               <input
                 id="pd-client"
-                value={draft.client}
-                onChange={(e) => setDraft({ ...draft, client: e.target.value })}
+                value={draft.client_name ?? ""}
+                onChange={(e) => setDraft({ ...draft, client_name: e.target.value })}
                 className={inputCls + " mt-2"}
               />
             </div>
@@ -221,7 +237,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </label>
               <input
                 id="pd-role"
-                value={draft.role}
+                value={draft.role ?? ""}
                 onChange={(e) => setDraft({ ...draft, role: e.target.value })}
                 className={inputCls + " mt-2"}
               />
@@ -232,19 +248,32 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </label>
               <input
                 id="pd-team"
-                value={draft.team}
+                value={draft.team ?? ""}
                 onChange={(e) => setDraft({ ...draft, team: e.target.value })}
                 className={inputCls + " mt-2"}
               />
             </div>
-            <div className="sm:col-span-2">
-              <label htmlFor="pd-period" className={labelCls}>
-                Période
+            <div>
+              <label htmlFor="pd-start" className={labelCls}>
+                Date de début
               </label>
               <input
-                id="pd-period"
-                value={draft.period}
-                onChange={(e) => setDraft({ ...draft, period: e.target.value })}
+                id="pd-start"
+                type="date"
+                value={draft.start_date ?? ""}
+                onChange={(e) => setDraft({ ...draft, start_date: e.target.value || null })}
+                className={inputCls + " mt-2"}
+              />
+            </div>
+            <div>
+              <label htmlFor="pd-end" className={labelCls}>
+                Date de fin
+              </label>
+              <input
+                id="pd-end"
+                type="date"
+                value={draft.end_date ?? ""}
+                onChange={(e) => setDraft({ ...draft, end_date: e.target.value || null })}
                 className={inputCls + " mt-2"}
               />
             </div>

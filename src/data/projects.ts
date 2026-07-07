@@ -1,185 +1,197 @@
-import type { Project } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import type { AiStructuredDesc, Project, ProjectStatus, ProjectTags } from "@/types/project";
 
-export const projects: Project[] = [
-  {
-    id: "1",
-    slug: "arcane-banking",
-    title: "Arcane Banking",
-    subtitle: "Refonte d'une néo-banque privée",
-    cover:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBYI49vo5G1SO75LXBEGY82Dhj7HiHhdNDwVtgBc2Mrj_3_u35E863fGSPWxK4TXPUjn7s96yOJV2hkd7w5m0aKTi4N0m5FPPYaxAYM2lgkolPt0bmG9adbBSp1LUCEFH7x8EspWl1c9u4tDXTP1cN3YvLAtXbN0tcg3KBLTmgHs9gClzHSw2Vl3wzHMwov_ezu8SIpUx8Swgx8QxzijAV0nBGS4BvHRMNFcCfsuQv-LMOwkmHqLW51DqE9mxxynpJcorp8vpI505w",
-    gallery: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBYI49vo5G1SO75LXBEGY82Dhj7HiHhdNDwVtgBc2Mrj_3_u35E863fGSPWxK4TXPUjn7s96yOJV2hkd7w5m0aKTi4N0m5FPPYaxAYM2lgkolPt0bmG9adbBSp1LUCEFH7x8EspWl1c9u4tDXTP1cN3YvLAtXbN0tcg3KBLTmgHs9gClzHSw2Vl3wzHMwov_ezu8SIpUx8Swgx8QxzijAV0nBGS4BvHRMNFcCfsuQv-LMOwkmHqLW51DqE9mxxynpJcorp8vpI505w",
-    ],
-    status: "public",
-    sensitivity: "publique",
-    published: true,
-    company: "Arcane SA",
-    client: "Direction Produit",
-    role: "Lead Product Designer",
-    team: "3 designers, 6 ingénieurs",
-    period: "2023 — 2024",
-    problem:
-      "Les clients privés fuyaient l'application mobile faute de clarté sur leurs actifs consolidés.",
-    decisions:
-      "Un tableau de bord unique avec hiérarchie stricte, suppression des micro-interactions décoratives, focalisation sur trois décisions clés par écran.",
-    result:
-      "+38% de rétention à 30 jours, NPS passé de 34 à 61, temps moyen d'exécution d'un virement divisé par deux.",
+type ProjectCatalogRow = Tables<"projects_catalog_view">;
+type ProjectRow = Tables<"projects">;
+
+type ProjectRowWithTags = ProjectRow & {
+  project_tools: { tools_ref: { name: string } | null }[] | null;
+  project_keywords: { keywords_ref: { name: string } | null }[] | null;
+  project_types: { project_types_ref: { name: string } | null }[] | null;
+};
+
+function mapJoinedTags(row: ProjectRowWithTags): ProjectTags {
+  return {
+    tools: (row.project_tools ?? [])
+      .map((t) => t.tools_ref?.name)
+      .filter((name): name is string => Boolean(name)),
+    keywords: (row.project_keywords ?? [])
+      .map((k) => k.keywords_ref?.name)
+      .filter((name): name is string => Boolean(name)),
+    types: (row.project_types ?? [])
+      .map((t) => t.project_types_ref?.name)
+      .filter((name): name is string => Boolean(name)),
+  };
+}
+
+function mapCatalogRow(row: ProjectCatalogRow): Project {
+  return {
+    id: row.id!,
+    title: row.title!,
+    short_desc: row.short_desc,
+    thumbnail_url: row.thumbnail_url,
+    status: row.status!,
+    sensitivity_level: row.sensitivity_level!,
+    secteur_activite: row.secteur_activite,
+    company_name: row.company_name,
+    role: row.role,
+    start_date: row.start_date,
+    end_date: row.end_date,
+    deleted_at: row.deleted_at,
+    created_at: row.created_at!,
+    updated_at: row.updated_at!,
     tags: {
-      designType: ["Product Design", "UX"],
-      sector: ["Fintech"],
-      tools: ["Figma", "ProtoPie"],
-      keywords: ["Refonte", "Mobile", "Systèmes"],
+      tools: row.tools ?? [],
+      keywords: row.keywords ?? [],
+      types: row.types ?? [],
     },
-  },
-  {
-    id: "2",
-    slug: "polymath",
-    title: "Polymath",
-    subtitle: "Outil éditorial pour rédactions indépendantes",
-    cover:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC5pUyGiat_7KVutMx3Y4Mti88Ek2kQdJyslg_zmuU9PVZ0OmNjHpt5ApUZ_Lq1qfqbM3LhZ0uXPgLUkEh0c94BxBH2oPKBYv93DzvRu3VnzURfkBNZcTzcXXSUTNgfQYzW_JQ_aKC75wr-5yB8SB90HKArpH1_Oey9qs9uU76GHQ2VhLCOSHqCEGpja5Y545mw5C-ms2baSdz0x5OWHnJpwkRnHN1mdWKxFjGtZs2nrBoFBerM0hwGt8u3_txEwiw01pWjnr1UrVk",
-    gallery: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC5pUyGiat_7KVutMx3Y4Mti88Ek2kQdJyslg_zmuU9PVZ0OmNjHpt5ApUZ_Lq1qfqbM3LhZ0uXPgLUkEh0c94BxBH2oPKBYv93DzvRu3VnzURfkBNZcTzcXXSUTNgfQYzW_JQ_aKC75wr-5yB8SB90HKArpH1_Oey9qs9uU76GHQ2VhLCOSHqCEGpja5Y545mw5C-ms2baSdz0x5OWHnJpwkRnHN1mdWKxFjGtZs2nrBoFBerM0hwGt8u3_txEwiw01pWjnr1UrVk",
-    ],
-    status: "public",
-    sensitivity: "publique",
-    published: true,
-    company: "Polymath Press",
-    client: "Fondateurs",
-    role: "Product Designer",
-    team: "Solo + 2 ingénieurs",
-    period: "2022",
-    problem:
-      "Les rédactions collaboratives perdaient l'historique de leurs décisions éditoriales entre relectures.",
-    decisions:
-      "Timeline verticale unique, système de notes contextuelles, séparation stricte de la relecture et de l'écriture.",
-    result:
-      "Adopté par 12 rédactions en 6 mois, réduction de 40% du temps de relecture.",
-    tags: {
-      designType: ["Product Design"],
-      sector: ["Média"],
-      tools: ["Figma"],
-      keywords: ["Édito", "Collaboration"],
-    },
-  },
-  {
-    id: "3",
-    slug: "helio-medical",
-    title: "Helio Medical",
-    subtitle: "Dossier patient pour cliniques privées",
-    cover:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCV9N420sohvgyQtludP08Un16PedhaZUZyRO8gYZHdTvkdA4fP0eA-k3bJ4qTAUVdeiwkXrJR7juSrPzxHZCJBcHlVpMxlPgqZ2026JM5iNrJqSMiN_SWf4NprVnonrUp_x2GagaObKxgW0twLv8gBuJRBZ9MljLmaxkG4k5S362W-ycQm3Up62Uhil-VvGKankVwyeCb0hQVcgOOkZs1KF3tH6697obqjLtkfMbqlrGJERwntScBTm3Lt3EgQYVyWqX6DS9Kj7kU",
-    gallery: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCV9N420sohvgyQtludP08Un16PedhaZUZyRO8gYZHdTvkdA4fP0eA-k3bJ4qTAUVdeiwkXrJR7juSrPzxHZCJBcHlVpMxlPgqZ2026JM5iNrJqSMiN_SWf4NprVnonrUp_x2GagaObKxgW0twLv8gBuJRBZ9MljLmaxkG4k5S362W-ycQm3Up62Uhil-VvGKankVwyeCb0hQVcgOOkZs1KF3tH6697obqjLtkfMbqlrGJERwntScBTm3Lt3EgQYVyWqX6DS9Kj7kU",
-    ],
-    status: "confidential",
-    sensitivity: "confidentielle",
-    published: true,
-    company: "Helio Group",
-    client: "Direction médicale",
-    role: "Lead UX",
-    team: "2 designers, 4 ingénieurs, 2 médecins",
-    period: "2023",
-    problem:
-      "Le dossier patient forçait les praticiens à saisir les mêmes informations dans trois onglets distincts.",
-    decisions:
-      "Un flux linéaire de consultation, saisie vocale intégrée, tri par urgence clinique et non alphabétique.",
-    result:
-      "Temps de consultation réduit de 22%, adoption 95% en 3 mois.",
-    tags: {
-      designType: ["UX", "Product Design"],
-      sector: ["Santé"],
-      tools: ["Figma", "Miro"],
-      keywords: ["Dossier", "Praticiens"],
-    },
-  },
-  {
-    id: "4",
-    slug: "orbit-logistics",
-    title: "Orbit Logistics",
-    subtitle: "Console de suivi pour flotte européenne",
-    cover:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDOeo7_YHZ1NfBC-6VZk6CQY-raY7dBwWYWgF3k05ycXiRRcszzi9ZXHoGmWw9QvdQIFBB4O0fzLCU9YNf3zitn14hctN8VB3QDJjCIq2PK7D720KfKTiC4OymlIpf8nLnVf8VLODhEZKvv-DiyoCKzNL4ffyS6lPPFXdFILVYjL2rmB6d89mD2FDtnyMAX84QPvE1qC5IWobEgDnWnd30S9fB3fu1LNO7ztPpu61DFQWhUq3aWnN9lC5J40Rf5mW2Qm4s1lSUSUNs",
-    gallery: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDOeo7_YHZ1NfBC-6VZk6CQY-raY7dBwWYWgF3k05ycXiRRcszzi9ZXHoGmWw9QvdQIFBB4O0fzLCU9YNf3zitn14hctN8VB3QDJjCIq2PK7D720KfKTiC4OymlIpf8nLnVf8VLODhEZKvv-DiyoCKzNL4ffyS6lPPFXdFILVYjL2rmB6d89mD2FDtnyMAX84QPvE1qC5IWobEgDnWnd30S9fB3fu1LNO7ztPpu61DFQWhUq3aWnN9lC5J40Rf5mW2Qm4s1lSUSUNs",
-    ],
-    status: "confidential",
-    sensitivity: "confidentielle",
-    published: true,
-    company: "Orbit Cargo",
-    client: "COO",
-    role: "Product Designer senior",
-    team: "1 designer, 5 ingénieurs",
-    period: "2024",
-    problem:
-      "Les dispatchers naviguaient entre six systèmes pour tracer un incident.",
-    decisions:
-      "Console unifiée temps-réel, hiérarchie par risque, escalade contextuelle.",
-    result:
-      "Résolution moyenne des incidents divisée par trois.",
-    tags: {
-      designType: ["Product Design"],
-      sector: ["Logistique"],
-      tools: ["Figma"],
-      keywords: ["Ops", "Temps réel"],
-    },
-  },
-  {
-    id: "5",
-    slug: "atelier-nord",
-    title: "Atelier Nord",
-    subtitle: "Identité et site pour un studio d'architecture",
-    cover:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDrhyDGvkR_nazVN-YvZJz0tbEOFVpukKYNHnPBkDEeaFEPtd5oXZMb1D2ne6qwglVD_fSDR9Hb2DGKfUBX6tO7vewtxvhLy-tE-YisQUGt7UYET1kjdXP6ywzgTXKcI_j7Ayx72LgLQMzsuBeGODR8gE9ZKDFQV7uqHFvlpta4zlbBGlGLWuRgefj6l24-382ojcbVzEJynZ9YDpBSwheUg_Ut_uOMh-arBkB9TgJMfPYyujgw7ckZnQnxTUH1pvWS6JCTK4H5FmA",
-    gallery: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDrhyDGvkR_nazVN-YvZJz0tbEOFVpukKYNHnPBkDEeaFEPtd5oXZMb1D2ne6qwglVD_fSDR9Hb2DGKfUBX6tO7vewtxvhLy-tE-YisQUGt7UYET1kjdXP6ywzgTXKcI_j7Ayx72LgLQMzsuBeGODR8gE9ZKDFQV7uqHFvlpta4zlbBGlGLWuRgefj6l24-382ojcbVzEJynZ9YDpBSwheUg_Ut_uOMh-arBkB9TgJMfPYyujgw7ckZnQnxTUH1pvWS6JCTK4H5FmA",
-    ],
-    status: "draft",
-    sensitivity: "publique",
-    published: false,
-    company: "Atelier Nord",
-    client: "Associés fondateurs",
-    role: "Direction artistique",
-    team: "Solo",
-    period: "2024",
-    problem: "L'atelier n'avait aucune présence numérique pour ses réponses à concours.",
-    decisions:
-      "Wordmark structurel, grille éditoriale stricte, palette réduite à trois valeurs.",
-    result: "En cours de finalisation.",
-    tags: {
-      designType: ["Brand", "Web"],
-      sector: ["Architecture"],
-      tools: ["Figma", "Framer"],
-      keywords: ["Identité"],
-    },
-  },
-  {
-    id: "6",
-    slug: "vestige",
-    title: "Vestige",
-    subtitle: "Marketplace de mobilier vintage",
-    cover:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAjd1GTxziYN3fqQ21VyrvJGj1xpewZ7CPTpe7fZ1AILPaJ3bW9FtMwflALH8gRVk7S2AiGARCg9aYbQ2SuAwj093KufcmK6eSSKO_k4aE7626k5B-iZ-OgRZUVlFoXMeT4yhsl4Y70En0De3GkvUdEmPDxzv9fWsU2qfIgMhcZ1FrOJ03w0ppaVB0KbfWWzDJZA-1a0qsMQixrmIe3BlpMt6RwRIkBMXEqGLvh_CTcG3-HYHgOQrwxe_II6Rr6dZWm2wjEck-BZoI",
-    gallery: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAjd1GTxziYN3fqQ21VyrvJGj1xpewZ7CPTpe7fZ1AILPaJ3bW9FtMwflALH8gRVk7S2AiGARCg9aYbQ2SuAwj093KufcmK6eSSKO_k4aE7626k5B-iZ-OgRZUVlFoXMeT4yhsl4Y70En0De3GkvUdEmPDxzv9fWsU2qfIgMhcZ1FrOJ03w0ppaVB0KbfWWzDJZA-1a0qsMQixrmIe3BlpMt6RwRIkBMXEqGLvh_CTcG3-HYHgOQrwxe_II6Rr6dZWm2wjEck-BZoI",
-    ],
-    status: "deleted",
-    sensitivity: "publique",
-    published: false,
-    company: "Vestige SAS",
-    client: "CEO",
-    role: "Product Designer",
-    team: "2 designers, 3 ingénieurs",
-    period: "2021",
-    problem: "Marketplace confidentiel, projet archivé.",
-    decisions: "Archivé.",
-    result: "Archivé.",
-    tags: {
-      designType: ["Product Design"],
-      sector: ["Retail"],
-      tools: ["Figma"],
-      keywords: ["Marketplace"],
-    },
-  },
-];
+  };
+}
+
+function mapProjectRow(row: ProjectRowWithTags): Project {
+  return {
+    id: row.id,
+    title: row.title,
+    short_desc: row.short_desc,
+    long_desc: row.long_desc,
+    ai_structured_desc: (row.ai_structured_desc as AiStructuredDesc | null) ?? null,
+    thumbnail_url: row.thumbnail_url,
+    status: row.status,
+    sensitivity_level: row.sensitivity_level,
+    secteur_activite: row.secteur_activite,
+    client_name: row.client_name,
+    company_name: row.company_name,
+    role: row.role,
+    team: row.team,
+    start_date: row.start_date,
+    end_date: row.end_date,
+    deleted_at: row.deleted_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    tags: mapJoinedTags(row),
+  };
+}
+
+/**
+ * Reads projects_catalog_view. Visibility (public vs confidential vs
+ * draft, soft-deleted exclusion) is fully handled by the view's
+ * underlying RLS depending on the caller's role — no client-side
+ * filtering needed here.
+ */
+export async function getProjects(): Promise<Project[]> {
+  const { data, error } = await supabase
+    .from("projects_catalog_view")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map(mapCatalogRow);
+}
+
+/**
+ * Full project row for the detail page — includes long_desc,
+ * ai_structured_desc, client_name, team (absent from the catalog view).
+ *
+ * By default excludes soft-deleted rows client-side even though RLS
+ * already blocks non-admins from seeing them — defense in depth against
+ * a visitor guessing/bookmarking a deleted project's UUID. Pass
+ * `{ includeDeleted: true }` from admin-only call sites that need to
+ * fetch a soft-deleted project (e.g. a future restore screen); RLS still
+ * only lets that succeed for an authenticated admin.
+ *
+ * SECURITY: projects_select_unified now lets anon/pending see
+ * confidential ROWS (teaser use case), but RLS can't restrict COLUMNS —
+ * this raw `select *` would otherwise leak long_desc/ai_structured_desc/
+ * client_name/team for a confidential project to a visitor who only has
+ * teaser-level access. So for confidential rows we additionally check the
+ * caller's role and return null unless they're validated_visitor/admin.
+ * Public projects are unaffected — anyone can still see their full detail.
+ *
+ * Returns null if not found, soft-deleted (and includeDeleted wasn't
+ * set), not visible under RLS, or confidential-but-caller-not-entitled.
+ */
+export async function getProjectById(
+  id: string,
+  opts: { includeDeleted?: boolean } = {},
+): Promise<Project | null> {
+  let query = supabase
+    .from("projects")
+    .select(
+      `
+      *,
+      project_tools ( tools_ref ( name ) ),
+      project_keywords ( keywords_ref ( name ) ),
+      project_types ( project_types_ref ( name ) )
+    `,
+    )
+    .eq("id", id);
+
+  if (!opts.includeDeleted) {
+    query = query.is("deleted_at", null);
+  }
+
+  const { data, error } = await query.maybeSingle<ProjectRowWithTags>();
+  if (error) throw error;
+  if (!data) return null;
+
+  if (data.status === "confidential") {
+    const { data: role, error: roleError } = await supabase.rpc("get_my_role");
+    if (roleError) throw roleError;
+    if (role !== "validated_visitor" && role !== "admin") {
+      return null;
+    }
+  }
+
+  return mapProjectRow(data);
+}
+
+/**
+ * Admin-only writes. All three rely on the projects_update_admin RLS
+ * policy (get_my_role() = 'admin') to actually take effect — Supabase
+ * silently returns 0 affected rows rather than an error when RLS blocks
+ * an update, so each function confirms the row came back via
+ * .select().maybeSingle() and throws explicitly if it didn't.
+ */
+
+export async function updateProjectStatus(id: string, status: ProjectStatus): Promise<void> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ status })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error(`updateProjectStatus: no row updated for id=${id} (not found, or not permitted)`);
+  }
+}
+
+export async function softDeleteProject(id: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error(`softDeleteProject: no row updated for id=${id} (not found, or not permitted)`);
+  }
+}
+
+export async function restoreProject(id: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ deleted_at: null })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error(`restoreProject: no row updated for id=${id} (not found, or not permitted)`);
+  }
+}

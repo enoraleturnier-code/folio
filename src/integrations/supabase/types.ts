@@ -16,239 +16,531 @@ export type Database = {
     Tables: {
       access_requests: {
         Row: {
-          company: string | null
+          consent_given_at: string
           created_at: string
-          email: string
-          full_name: string
           id: string
           message: string | null
-          project_titles: Json
+          project_id: string
+          rejected_at: string | null
           rejection_reason: string | null
-          status: Database["public"]["Enums"]["request_status"]
-          updated_at: string
+          request_session_id: string
+          status: Database["public"]["Enums"]["access_request_status"]
+          user_id: string
+          validated_at: string | null
         }
         Insert: {
-          company?: string | null
+          consent_given_at: string
           created_at?: string
-          email: string
-          full_name: string
           id?: string
           message?: string | null
-          project_titles?: Json
+          project_id: string
+          rejected_at?: string | null
           rejection_reason?: string | null
-          status?: Database["public"]["Enums"]["request_status"]
-          updated_at?: string
+          request_session_id: string
+          status?: Database["public"]["Enums"]["access_request_status"]
+          user_id: string
+          validated_at?: string | null
         }
         Update: {
-          company?: string | null
+          consent_given_at?: string
           created_at?: string
-          email?: string
-          full_name?: string
           id?: string
           message?: string | null
-          project_titles?: Json
+          project_id?: string
+          rejected_at?: string | null
           rejection_reason?: string | null
-          status?: Database["public"]["Enums"]["request_status"]
-          updated_at?: string
+          request_session_id?: string
+          status?: Database["public"]["Enums"]["access_request_status"]
+          user_id?: string
+          validated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "access_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects_catalog_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      contact_messages: {
+      admin_settings: {
         Row: {
-          company: string | null
-          created_at: string
-          email: string
-          full_name: string
-          id: string
-          message: string
-          status: Database["public"]["Enums"]["contact_status"]
-          updated_at: string
-        }
-        Insert: {
-          company?: string | null
-          created_at?: string
-          email: string
-          full_name: string
-          id?: string
-          message: string
-          status?: Database["public"]["Enums"]["contact_status"]
-          updated_at?: string
-        }
-        Update: {
-          company?: string | null
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: string
-          message?: string
-          status?: Database["public"]["Enums"]["contact_status"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      designers: {
-        Row: {
-          avatar: string
-          bio: string
           cal_username: string | null
           created_at: string
-          email: string
-          full_name: string
-          headline: string
           id: string
-          linkedin: string | null
-          location: string | null
-          slug: string
-          twitter: string | null
           updated_at: string
-          website: string | null
+          user_id: string
         }
         Insert: {
-          avatar: string
-          bio: string
           cal_username?: string | null
           created_at?: string
-          email: string
-          full_name: string
-          headline: string
           id?: string
-          linkedin?: string | null
-          location?: string | null
-          slug: string
-          twitter?: string | null
           updated_at?: string
-          website?: string | null
+          user_id: string
         }
         Update: {
-          avatar?: string
-          bio?: string
           cal_username?: string | null
           created_at?: string
-          email?: string
-          full_name?: string
-          headline?: string
           id?: string
-          linkedin?: string | null
-          location?: string | null
-          slug?: string
-          twitter?: string | null
           updated_at?: string
-          website?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          consent_given_at: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          status: Database["public"]["Enums"]["contact_status"]
+          type: Database["public"]["Enums"]["contact_type"]
+          user_id: string | null
+        }
+        Insert: {
+          consent_given_at: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["contact_status"]
+          type: Database["public"]["Enums"]["contact_type"]
+          user_id?: string | null
+        }
+        Update: {
+          consent_given_at?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["contact_status"]
+          type?: Database["public"]["Enums"]["contact_type"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      designer_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          id: string
+          linkedin_url: string | null
+          photo_url: string | null
+          slug: string
+          twitter_url: string | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          id?: string
+          linkedin_url?: string | null
+          photo_url?: string | null
+          slug: string
+          twitter_url?: string | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          id?: string
+          linkedin_url?: string | null
+          photo_url?: string | null
+          slug?: string
+          twitter_url?: string | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "designer_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      keywords_ref: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      project_keywords: {
+        Row: {
+          keyword_id: string
+          project_id: string
+        }
+        Insert: {
+          keyword_id: string
+          project_id: string
+        }
+        Update: {
+          keyword_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_keywords_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords_ref"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_keywords_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_keywords_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects_catalog_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_tools: {
+        Row: {
+          project_id: string
+          tool_id: string
+        }
+        Insert: {
+          project_id: string
+          tool_id: string
+        }
+        Update: {
+          project_id?: string
+          tool_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tools_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tools_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects_catalog_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tools_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "tools_ref"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_types: {
+        Row: {
+          project_id: string
+          type_id: string
+        }
+        Insert: {
+          project_id: string
+          type_id: string
+        }
+        Update: {
+          project_id?: string
+          type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_types_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_types_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects_catalog_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_types_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "project_types_ref"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_types_ref: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
       projects: {
         Row: {
-          client: string | null
-          company: string | null
-          cover: string
+          ai_structured_desc: Json | null
+          client_name: string | null
+          company_name: string | null
           created_at: string
-          decisions: string | null
-          gallery: Json
+          deleted_at: string | null
+          end_date: string | null
           id: string
-          period: string | null
-          problem: string | null
-          published: boolean
-          result: string | null
+          long_desc: string | null
           role: string | null
-          sensitivity: Database["public"]["Enums"]["sensitivity"]
-          slug: string
-          sort_order: number
+          secteur_activite:
+            | Database["public"]["Enums"]["secteur_activite"]
+            | null
+          sensitivity_level: Database["public"]["Enums"]["sensitivity_level"]
+          short_desc: string | null
+          start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
-          subtitle: string
-          tags: Json
           team: string | null
+          thumbnail_url: string | null
           title: string
           updated_at: string
         }
         Insert: {
-          client?: string | null
-          company?: string | null
-          cover: string
+          ai_structured_desc?: Json | null
+          client_name?: string | null
+          company_name?: string | null
           created_at?: string
-          decisions?: string | null
-          gallery?: Json
+          deleted_at?: string | null
+          end_date?: string | null
           id?: string
-          period?: string | null
-          problem?: string | null
-          published?: boolean
-          result?: string | null
+          long_desc?: string | null
           role?: string | null
-          sensitivity?: Database["public"]["Enums"]["sensitivity"]
-          slug: string
-          sort_order?: number
+          secteur_activite?:
+            | Database["public"]["Enums"]["secteur_activite"]
+            | null
+          sensitivity_level?: Database["public"]["Enums"]["sensitivity_level"]
+          short_desc?: string | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
-          subtitle: string
-          tags?: Json
           team?: string | null
+          thumbnail_url?: string | null
           title: string
           updated_at?: string
         }
         Update: {
-          client?: string | null
-          company?: string | null
-          cover?: string
+          ai_structured_desc?: Json | null
+          client_name?: string | null
+          company_name?: string | null
           created_at?: string
-          decisions?: string | null
-          gallery?: Json
+          deleted_at?: string | null
+          end_date?: string | null
           id?: string
-          period?: string | null
-          problem?: string | null
-          published?: boolean
-          result?: string | null
+          long_desc?: string | null
           role?: string | null
-          sensitivity?: Database["public"]["Enums"]["sensitivity"]
-          slug?: string
-          sort_order?: number
+          secteur_activite?:
+            | Database["public"]["Enums"]["secteur_activite"]
+            | null
+          sensitivity_level?: Database["public"]["Enums"]["sensitivity_level"]
+          short_desc?: string | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
-          subtitle?: string
-          tags?: Json
           team?: string | null
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: []
       }
-      user_roles: {
+      tools_ref: {
         Row: {
           created_at: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          name: string
         }
         Insert: {
           created_at?: string
           id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          name: string
         }
         Update: {
           created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          company: string | null
+          consent_given_at: string
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          request_message: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          validated_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          consent_given_at?: string
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          request_message?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          validated_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          consent_given_at?: string
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          request_message?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          validated_at?: string | null
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
+      projects_catalog_view: {
+        Row: {
+          company_name: string | null
+          created_at: string | null
+          deleted_at: string | null
+          end_date: string | null
+          id: string | null
+          keywords: string[] | null
+          role: string | null
+          secteur_activite:
+            | Database["public"]["Enums"]["secteur_activite"]
+            | null
+          sensitivity_level:
+            | Database["public"]["Enums"]["sensitivity_level"]
+            | null
+          short_desc: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["project_status"] | null
+          thumbnail_url: string | null
+          title: string | null
+          tools: string[] | null
+          types: string[] | null
+          updated_at: string | null
         }
-        Returns: boolean
+        Relationships: []
       }
     }
+    Functions: {
+      get_my_role: { Args: never; Returns: string }
+    }
     Enums: {
-      app_role: "admin" | "user"
-      contact_status: "nouveau" | "traite" | "archive"
-      project_status: "public" | "confidential" | "draft" | "deleted"
-      request_status: "pending" | "approved" | "rejected"
-      sensitivity: "publique" | "confidentielle"
+      access_request_status: "pending" | "approved" | "rejected"
+      contact_status: "new" | "treated" | "archived"
+      contact_type: "contact" | "rdv"
+      project_status: "draft" | "public" | "confidential"
+      secteur_activite:
+        | "tech_saas"
+        | "ecommerce"
+        | "finance_banque_assurance"
+        | "sante"
+        | "education"
+        | "media_culture"
+        | "industrie_manufacturing"
+        | "retail_distribution"
+        | "immobilier"
+        | "rh_recrutement"
+        | "transport_logistique"
+        | "tourisme_hotellerie"
+        | "alimentation_restauration"
+        | "energie_environnement"
+        | "sport_bien_etre"
+        | "luxe_mode"
+        | "juridique_conseil"
+        | "association_ngo"
+        | "entreprise_publique"
+        | "startup"
+        | "autre"
+      sensitivity_level: "sensible" | "tres_sensible"
+      user_role: "pending" | "validated_visitor" | "admin" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -376,11 +668,35 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
-      contact_status: ["nouveau", "traite", "archive"],
-      project_status: ["public", "confidential", "draft", "deleted"],
-      request_status: ["pending", "approved", "rejected"],
-      sensitivity: ["publique", "confidentielle"],
+      access_request_status: ["pending", "approved", "rejected"],
+      contact_status: ["new", "treated", "archived"],
+      contact_type: ["contact", "rdv"],
+      project_status: ["draft", "public", "confidential"],
+      secteur_activite: [
+        "tech_saas",
+        "ecommerce",
+        "finance_banque_assurance",
+        "sante",
+        "education",
+        "media_culture",
+        "industrie_manufacturing",
+        "retail_distribution",
+        "immobilier",
+        "rh_recrutement",
+        "transport_logistique",
+        "tourisme_hotellerie",
+        "alimentation_restauration",
+        "energie_environnement",
+        "sport_bien_etre",
+        "luxe_mode",
+        "juridique_conseil",
+        "association_ngo",
+        "entreprise_publique",
+        "startup",
+        "autre",
+      ],
+      sensitivity_level: ["sensible", "tres_sensible"],
+      user_role: ["pending", "validated_visitor", "admin", "rejected"],
     },
   },
 } as const
