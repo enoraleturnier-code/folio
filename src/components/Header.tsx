@@ -2,19 +2,15 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { designer } from "@/data/designer";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "./ThemeToggle";
 
-export type HeaderRole = "anon" | "visitor" | "admin";
-
-interface HeaderProps {
-  role: HeaderRole;
-}
-
-export function Header({ role }: HeaderProps) {
+export function Header() {
   const location = useLocation();
+  const { session } = useAuth();
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const showVisitorNav = role === "visitor";
+  const isAdmin = !!session;
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
@@ -38,7 +34,7 @@ export function Header({ role }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
-          {showVisitorNav && (
+          {!isAdmin && (
             <nav className="hidden items-center gap-6 md:flex">
               <VisitorLink
                 to="/$slug"
@@ -53,7 +49,7 @@ export function Header({ role }: HeaderProps) {
             </nav>
           )}
 
-          {role === "admin" && (
+          {isAdmin && (
             <nav className="hidden items-center gap-6 md:flex">
               <VisitorLink
                 to="/$slug"
@@ -70,25 +66,17 @@ export function Header({ role }: HeaderProps) {
 
           <ThemeToggle />
 
-          {role === "anon" && (
-            <button
-              type="button"
-              className="rounded-full border border-white/15 px-6 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary"
+          {!isAdmin && (
+            <Link
+              to="/auth"
+              aria-label="Se connecter"
+              className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary"
             >
               Se connecter
-            </button>
+            </Link>
           )}
 
-          {role === "visitor" && (
-            <a
-              href="#contact"
-              className="rounded-full border border-white/15 px-6 py-2 text-sm font-bold text-on-surface transition-colors hover:border-primary hover:text-primary"
-            >
-              Réserver un appel
-            </a>
-          )}
-
-          {role === "admin" && <AdminAccountMenu />}
+          {isAdmin && <AdminAccountMenu />}
         </div>
       </div>
     </header>
@@ -128,7 +116,6 @@ function AdminAccountMenu() {
     navigate({ to: "/auth", replace: true });
   };
 
-
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {
@@ -151,10 +138,11 @@ function AdminAccountMenu() {
         type="button"
         aria-haspopup="true"
         aria-expanded={open}
+        aria-label="Mon compte"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/30 bg-primary/20 text-[10px] font-bold text-primary">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/20 text-xs font-bold text-primary">
           LM
         </span>
         Mon compte
@@ -164,10 +152,16 @@ function AdminAccountMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-[70] mt-3 w-60 overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest shadow-2xl">
+        <div
+          role="menu"
+          aria-label="Menu du compte"
+          className="absolute right-0 z-[80] mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-surface-container-low shadow-2xl"
+        >
           <div className="flex flex-col py-2">
             <Link
               to="/admin"
+              role="menuitem"
+              aria-label="Accéder au dashboard"
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
             >
@@ -179,6 +173,8 @@ function AdminAccountMenu() {
             <Link
               to="/admin"
               search={{ tab: "parametres" }}
+              role="menuitem"
+              aria-label="Paramètres"
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
             >
@@ -187,9 +183,11 @@ function AdminAccountMenu() {
               </span>
               Paramètres
             </Link>
-            <div className="my-1 border-t border-white/5" />
+            <div className="my-1 border-t border-white/8" />
             <button
               type="button"
+              role="menuitem"
+              aria-label="Se déconnecter"
               onClick={handleSignOut}
               className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-[#F87171] transition-colors hover:bg-[#F87171]/10"
             >
