@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { designer } from "@/data/designer";
-import type { Project } from "@/data/types";
+import type { Project } from "@/types/project";
 import { StatusBadge } from "./StatusBadge";
 import { TagBadge } from "./TagBadge";
 
@@ -15,14 +15,14 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, index, accessState = "none", onRequestAccess }: ProjectCardProps) {
-  const isConfidential = project.sensitivity === "confidentielle";
+  const isConfidential = project.status === "confidential";
   const isTeaser = isConfidential && accessState !== "granted";
 
   return (
     <article className="glass-card group relative overflow-hidden rounded-2xl">
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
-          src={project.cover}
+          src={project.thumbnail_url ?? ""}
           alt={project.title}
           loading="lazy"
           className={
@@ -32,7 +32,7 @@ export function ProjectCard({ project, index, accessState = "none", onRequestAcc
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
         <div className="absolute left-4 top-4">
-          <StatusBadge kind={project.sensitivity === "confidentielle" ? "confidential" : "public"} />
+          <StatusBadge kind={isConfidential ? "confidential" : "public"} />
         </div>
         <div className="absolute right-4 top-4 text-xs font-medium tracking-[0.2em] text-on-surface/60">
           {String(index + 1).padStart(2, "0")}
@@ -74,14 +74,14 @@ export function ProjectCard({ project, index, accessState = "none", onRequestAcc
             {project.title}
           </Link>
         </h3>
-        <p className="text-sm text-on-surface-variant">{project.subtitle}</p>
+        <p className="text-sm text-on-surface-variant">{project.short_desc}</p>
         <div className="flex flex-wrap gap-1.5 pt-2">
-          {project.tags.designType.slice(0, 1).map((l) => (
+          {project.tags.types.slice(0, 1).map((l) => (
             <TagBadge key={l} category="designType" label={l} />
           ))}
-          {project.tags.sector.slice(0, 1).map((l) => (
-            <TagBadge key={l} category="sector" label={l} />
-          ))}
+          {project.secteur_activite && (
+            <TagBadge category="sector" label={project.secteur_activite} />
+          )}
           {project.tags.tools.slice(0, 1).map((l) => (
             <TagBadge key={l} category="tools" label={l} />
           ))}
