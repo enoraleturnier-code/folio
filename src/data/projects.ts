@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import type { AiStructuredDesc, Project, ProjectTags } from "@/types/project";
+import type { AiStructuredDesc, Project, ProjectStatus, ProjectTags } from "@/types/project";
 
 type ProjectCatalogRow = Tables<"projects_catalog_view">;
 type ProjectRow = Tables<"projects">;
@@ -144,4 +144,54 @@ export async function getProjectById(
   }
 
   return mapProjectRow(data);
+}
+
+/**
+ * Admin-only writes. All three rely on the projects_update_admin RLS
+ * policy (get_my_role() = 'admin') to actually take effect — Supabase
+ * silently returns 0 affected rows rather than an error when RLS blocks
+ * an update, so each function confirms the row came back via
+ * .select().maybeSingle() and throws explicitly if it didn't.
+ */
+
+export async function updateProjectStatus(id: string, status: ProjectStatus): Promise<void> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ status })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error(`updateProjectStatus: no row updated for id=${id} (not found, or not permitted)`);
+  }
+}
+
+export async function softDeleteProject(id: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error(`softDeleteProject: no row updated for id=${id} (not found, or not permitted)`);
+  }
+}
+
+export async function restoreProject(id: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ deleted_at: null })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error(`restoreProject: no row updated for id=${id} (not found, or not permitted)`);
+  }
 }
