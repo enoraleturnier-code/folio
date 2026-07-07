@@ -3,13 +3,20 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
 import { designer } from "@/data/designer";
-import { projects } from "@/data/projects";
+import { getProjectById } from "@/data/projects";
+
+function formatPeriod(start: string | null, end: string | null): string {
+  const startYear = start ? new Date(start).getFullYear() : null;
+  const endYear = end ? new Date(end).getFullYear() : null;
+  if (startYear && endYear && startYear !== endYear) return `${startYear} — ${endYear}`;
+  return String(startYear ?? endYear ?? "");
+}
 
 export const Route = createFileRoute("/$slug/projects/$id")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     if (params.slug !== designer.slug) throw notFound();
-    const project = projects.find((p) => p.id === params.id);
-    if (!project || project.status === "deleted") throw notFound();
+    const project = await getProjectById(params.id);
+    if (!project) throw notFound();
     return { project };
   },
   component: ProjectDetailPage,
@@ -32,19 +39,19 @@ function ProjectDetailPage() {
       </Link>
 
       <section className="relative mt-8 aspect-[21/9] overflow-hidden rounded-2xl">
-        <img src={project.cover} alt={project.title} className="h-full w-full object-cover" />
+        <img src={project.thumbnail_url ?? ""} alt={project.title} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         <div className="absolute right-6 top-6">
-          <StatusBadge kind={project.sensitivity === "confidentielle" ? "confidential" : "public"} />
+          <StatusBadge kind={project.status === "confidential" ? "confidential" : "public"} />
         </div>
         <div className="absolute bottom-8 left-8 right-8">
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">
-            {project.company}
+            {project.company_name}
           </p>
           <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-6xl">
             {project.title}
           </h1>
-          <p className="mt-3 max-w-2xl text-lg text-on-surface-variant">{project.subtitle}</p>
+          <p className="mt-3 max-w-2xl text-lg text-on-surface-variant">{project.short_desc}</p>
         </div>
       </section>
 
@@ -59,7 +66,7 @@ function ProjectDetailPage() {
               <span className="font-display-accent italic text-primary">clair</span>.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
-              {project.problem}
+              {project.ai_structured_desc?.probleme}
             </p>
           </section>
           <section>
@@ -71,7 +78,7 @@ function ProjectDetailPage() {
               <span className="font-display-accent italic text-primary">structurants</span>.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
-              {project.decisions}
+              {project.ai_structured_desc?.decisions}
             </p>
           </section>
           <section>
@@ -83,33 +90,33 @@ function ProjectDetailPage() {
               <span className="font-display-accent italic text-primary">mesuré</span>.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
-              {project.result}
+              {project.ai_structured_desc?.resultat}
             </p>
           </section>
         </div>
 
         <aside className="md:col-span-4">
           <div className="sticky top-28 space-y-5 rounded-2xl border border-white/5 bg-surface-container-low p-6">
-            <MetaRow label="Entreprise" value={project.company} />
-            <MetaRow label="Client" value={project.client} />
+            <MetaRow label="Entreprise" value={project.company_name} />
+            <MetaRow label="Client" value={project.client_name} />
             <MetaRow label="Rôle" value={project.role} />
             <MetaRow label="Équipe" value={project.team} />
-            <MetaRow label="Période" value={project.period} />
+            <MetaRow label="Période" value={formatPeriod(project.start_date, project.end_date)} />
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
                 Étiquettes
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {project.tags.designType.map((l: string) => (
+                {project.tags.types.map((l) => (
                   <TagBadge key={"d" + l} category="designType" label={l} />
                 ))}
-                {project.tags.sector.map((l: string) => (
-                  <TagBadge key={"s" + l} category="sector" label={l} />
-                ))}
-                {project.tags.tools.map((l: string) => (
+                {project.secteur_activite && (
+                  <TagBadge category="sector" label={project.secteur_activite} />
+                )}
+                {project.tags.tools.map((l) => (
                   <TagBadge key={"t" + l} category="tools" label={l} />
                 ))}
-                {project.tags.keywords.map((l: string) => (
+                {project.tags.keywords.map((l) => (
                   <TagBadge key={"k" + l} category="keywords" label={l} />
                 ))}
               </div>
@@ -121,7 +128,7 @@ function ProjectDetailPage() {
   );
 }
 
-function MetaRow({ label, value }: { label: string; value: string }) {
+function MetaRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div>
       <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
