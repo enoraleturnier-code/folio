@@ -1,6 +1,7 @@
-// TODO: add Supabase session guard at step 2 — redirect to /login if no active session
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+
+import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 
 import { Footer } from "@/components/Footer";
