@@ -1,7 +1,8 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { designer } from "@/data/designer";
+import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type HeaderRole = "anon" | "visitor" | "admin";
