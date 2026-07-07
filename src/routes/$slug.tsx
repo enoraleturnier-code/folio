@@ -10,7 +10,7 @@ export const Route = createFileRoute("/$slug")({
 function SlugLayout() {
   return (
     <div className="relative min-h-screen">
-      <Header role="visitor" />
+      <Header />
       <div className="relative z-10">
         <Outlet />
       </div>

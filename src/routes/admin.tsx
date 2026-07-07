@@ -62,7 +62,7 @@ function AdminPage() {
 
   return (
     <div className="relative min-h-screen bg-background">
-      <Header role="admin" />
+      <Header />
       <AdminSidebar
         tab={tab}
         setTab={setTab}
