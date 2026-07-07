@@ -37,8 +37,21 @@ export const Route = createFileRoute("/admin")({
 function AdminPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const routerNavigate = useNavigate();
+  const { session, loading } = useAuth();
   const tab: TabKey = search.tab;
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !session) {
+      routerNavigate({ to: "/auth" });
+    }
+  }, [loading, session, routerNavigate]);
+
+  if (loading || !session) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
 
   const setTab = (t: TabKey) => navigate({ search: { tab: t } });
 
