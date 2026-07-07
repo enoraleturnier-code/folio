@@ -33,20 +33,25 @@ function AdminPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const routerNavigate = useNavigate();
-  const { session, loading } = useAuth();
+  const { session, loading, role, roleLoading } = useAuth();
   const tab: TabKey = search.tab;
   const [collapsed, setCollapsed] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !session) {
+    if (loading || roleLoading) return;
+    if (!session) {
       routerNavigate({ to: "/auth" });
+      return;
     }
-  }, [loading, session, routerNavigate]);
+    if (role !== "admin") {
+      routerNavigate({ to: "/" });
+    }
+  }, [loading, roleLoading, session, role, routerNavigate]);
 
   useEffect(() => {
-    if (loading || !session) return;
+    if (loading || roleLoading || !session || role !== "admin") return;
     let cancelled = false;
     setProjectsLoading(true);
     getProjects()
@@ -59,14 +64,14 @@ function AdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [loading, session]);
+  }, [loading, roleLoading, session, role]);
 
   const pendingCount = useMemo(
     () => seedRequests.filter((r) => r.status === "pending").length,
     [],
   );
 
-  if (loading || !session) {
+  if (loading || roleLoading || !session || role !== "admin") {
     return <div className="min-h-screen bg-background" />;
   }
 

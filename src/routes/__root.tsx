@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { PersonaSwitcher } from "@/components/dev/PersonaSwitcher";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -136,6 +137,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      {import.meta.env.DEV && <PersonaSwitcher />}
     </QueryClientProvider>
   );
 }
