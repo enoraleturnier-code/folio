@@ -1,7 +1,8 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { designer } from "@/data/designer";
+import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type HeaderRole = "anon" | "visitor" | "admin";
@@ -119,6 +120,14 @@ function VisitorLink({
 function AdminAccountMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    setOpen(false);
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+
 
   useEffect(() => {
     if (!open) return;
@@ -181,7 +190,7 @@ function AdminAccountMenu() {
             <div className="my-1 border-t border-white/5" />
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={handleSignOut}
               className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-[#F87171] transition-colors hover:bg-[#F87171]/10"
             >
               <span aria-hidden="true" className="material-symbols-outlined text-base">

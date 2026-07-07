@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as SlugIndexRouteImport } from './routes/$slug.index'
 import { Route as SlugProjectsIndexRouteImport } from './routes/$slug.projects.index'
 import { Route as SlugProjectsIdRouteImport } from './routes/$slug.projects.$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/$slug/': typeof SlugIndexRoute
   '/$slug/projects/$id': typeof SlugProjectsIdRoute
   '/$slug/projects/': typeof SlugProjectsIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/$slug': typeof SlugIndexRoute
   '/$slug/projects/$id': typeof SlugProjectsIdRoute
   '/$slug/projects': typeof SlugProjectsIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/$slug/': typeof SlugIndexRoute
   '/$slug/projects/$id': typeof SlugProjectsIdRoute
   '/$slug/projects/': typeof SlugProjectsIndexRoute
@@ -77,16 +86,24 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/admin'
+    | '/auth'
     | '/$slug/'
     | '/$slug/projects/$id'
     | '/$slug/projects/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/$slug' | '/$slug/projects/$id' | '/$slug/projects'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/$slug'
+    | '/$slug/projects/$id'
+    | '/$slug/projects'
   id:
     | '__root__'
     | '/'
     | '/$slug'
     | '/admin'
+    | '/auth'
     | '/$slug/'
     | '/$slug/projects/$id'
     | '/$slug/projects/'
@@ -96,10 +113,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRouteWithChildren
   AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -163,6 +188,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
   AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

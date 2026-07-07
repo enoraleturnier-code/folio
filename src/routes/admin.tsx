@@ -1,6 +1,7 @@
-// TODO: add Supabase session guard at step 2 — redirect to /login if no active session
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+
+import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 
 import { Footer } from "@/components/Footer";
@@ -36,8 +37,21 @@ export const Route = createFileRoute("/admin")({
 function AdminPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const routerNavigate = useNavigate();
+  const { session, loading } = useAuth();
   const tab: TabKey = search.tab;
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !session) {
+      routerNavigate({ to: "/auth" });
+    }
+  }, [loading, session, routerNavigate]);
+
+  if (loading || !session) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
 
   const setTab = (t: TabKey) => navigate({ search: { tab: t } });
 
