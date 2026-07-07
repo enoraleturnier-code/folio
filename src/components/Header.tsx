@@ -190,7 +190,7 @@ function AdminAccountMenu() {
             <div className="my-1 border-t border-white/5" />
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={handleSignOut}
               className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-[#F87171] transition-colors hover:bg-[#F87171]/10"
             >
               <span aria-hidden="true" className="material-symbols-outlined text-base">
