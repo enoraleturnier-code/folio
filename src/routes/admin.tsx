@@ -48,17 +48,16 @@ function AdminPage() {
     }
   }, [loading, session, routerNavigate]);
 
-  if (loading || !session) {
-    return <div className="min-h-screen bg-background" />;
-  }
-
-
-  const setTab = (t: TabKey) => navigate({ search: { tab: t } });
-
   const pendingCount = useMemo(
     () => seedRequests.filter((r) => r.status === "pending").length,
     [],
   );
+
+  if (loading || !session) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  const setTab = (t: TabKey) => navigate({ search: { tab: t } });
 
   return (
     <div className="relative min-h-screen bg-background">

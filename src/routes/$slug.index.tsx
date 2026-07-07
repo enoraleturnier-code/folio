@@ -5,21 +5,21 @@ import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { ContactForm } from "@/components/ContactForm";
 import { designer } from "@/data/designer";
-import { projects } from "@/data/projects";
+import { getProjects } from "@/data/projects";
 
 export const Route = createFileRoute("/$slug/")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     if (params.slug !== designer.slug) throw notFound();
-    return { designer };
+    const projects = await getProjects();
+    return { designer, projects };
   },
   component: ProfilePage,
 });
 
 function ProfilePage() {
+  const { designer, projects } = Route.useLoaderData();
   const [modalOpen, setModalOpen] = useState(false);
-  const hasConfidential = projects.some(
-    (p) => p.sensitivity === "confidentielle" && p.status !== "deleted",
-  );
+  const hasConfidential = projects.some((p) => p.status === "confidential");
 
   return (
     <>
