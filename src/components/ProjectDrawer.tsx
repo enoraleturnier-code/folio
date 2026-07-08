@@ -67,7 +67,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/10"
+              className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary-container/10"
             >
               <span aria-hidden="true" className="material-symbols-outlined text-base">
                 auto_awesome
@@ -291,7 +291,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           <button
             type="button"
             onClick={() => onSave(draft)}
-            className="rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-on-primary hover:opacity-90"
+            className="rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary hover:opacity-90"
           >
             Enregistrer
           </button>

@@ -88,7 +88,7 @@ function AuthPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="mt-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
           >
             {submitting ? "Connexion…" : "Se connecter"}
           </button>

@@ -111,7 +111,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={!form.rgpd}
-        className="w-full rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-white/4 disabled:text-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="w-full rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-white/4 disabled:text-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         Envoyer le message
       </button>

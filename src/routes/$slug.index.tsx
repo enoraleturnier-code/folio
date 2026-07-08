@@ -29,7 +29,7 @@ function ProfilePage() {
         <section className="mb-32 grid grid-cols-1 items-center gap-6 md:grid-cols-12">
           <div className="hidden md:col-span-1 md:block">
             <span className="text-6xl font-medium text-primary/90">01</span>
-            <div className="mt-2 h-px w-8 bg-primary/20" />
+            <div className="mt-2 h-px w-8 bg-on-primary/20" />
           </div>
 
           <div className="rounded-[32px] border border-white/10 bg-surface-container/30 p-8 backdrop-blur-sm md:col-span-7 md:p-12">
@@ -51,7 +51,7 @@ function ProfilePage() {
                 to="/$slug/projects"
                 params={{ slug: designer.slug }}
                 aria-label={`Voir les projets de ${designer.fullName}`}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
               >
                 Voir les projets
                 <span aria-hidden="true" className="material-symbols-outlined text-base">
@@ -88,7 +88,7 @@ function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-3 rounded-full border border-primary px-6 py-3 text-primary transition-colors hover:bg-primary/10"
+                  className="inline-flex items-center gap-3 rounded-full border border-primary px-6 py-3 text-primary transition-colors hover:bg-primary-container/10"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-base">
                     lock
@@ -138,7 +138,7 @@ function ProfilePage() {
             </div>
             <div className="relative flex-grow bg-background/30">
               <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-on-primary/10">
                   <span
                     aria-hidden="true"
                     className="material-symbols-outlined text-4xl text-primary"

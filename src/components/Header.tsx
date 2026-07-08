@@ -132,8 +132,8 @@ function AccountMenu({
           className={
             "flex items-center justify-center rounded-full font-bold text-primary " +
             (isAdmin
-              ? "h-6 w-6 border border-primary/30 bg-primary/20 text-[10px]"
-              : "h-8 w-8 bg-primary/10 text-xs")
+              ? "h-6 w-6 border border-primary/30 bg-on-primary/20 text-[10px]"
+              : "h-8 w-8 bg-on-primary/10 text-xs")
           }
         >
           {fullName ? initials(fullName) : "?"}
@@ -186,7 +186,7 @@ function AccountMenu({
               role="menuitem"
               aria-label="Se déconnecter"
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10"
             >
               <span aria-hidden="true" className="material-symbols-outlined text-base">
                 logout

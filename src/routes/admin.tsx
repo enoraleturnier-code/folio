@@ -191,7 +191,7 @@ function AdminSidebar({
 
       <div
         className={
-          "mt-6 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-bold text-primary " +
+          "mt-6 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary " +
           (collapsed ? "" : "md:self-center")
         }
       >
@@ -216,7 +216,7 @@ function AdminSidebar({
             (collapsed ? "w-12 justify-center" : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
             " " +
             (tab === "dashboard"
-              ? "bg-primary/10 text-primary"
+              ? "bg-primary-container/10 text-primary"
               : "text-on-surface-variant/65 hover:text-on-surface")
           }
         >
@@ -243,7 +243,7 @@ function AdminSidebar({
                 (collapsed ? "w-12 justify-center" : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
                 " " +
                 (active
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-primary-container/10 text-primary"
                   : "text-on-surface-variant/65 hover:text-on-surface")
               }
             >
@@ -354,7 +354,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
                 <button
                   type="button"
                   onClick={() => setTab("demandes")}
-                  className="shrink-0 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
+                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary"
                 >
                   Traiter
                 </button>
@@ -372,7 +372,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
                 <button
                   type="button"
                   onClick={() => setTab("contacts")}
-                  className="shrink-0 rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary"
+                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary"
                 >
                   Lire
                 </button>
@@ -463,7 +463,7 @@ function ProjetsTab({
         <button
           type="button"
           onClick={openNew}
-          className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-transform hover:scale-105"
+          className="rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-transform hover:scale-105"
         >
           + Créer un nouveau projet
         </button>
@@ -723,7 +723,7 @@ function DemandesTab() {
                     <button
                       type="button"
                       onClick={() => approve(r.id)}
-                      className="rounded-full bg-primary px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90"
+                      className="rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90"
                     >
                       Valider
                     </button>
@@ -1005,7 +1005,7 @@ function ParametresTab() {
           )}
           <button
             type="submit"
-            className="ml-auto rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
+            className="ml-auto rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
           >
             Enregistrer les modifications
           </button>

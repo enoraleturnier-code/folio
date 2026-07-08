@@ -55,7 +55,7 @@ export function PersonaSwitcher() {
             disabled={busy !== null}
             className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-surface-container-lowest px-3 py-2 text-left hover:border-primary disabled:opacity-50"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-on-primary/15 text-[11px] font-bold text-primary">
               {initials(p.name)}
             </span>
             <span className="min-w-0 flex-1">
@@ -70,7 +70,7 @@ export function PersonaSwitcher() {
           type="button"
           onClick={signOut}
           disabled={busy !== null}
-          className="w-full rounded-full bg-primary px-3 py-1.5 text-center font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-full bg-primary-container px-3 py-1.5 text-center font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {busy === "__signout__" ? "…" : "Se déconnecter"}
         </button>

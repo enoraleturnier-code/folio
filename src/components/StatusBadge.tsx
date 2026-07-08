@@ -13,7 +13,7 @@ export type StatusKind =
   | "archive";
 
 const styles: Record<StatusKind, string> = {
-  public: "bg-primary/20 border-primary/30 text-primary",
+  public: "bg-primary/10 border-primary/30 text-primary",
   confidential: "bg-secondary/80 border-white/10 text-on-surface",
   draft: "bg-white/5 border-white/10 text-on-surface-variant",
   deleted: "bg-[#F87171]/10 border-[#F87171]/30 text-[#F87171]",

@@ -175,7 +175,7 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
                       className={
                         "rounded-full border px-4 py-2 text-xs font-medium transition-colors " +
                         (selected
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? "border-primary bg-primary-container/10 text-primary"
                           : "border-white/15 text-on-surface-variant hover:text-on-surface")
                       }
                     >

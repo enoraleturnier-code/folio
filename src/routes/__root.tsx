@@ -30,7 +30,7 @@ function NotFoundComponent() {
         <div className="mt-8">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary transition-colors hover:opacity-90"
+            className="inline-flex items-center justify-center rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary transition-colors hover:opacity-90"
           >
             Retour à l'accueil
           </Link>
@@ -59,7 +59,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
+            className="inline-flex items-center justify-center rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
           >
             Réessayer
           </button>
