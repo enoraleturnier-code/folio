@@ -13,7 +13,7 @@ import { PersonaSwitcher } from "@/components/dev/PersonaSwitcher";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
-const THEME_INIT = `(function(){try{var t=localStorage.getItem('folio-theme');var c=document.documentElement.classList;c.remove('light','dark');var d;if(t==='dark'){d=true;}else if(t==='light'){d=false;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}c.add(d?'dark':'light');}catch(e){document.documentElement.classList.add('dark');}})();`;
+const THEME_INIT = `(function(){try{var t=localStorage.getItem('folio-theme');var c=document.documentElement.classList;c.remove('light','dark');var d;if(t==='light'){d=false;}else if(t==='dark'){d=true;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}c.add(d?'dark':'light');}catch(e){document.documentElement.classList.add('dark');}})();`;
 
 function NotFoundComponent() {
   return (
@@ -120,11 +120,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr" className="dark">
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>

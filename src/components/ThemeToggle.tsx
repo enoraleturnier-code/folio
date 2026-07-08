@@ -13,17 +13,22 @@ function applyTheme(mode: ThemeMode) {
   }
 }
 
+function readStoredMode(): ThemeMode {
+  if (typeof window === "undefined") return "system";
+  try {
+    const stored = localStorage.getItem("folio-theme");
+    if (stored === "light") return "light";
+    if (stored === "dark") return "dark";
+    return "system";
+  } catch {
+    return "system";
+  }
+}
+
 export function ThemeToggle() {
-  const [mode, setMode] = useState<ThemeMode>("dark");
+  const [mode, setMode] = useState<ThemeMode>(readStoredMode);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem("folio-theme") : null;
-    const initial: ThemeMode =
-      stored === "dark" || stored === "light" ? stored : "system";
-    setMode(initial);
-  }, []);
 
   useEffect(() => {
     if (mode !== "system") return;
@@ -52,8 +57,7 @@ export function ThemeToggle() {
   const choose = (next: ThemeMode) => {
     setMode(next);
     try {
-      if (next === "system") localStorage.removeItem("folio-theme");
-      else localStorage.setItem("folio-theme", next);
+      localStorage.setItem("folio-theme", next);
     } catch {
       /* ignore */
     }
