@@ -1,5 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
+import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
@@ -7,17 +7,14 @@ import { ContactForm } from "@/components/ContactForm";
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 
-export const Route = createFileRoute("/$slug/")({
-  loader: async ({ params }) => {
-    if (params.slug !== designer.slug) throw notFound();
-    const projects = await getProjects();
-    return { designer, projects };
-  },
-  component: ProfilePage,
-});
+export async function profileLoader({ params }: LoaderFunctionArgs) {
+  if (params.slug !== designer.slug) throw new Response("Not Found", { status: 404 });
+  const projects = await getProjects();
+  return { designer, projects };
+}
 
-function ProfilePage() {
-  const { designer, projects } = Route.useLoaderData();
+export function ProfilePage() {
+  const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof profileLoader>>;
   const [modalOpen, setModalOpen] = useState(false);
   const hasConfidential = projects.some((p) => p.status === "confidential");
 
@@ -48,8 +45,7 @@ function ProfilePage() {
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link
-                to="/$slug/projects"
-                params={{ slug: designer.slug }}
+                to={`/${designer.slug}/projects`}
                 aria-label={`Voir les projets de ${designer.fullName}`}
                 className="inline-flex items-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
               >
@@ -64,21 +60,27 @@ function ProfilePage() {
                   aria-label={`Visiter le site web de ${designer.fullName}`}
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined">public</span>
+                  <span aria-hidden="true" className="material-symbols-outlined">
+                    public
+                  </span>
                 </a>
                 <a
                   href={`mailto:${designer.email}`}
                   aria-label="M'envoyer un e-mail"
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined">alternate_email</span>
+                  <span aria-hidden="true" className="material-symbols-outlined">
+                    alternate_email
+                  </span>
                 </a>
                 <a
                   href={designer.linkedin}
                   aria-label="Ouvrir le profil LinkedIn"
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined">link</span>
+                  <span aria-hidden="true" className="material-symbols-outlined">
+                    link
+                  </span>
                 </a>
               </div>
             </div>

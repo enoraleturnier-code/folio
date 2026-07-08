@@ -1,5 +1,5 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
@@ -9,21 +9,18 @@ import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 import type { Project } from "@/types/project";
 
-export const Route = createFileRoute("/$slug/projects/")({
-  loader: async ({ params }) => {
-    if (params.slug !== designer.slug) throw notFound();
-    const projects = await getProjects();
-    return { designer, projects };
-  },
-  component: CataloguePage,
-});
+export async function catalogueLoader({ params }: LoaderFunctionArgs) {
+  if (params.slug !== designer.slug) throw new Response("Not Found", { status: 404 });
+  const projects = await getProjects();
+  return { designer, projects };
+}
 
 function uniq(xs: string[]) {
   return Array.from(new Set(xs)).sort();
 }
 
-function CataloguePage() {
-  const { designer, projects } = Route.useLoaderData();
+export function CataloguePage() {
+  const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof catalogueLoader>>;
   const [modalOpen, setModalOpen] = useState(false);
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [filters, setFilters] = useState<FilterState>({
@@ -39,9 +36,7 @@ function CataloguePage() {
     () => ({
       designType: uniq(list.flatMap((p) => p.tags.types)),
       sector: uniq(
-        list
-          .map((p) => p.secteur_activite)
-          .filter((s): s is NonNullable<typeof s> => Boolean(s)),
+        list.map((p) => p.secteur_activite).filter((s): s is NonNullable<typeof s> => Boolean(s)),
       ),
       tools: uniq(list.flatMap((p) => p.tags.tools)),
       keywords: uniq(list.flatMap((p) => p.tags.keywords)),
@@ -74,8 +69,7 @@ function CataloguePage() {
             Catalogue
           </p>
           <h1 className="text-5xl font-medium text-on-surface md:text-7xl">
-            La galerie{" "}
-            <span className="font-display-accent italic text-primary">complète</span>.
+            La galerie <span className="font-display-accent italic text-primary">complète</span>.
           </h1>
           <p className="mt-6 max-w-2xl text-lg font-light text-on-surface-variant">
             {list.length} projet{list.length > 1 ? "s" : ""} — {publicCount} public

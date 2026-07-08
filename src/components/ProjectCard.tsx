@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 
 import { designer } from "@/data/designer";
 import type { Project } from "@/types/project";
@@ -14,7 +14,12 @@ interface ProjectCardProps {
   onRequestAccess?: (project: Project) => void;
 }
 
-export function ProjectCard({ project, index, accessState = "none", onRequestAccess }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  index,
+  accessState = "none",
+  onRequestAccess,
+}: ProjectCardProps) {
   const isConfidential = project.status === "confidential";
   const isTeaser = isConfidential && accessState !== "granted";
 
@@ -67,8 +72,7 @@ export function ProjectCard({ project, index, accessState = "none", onRequestAcc
       <div className="space-y-3 p-6">
         <h3 className="text-lg font-medium text-on-surface">
           <Link
-            to="/$slug/projects/$id"
-            params={{ slug: designer.slug, id: project.id }}
+            to={`/${designer.slug}/projects/${project.id}`}
             className="hover:text-primary transition-colors"
           >
             {project.title}

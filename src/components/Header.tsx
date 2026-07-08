@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import { designer } from "@/data/designer";
@@ -19,8 +19,7 @@ export function Header() {
           {!isAdminRoute && (
             <>
               <Link
-                to="/$slug"
-                params={{ slug: designer.slug }}
+                to={`/${designer.slug}`}
                 className="text-2xl font-medium tracking-tight text-on-surface"
               >
                 Folio<span className="text-primary">+</span>
@@ -35,8 +34,8 @@ export function Header() {
 
         <div className="flex items-center gap-3 md:gap-6">
           <nav className="hidden items-center gap-6 md:flex">
-            <VisitorLink to="/$slug" params={{ slug: designer.slug }} label="Profil" />
-            <VisitorLink to="/$slug/projects" params={{ slug: designer.slug }} label="Projets" />
+            <VisitorLink to={`/${designer.slug}`} label="Profil" end />
+            <VisitorLink to={`/${designer.slug}/projects`} label="Projets" />
           </nav>
 
           <ThemeToggle />
@@ -51,34 +50,26 @@ export function Header() {
             </Link>
           )}
 
-          {session && (
-            <AccountMenu fullName={fullName} role={role} roleLoading={roleLoading} />
-          )}
+          {session && <AccountMenu fullName={fullName} role={role} roleLoading={roleLoading} />}
         </div>
       </div>
     </header>
   );
 }
 
-function VisitorLink({
-  to,
-  params,
-  label,
-}: {
-  to: "/$slug" | "/$slug/projects";
-  params: { slug: string };
-  label: string;
-}) {
+function VisitorLink({ to, label, end }: { to: string; label: string; end?: boolean }) {
   return (
-    <Link
+    <NavLink
       to={to}
-      params={params}
-      className="text-sm font-medium text-on-surface-variant transition-colors hover:text-primary"
-      activeProps={{ className: "text-primary font-bold text-sm" }}
-      activeOptions={{ exact: true }}
+      end={end}
+      className={({ isActive }) =>
+        isActive
+          ? "text-sm font-bold text-primary"
+          : "text-sm font-medium text-on-surface-variant transition-colors hover:text-primary"
+      }
     >
       {label}
-    </Link>
+    </NavLink>
   );
 }
 
@@ -99,7 +90,7 @@ function AccountMenu({
   const handleSignOut = async () => {
     setOpen(false);
     await supabase.auth.signOut();
-    navigate({ to: "/", replace: true });
+    navigate("/", { replace: true });
   };
 
   useEffect(() => {
@@ -153,14 +144,16 @@ function AccountMenu({
           <div className="flex flex-col py-2">
             {!roleLoading && isAdmin && (
               <Link
-                to="/admin"
-                search={{ tab: "parametres" }}
+                to="/admin?tab=parametres"
                 role="menuitem"
                 aria-label="Paramètres"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
               >
-                <span aria-hidden="true" className="material-symbols-outlined text-base text-on-surface-variant">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-base text-on-surface-variant"
+                >
                   settings
                 </span>
                 Paramètres
@@ -174,7 +167,10 @@ function AccountMenu({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
               >
-                <span aria-hidden="true" className="material-symbols-outlined text-base text-on-surface-variant">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-base text-on-surface-variant"
+                >
                   person
                 </span>
                 Mon profil

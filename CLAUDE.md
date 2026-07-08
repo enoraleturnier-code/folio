@@ -1,5 +1,20 @@
 # Folio+ — Notes pour Claude Code
 
+## Architecture routing — migration TanStack Start → React Router (08/07, terminée)
+
+Le routing est passé de **TanStack Start** (SSR Nitro + file-based routing) à une **SPA Vite pure** avec **React Router** (data router, `createBrowserRouter`/`RouterProvider`) — plus aucun méta-framework de routing, plus de SSR. Migration exécutée sur `feat/migration-react-router`, non encore commitée au moment de la rédaction de cette note.
+
+- **Fichiers clés** :
+  - `index.html` — head statique (meta/OG/Twitter/fonts/favicon) + script `THEME_INIT` inline (voir note hydration ci-dessous). Remplace l'ancien `head()` de `src/routes/__root.tsx`.
+  - `src/main.tsx` — entry point Vite classique : `createRoot(...).render(<RouterProvider router={router}/>)`.
+  - `src/router.tsx` — arbre de routes complet avec `loader`/`errorElement`/`redirect`, portage direct des anciens `loader()` TanStack (même nom de hook `useLoaderData()`, même sémantique 404 via `throw new Response(..., {status:404})` capté par `errorElement`).
+  - `src/pages/*.tsx` — un composant par route (remplace `src/routes/` file-based, supprimé). `RootLayout.tsx` = `QueryClientProvider` + `<ScrollRestoration/>` + `PersonaSwitcher` (dev only). `RouteError.tsx` = 404 + erreur générique unifiées (remplace `notFoundComponent`/`errorComponent`).
+  - `vercel.json` — rewrite SPA (`/(.*) → /index.html`) pour que le F5 sur une route profonde ne 404 pas en prod. En dev, Vite gère le fallback SPA nativement, rien à configurer.
+- **URLs inchangées** : `/` (redirect), `/:slug`, `/:slug/projects`, `/:slug/projects/:id`, `/admin` (+ `?tab=`), `/auth`, `/account`, `*` (404).
+- **Rien n'a bougé côté métier** : `src/data/*`, `src/hooks/useAuth.ts`, le client Supabase et le masquage RLS des projets confidentiels tournaient déjà 100% côté client (RLS appliqué par Postgres, `get_my_role()` appelé depuis `useAuth()`) — totalement indépendants du routeur, donc non touchés par la migration.
+- **Supprimé** : `src/server.ts`, `src/start.ts`, `src/routes/`, `routeTree.gen.ts`, l'ancien `src/router.tsx` TanStack, `auth-attacher.ts`/`auth-middleware.ts`/`client.server.ts` (plomberie SSR jamais consommée par aucune route), `error-capture.ts`/`error-page.ts` (wrapper d'erreurs SSR). Dépendances retirées : `@tanstack/react-router`, `@tanstack/react-start`, `@tanstack/router-plugin`, `@lovable.dev/vite-tanstack-config`, `nitro`. `vite.config.ts` est maintenant une config Vite standard (`@vitejs/plugin-react` + `@tailwindcss/vite` + `vite-tsconfig-paths`, port 8080 fixé pour matcher `.claude/launch.json`).
+- **Non touché, comme prévu** : `src/components/ui/` (shadcn, code mort), `DESIGN.md`/`src/styles.css`, tout le contenu JSX/Tailwind des pages.
+
 ## Design system couleur — source de vérité
 
 **`DESIGN.md`** (fourni par l'utilisateur, hors repo à `C:\Users\user24\Downloads\DESIGN.md` — à rapatrier dans le repo si besoin de le versionner) est la référence unique pour toutes les valeurs de couleur, la nomenclature M3, et les ratios WCAG/RGAA vérifiés. Toujours le consulter avant de toucher à `src/styles.css` ou d'ajouter un token couleur. Il a été mis à jour le 08/07 avec les valeurs dark corrigées ci-dessous.
@@ -33,5 +48,5 @@ Le token `secondary` vaut `#7c3aed` dans `src/styles.css` (bloc base/dark) alors
 
 ## Autres notes de session
 
-- **Hydration dark/light corrigé** : `<html>` ne porte plus de `className` géré par React dans `RootShell` (`src/routes/__root.tsx`) — c'est le script inline `THEME_INIT` qui en a l'entière responsabilité. Règle produit : défaut = préférence système (`matchMedia`), pas de dark forcé. Logique miroir côté React dans `src/components/ThemeToggle.tsx` (`readStoredMode`).
-- **Warning hydration résiduel non lié au thème** : attribut `data-tsd-source` sur `<head>`, injecté par un plugin de dev tooling Lovable, diffère serveur/client. Pas un bug applicatif — ne pas chercher à le corriger sans consigne explicite.
+- **Hydration dark/light corrigé** : `<html>` ne porte plus de `className` géré par React — depuis la migration React Router, `index.html` est un fichier statique et React ne fait plus aucune hydratation SSR (pure CSR, `createRoot(...).render(...)` dans `src/main.tsx`). Le script inline `THEME_INIT` dans le `<head>` de `index.html` a l'entière responsabilité de la classe `dark`/`light` sur `<html>`, appliquée avant tout rendu React. Règle produit : défaut = préférence système (`matchMedia`), pas de dark forcé. Logique miroir côté React dans `src/components/ThemeToggle.tsx` (`readStoredMode`).
+- **Warning hydration `data-tsd-source` obsolète** : ce warning (attribut injecté par un plugin de dev tooling Lovable différant entre rendu serveur/client) était spécifique à l'ancienne architecture SSR TanStack Start. Depuis le passage en SPA pure (plus de rendu serveur du tout), il ne peut plus se produire — non revérifié explicitement mais structurellement impossible désormais.

@@ -1,8 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
-import { z } from "zod";
 
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -15,26 +14,20 @@ import { accessRequests as seedRequests } from "@/data/requests";
 import type { AccessRequest, ContactMessage, ContactStatus, RequestStatus } from "@/data/types";
 import type { Project } from "@/types/project";
 
-const searchSchema = z.object({
-  tab: z
-    .enum(["dashboard", "projets", "demandes", "contacts", "parametres"])
-    .catch("dashboard")
-    .default("dashboard"),
-});
+const ALLOWED_TABS = ["dashboard", "projets", "demandes", "contacts", "parametres"] as const;
+type TabKey = (typeof ALLOWED_TABS)[number];
 
-type TabKey = z.infer<typeof searchSchema>["tab"];
+function parseTab(value: string | null): TabKey {
+  return (ALLOWED_TABS as readonly string[]).includes(value ?? "")
+    ? (value as TabKey)
+    : "dashboard";
+}
 
-export const Route = createFileRoute("/admin")({
-  validateSearch: searchSchema,
-  component: AdminPage,
-});
-
-function AdminPage() {
-  const search = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const routerNavigate = useNavigate();
+export function AdminPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { session, loading, role, roleLoading } = useAuth();
-  const tab: TabKey = search.tab;
+  const tab: TabKey = parseTab(searchParams.get("tab"));
   const [collapsed, setCollapsed] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -42,13 +35,13 @@ function AdminPage() {
   useEffect(() => {
     if (loading || roleLoading) return;
     if (!session) {
-      routerNavigate({ to: "/auth" });
+      navigate("/auth");
       return;
     }
     if (role !== "admin") {
-      routerNavigate({ to: "/" });
+      navigate("/");
     }
-  }, [loading, roleLoading, session, role, routerNavigate]);
+  }, [loading, roleLoading, session, role, navigate]);
 
   useEffect(() => {
     if (loading || roleLoading || !session || role !== "admin") return;
@@ -66,16 +59,13 @@ function AdminPage() {
     };
   }, [loading, roleLoading, session, role]);
 
-  const pendingCount = useMemo(
-    () => seedRequests.filter((r) => r.status === "pending").length,
-    [],
-  );
+  const pendingCount = useMemo(() => seedRequests.filter((r) => r.status === "pending").length, []);
 
   if (loading || roleLoading || !session || role !== "admin") {
     return <div className="min-h-screen bg-background" />;
   }
 
-  const setTab = (t: TabKey) => navigate({ search: { tab: t } });
+  const setTab = (t: TabKey) => setSearchParams({ tab: t });
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -141,13 +131,15 @@ function AdminSidebar({
       badge: pendingCount,
     },
     { key: "contacts", icon: "mail", label: "Messages" },
-    { key: "parametres", icon: "settings", label: "Paramètres " },
+    { key: "parametres", icon: "settings", label: "Paramètres " },
   ];
   return (
     <aside
       className={
         "fixed left-0 top-0 z-[70] flex h-screen flex-col border-r border-white/5 bg-background py-10 transition-[width] " +
-        (collapsed ? "w-16 items-center md:w-20" : "w-20 items-center px-3 md:w-56 md:items-stretch md:px-5")
+        (collapsed
+          ? "w-16 items-center md:w-20"
+          : "w-20 items-center px-3 md:w-56 md:items-stretch md:px-5")
       }
     >
       <Link
@@ -178,7 +170,9 @@ function AdminSidebar({
       <button
         type="button"
         onClick={onToggleCollapsed}
-        aria-label={collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"}
+        aria-label={
+          collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"
+        }
         className={
           "mt-8 flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
           (collapsed ? "" : "md:self-end")
@@ -204,7 +198,8 @@ function AdminSidebar({
 
       <nav
         className={
-          "mt-8 flex flex-col gap-2 " + (collapsed ? "items-center" : "items-center md:items-stretch")
+          "mt-8 flex flex-col gap-2 " +
+          (collapsed ? "items-center" : "items-center md:items-stretch")
         }
       >
         <Link
@@ -213,7 +208,9 @@ function AdminSidebar({
           aria-current={tab === "dashboard" ? "page" : undefined}
           className={
             "relative flex h-12 items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
-            (collapsed ? "w-12 justify-center" : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
+            (collapsed
+              ? "w-12 justify-center"
+              : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
             " " +
             (tab === "dashboard"
               ? "bg-primary-container/10 text-primary"
@@ -240,7 +237,9 @@ function AdminSidebar({
               aria-current={active ? "page" : undefined}
               className={
                 "relative flex h-12 items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
-                (collapsed ? "w-12 justify-center" : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
+                (collapsed
+                  ? "w-12 justify-center"
+                  : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
                 " " +
                 (active
                   ? "bg-primary-container/10 text-primary"
@@ -301,7 +300,9 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           <span className="material-symbols-outlined text-2xl text-primary">folder</span>
           <span className="mt-4 text-3xl font-bold text-on-surface">{activeProjects.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Projets</span>
-          <span className="mt-2 text-xs text-primary">{publishedProjects.length} publiés · {draftProjects.length} brouillon</span>
+          <span className="mt-2 text-xs text-primary">
+            {publishedProjects.length} publiés · {draftProjects.length} brouillon
+          </span>
         </button>
 
         <button
@@ -457,8 +458,7 @@ function ProjetsTab({
     <>
       <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
         <h1 className="text-4xl font-bold text-on-surface md:text-[44px]">
-          Mon catalogue{" "}
-          <span className="font-display-accent italic text-primary">Projets</span>
+          Mon catalogue <span className="font-display-accent italic text-primary">Projets</span>
         </h1>
         <button
           type="button"
@@ -655,8 +655,7 @@ function DemandesTab() {
                   {r.company} · <span className="text-primary">{r.email}</span>
                 </p>
                 <p className="mt-2 text-sm text-on-surface-variant">
-                  <span className="text-on-surface">Projets :</span>{" "}
-                  {r.projectTitles.join(", ")}
+                  <span className="text-on-surface">Projets :</span> {r.projectTitles.join(", ")}
                 </p>
                 <p className="mt-1 text-xs text-on-surface-variant/70">
                   {new Date(r.date).toLocaleDateString("fr-FR", {
@@ -850,8 +849,7 @@ function ParametresTab() {
   const [copied, setCopied] = useState(false);
 
   const publicUrl = useMemo(() => {
-    const base =
-      typeof window !== "undefined" ? window.location.origin : "https://folio.plus";
+    const base = typeof window !== "undefined" ? window.location.origin : "https://folio.plus";
     return `${base}/${designer.slug}`;
   }, []);
 
@@ -901,8 +899,7 @@ function ParametresTab() {
                 cloud_upload
               </span>
               <p className="text-sm text-on-surface-variant">
-                Glissez-déposez une image ou{" "}
-                <span className="text-primary">parcourir</span>
+                Glissez-déposez une image ou <span className="text-primary">parcourir</span>
               </p>
             </div>
           </div>
@@ -993,16 +990,14 @@ function ParametresTab() {
           </div>
           <p className="mt-2 text-xs text-on-surface-variant/70">
             Le slug est en lecture seule pour cette version.{" "}
-            <Link to="/$slug" params={{ slug: designer.slug }} className="text-primary hover:underline">
+            <Link to={`/${designer.slug}`} className="text-primary hover:underline">
               Voir le profil public
             </Link>
           </p>
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          {saved && (
-            <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>
-          )}
+          {saved && <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>}
           <button
             type="submit"
             className="ml-auto rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"

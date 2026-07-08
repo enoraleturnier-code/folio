@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
@@ -12,24 +12,20 @@ function formatPeriod(start: string | null, end: string | null): string {
   return String(startYear ?? endYear ?? "");
 }
 
-export const Route = createFileRoute("/$slug/projects/$id")({
-  loader: async ({ params }) => {
-    if (params.slug !== designer.slug) throw notFound();
-    const project = await getProjectById(params.id);
-    if (!project) throw notFound();
-    return { project };
-  },
-  component: ProjectDetailPage,
-});
+export async function projectDetailLoader({ params }: LoaderFunctionArgs) {
+  if (params.slug !== designer.slug) throw new Response("Not Found", { status: 404 });
+  const project = await getProjectById(params.id!);
+  if (!project) throw new Response("Not Found", { status: 404 });
+  return { project };
+}
 
-function ProjectDetailPage() {
-  const { project } = Route.useLoaderData();
+export function ProjectDetailPage() {
+  const { project } = useLoaderData() as Awaited<ReturnType<typeof projectDetailLoader>>;
 
   return (
     <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-28 md:px-16">
       <Link
-        to="/$slug/projects"
-        params={{ slug: designer.slug }}
+        to={`/${designer.slug}/projects`}
         className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-background/60 px-4 py-2 text-xs font-medium text-on-surface hover:border-primary hover:text-primary"
       >
         <span aria-hidden="true" className="material-symbols-outlined text-base">
@@ -39,7 +35,11 @@ function ProjectDetailPage() {
       </Link>
 
       <section className="relative mt-8 aspect-[21/9] overflow-hidden rounded-2xl">
-        <img src={project.thumbnail_url ?? ""} alt={project.title} className="h-full w-full object-cover" />
+        <img
+          src={project.thumbnail_url ?? ""}
+          alt={project.title}
+          className="h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         <div className="absolute right-6 top-6">
           <StatusBadge kind={project.status === "confidential" ? "confidential" : "public"} />
@@ -48,9 +48,7 @@ function ProjectDetailPage() {
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">
             {project.company_name}
           </p>
-          <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-6xl">
-            {project.title}
-          </h1>
+          <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-6xl">{project.title}</h1>
           <p className="mt-3 max-w-2xl text-lg text-on-surface-variant">{project.short_desc}</p>
         </div>
       </section>
@@ -62,8 +60,7 @@ function ProjectDetailPage() {
               01 — Problème
             </p>
             <h2 className="text-3xl font-medium text-on-surface">
-              Un défi{" "}
-              <span className="font-display-accent italic text-primary">clair</span>.
+              Un défi <span className="font-display-accent italic text-primary">clair</span>.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
               {project.ai_structured_desc?.probleme}
@@ -86,8 +83,7 @@ function ProjectDetailPage() {
               03 — Résultat
             </p>
             <h2 className="text-3xl font-medium text-on-surface">
-              L'impact{" "}
-              <span className="font-display-accent italic text-primary">mesuré</span>.
+              L'impact <span className="font-display-accent italic text-primary">mesuré</span>.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
               {project.ai_structured_desc?.resultat}

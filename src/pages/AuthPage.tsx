@@ -1,13 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/auth")({
-  component: AuthPage,
-});
-
-function AuthPage() {
+export function AuthPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,7 +12,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/admin" });
+      if (data.session) navigate("/admin");
     });
   }, [navigate]);
 
@@ -33,7 +29,7 @@ function AuthPage() {
       setError("Email ou mot de passe incorrect.");
       return;
     }
-    navigate({ to: "/admin" });
+    navigate("/admin");
   };
 
   return (
@@ -42,9 +38,7 @@ function AuthPage() {
         <h1 className="mb-2 text-2xl font-medium tracking-tight text-on-surface">
           Folio<span className="text-primary">+</span>
         </h1>
-        <p className="mb-8 text-sm text-on-surface-variant">
-          Connectez-vous à votre espace admin.
-        </p>
+        <p className="mb-8 text-sm text-on-surface-variant">Connectez-vous à votre espace admin.</p>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
           <div className="flex flex-col gap-2">

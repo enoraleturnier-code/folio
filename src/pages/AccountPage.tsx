@@ -1,26 +1,22 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
 
-export const Route = createFileRoute("/account")({
-  component: AccountPage,
-});
-
-function AccountPage() {
+export function AccountPage() {
   const navigate = useNavigate();
   const { session, loading, role, roleLoading, fullName, user } = useAuth();
 
   useEffect(() => {
     if (loading || roleLoading) return;
     if (!session) {
-      navigate({ to: "/auth" });
+      navigate("/auth");
       return;
     }
     if (role === "admin") {
-      navigate({ to: "/admin" });
+      navigate("/admin");
     }
   }, [loading, roleLoading, session, role, navigate]);
 
