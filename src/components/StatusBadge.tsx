@@ -1,3 +1,5 @@
+import { Check, Lock, NotebookPen, Trash2, type LucideIcon } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export type StatusKind =
@@ -38,15 +40,15 @@ const labels: Record<StatusKind, string> = {
   archive: "Archivé",
 };
 
-const icons: Partial<Record<StatusKind, string>> = {
-  public: "check",
-  confidential: "lock",
-  draft: "edit_note",
-  deleted: "delete",
+const icons: Partial<Record<StatusKind, LucideIcon>> = {
+  public: Check,
+  confidential: Lock,
+  draft: NotebookPen,
+  deleted: Trash2,
 };
 
 export function StatusBadge({ kind }: { kind: StatusKind }) {
-  const icon = icons[kind];
+  const Icon = icons[kind];
   return (
     <span
       className={cn(
@@ -54,11 +56,7 @@ export function StatusBadge({ kind }: { kind: StatusKind }) {
         styles[kind],
       )}
     >
-      {icon && (
-        <span aria-hidden="true" className="material-symbols-outlined text-[14px] leading-none">
-          {icon}
-        </span>
-      )}
+      {Icon && <Icon aria-hidden="true" size={14} />}
       {labels[kind]}
     </span>
   );

@@ -1,3 +1,4 @@
+import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
 export interface FilterState {
@@ -71,9 +72,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                     : "border-white/20 text-on-surface hover:border-primary hover:text-primary")
                 }
               >
-                <span aria-hidden="true" className="material-symbols-outlined text-sm">
-                  tune
-                </span>
+                <SlidersHorizontal aria-hidden="true" size={14} />
                 Filtrer
                 {activeSecondaryCount > 0 && (
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">

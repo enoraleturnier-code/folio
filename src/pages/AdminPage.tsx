@@ -1,3 +1,21 @@
+import {
+  ArchiveRestore,
+  ArrowLeftRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CloudUpload,
+  Copy,
+  Folder,
+  Inbox,
+  KeyRound,
+  LayoutDashboard,
+  Mail,
+  Pencil,
+  Settings,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
@@ -119,19 +137,19 @@ function AdminSidebar({
 }) {
   const items: {
     key: TabKey;
-    icon: string;
+    icon: LucideIcon;
     label: string;
     badge?: number;
   }[] = [
-    { key: "projets", icon: "folder", label: "Catalogue projets" },
+    { key: "projets", icon: Folder, label: "Catalogue projets" },
     {
       key: "demandes",
-      icon: "vpn_key",
+      icon: KeyRound,
       label: "Accès",
       badge: pendingCount,
     },
-    { key: "contacts", icon: "mail", label: "Messages" },
-    { key: "parametres", icon: "settings", label: "Paramètres " },
+    { key: "contacts", icon: Mail, label: "Messages" },
+    { key: "parametres", icon: Settings, label: "Paramètres " },
   ];
   return (
     <aside
@@ -178,9 +196,11 @@ function AdminSidebar({
           (collapsed ? "" : "md:self-end")
         }
       >
-        <span aria-hidden="true" className="material-symbols-outlined text-base">
-          {collapsed ? "chevron_right" : "chevron_left"}
-        </span>
+        {collapsed ? (
+          <ChevronRight aria-hidden="true" size={18} />
+        ) : (
+          <ChevronLeft aria-hidden="true" size={18} />
+        )}
       </button>
 
       <div
@@ -217,13 +237,12 @@ function AdminSidebar({
               : "text-on-surface-variant/65 hover:text-on-surface")
           }
         >
-          <span aria-hidden="true" className="material-symbols-outlined">
-            dashboard
-          </span>
+          <LayoutDashboard aria-hidden="true" size={24} />
           {!collapsed && <span className="hidden text-sm md:inline">Dashboard</span>}
         </Link>
         {items.map((it) => {
           const active = tab === it.key;
+          const ItemIcon = it.icon;
           return (
             <button
               key={it.key}
@@ -246,9 +265,7 @@ function AdminSidebar({
                   : "text-on-surface-variant/65 hover:text-on-surface")
               }
             >
-              <span aria-hidden="true" className="material-symbols-outlined">
-                {it.icon}
-              </span>
+              <ItemIcon aria-hidden="true" size={24} />
               {!collapsed && (
                 <span className="hidden flex-1 text-left text-sm md:inline">{it.label}</span>
               )}
@@ -297,7 +314,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("projets")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">folder</span>
+          <Folder aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">{activeProjects.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Projets</span>
           <span className="mt-2 text-xs text-primary">
@@ -310,7 +327,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("demandes")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">vpn_key</span>
+          <KeyRound aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">{pendingRequests.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Demandes en attente</span>
           <span className="mt-2 text-xs text-primary">À valider ou refuser</span>
@@ -321,7 +338,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("contacts")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">mail</span>
+          <Mail aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">{newMessages.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Messages nouveaux</span>
           <span className="mt-2 text-xs text-primary">À traiter</span>
@@ -332,7 +349,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("parametres")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">settings</span>
+          <Settings aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">1</span>
           <span className="mt-1 text-sm text-on-surface-variant">Paramètres</span>
           <span className="mt-2 text-xs text-primary">Profil public</span>
@@ -532,9 +549,7 @@ function ProjetsTab({
                       aria-label={`Restaurer le projet ${p.title}`}
                       className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
                     >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        restore_from_trash
-                      </span>
+                      <ArchiveRestore aria-hidden="true" size={18} />
                     </button>
                   ) : (
                     <>
@@ -544,9 +559,7 @@ function ProjetsTab({
                         aria-label={`Éditer ${p.title}`}
                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
                       >
-                        <span aria-hidden="true" className="material-symbols-outlined text-base">
-                          edit
-                        </span>
+                        <Pencil aria-hidden="true" size={18} />
                       </button>
                       <button
                         type="button"
@@ -555,9 +568,7 @@ function ProjetsTab({
                         aria-label={`Supprimer ${p.title}`}
                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50"
                       >
-                        <span aria-hidden="true" className="material-symbols-outlined text-base">
-                          delete
-                        </span>
+                        <Trash2 aria-hidden="true" size={18} />
                       </button>
                     </>
                   )}
@@ -772,12 +783,7 @@ function ContactsTab() {
       />
       {items.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center gap-3">
-          <span
-            aria-hidden="true"
-            className="material-symbols-outlined text-6xl text-on-surface-variant/40"
-          >
-            inbox
-          </span>
+          <Inbox aria-hidden="true" className="text-on-surface-variant/40" size={60} />
           <p className="text-sm font-light text-on-surface-variant">Aucun message reçu</p>
         </div>
       ) : (
@@ -821,9 +827,7 @@ function ContactsTab() {
                   aria-label={`Changer le statut du message de ${m.fullName}`}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined text-base">
-                    swap_horiz
-                  </span>
+                  <ArrowLeftRight aria-hidden="true" size={18} />
                 </button>
               </div>
             </li>
@@ -892,12 +896,7 @@ function ParametresTab() {
               className="h-20 w-20 rounded-full border border-white/10 object-cover"
             />
             <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/15 bg-surface-container px-6 py-6 text-center">
-              <span
-                aria-hidden="true"
-                className="material-symbols-outlined text-2xl text-on-surface-variant"
-              >
-                cloud_upload
-              </span>
+              <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={24} />
               <p className="text-sm text-on-surface-variant">
                 Glissez-déposez une image ou <span className="text-primary">parcourir</span>
               </p>
@@ -983,9 +982,11 @@ function ParametresTab() {
               aria-label="Copier le lien du profil"
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-base">
-                {copied ? "check" : "content_copy"}
-              </span>
+              {copied ? (
+                <Check aria-hidden="true" size={18} />
+              ) : (
+                <Copy aria-hidden="true" size={18} />
+              )}
             </button>
           </div>
           <p className="mt-2 text-xs text-on-surface-variant/70">

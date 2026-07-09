@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { designer } from "@/data/designer";
@@ -62,12 +63,7 @@ export function ProjectCard({ project, accessState = "none", onRequestAccess }: 
         )}
         {isTeaser && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span
-              aria-hidden="true"
-              className="material-symbols-outlined !text-[45px] text-[#A78BFA]"
-            >
-              lock
-            </span>
+            <Lock aria-hidden="true" className="text-[#A78BFA]" size={45} />
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { CircleCheckBig, Lock, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getProjects } from "@/data/projects";
@@ -81,9 +82,7 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
         <div className="flex items-start justify-between border-b border-white/5 p-6">
           <div>
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-[#A78BFA]">
-              <span aria-hidden="true" className="material-symbols-outlined text-base">
-                lock
-              </span>
+              <Lock aria-hidden="true" size={18} />
               Accès confidentiel
             </div>
             <h2 className="mt-2 text-2xl font-medium text-on-surface">
@@ -96,17 +95,13 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
             aria-label="Fermer"
             className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
           >
-            <span aria-hidden="true" className="material-symbols-outlined">
-              close
-            </span>
+            <X aria-hidden="true" size={24} />
           </button>
         </div>
 
         {submitted ? (
           <div className="p-8 text-center">
-            <span aria-hidden="true" className="material-symbols-outlined text-3xl text-primary">
-              task_alt
-            </span>
+            <CircleCheckBig aria-hidden="true" className="text-primary" size={30} />
             <h3 className="mt-3 text-lg font-medium text-on-surface">Demande envoyée.</h3>
             <p className="mt-1 text-sm text-on-surface-variant">
               Vous recevrez une réponse sous 24 à 48 heures.

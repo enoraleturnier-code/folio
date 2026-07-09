@@ -1,3 +1,4 @@
+import { CloudUpload, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import type { Project, ProjectStatus, SensitivityLevel } from "@/types/project";
@@ -78,9 +79,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               type="button"
               className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary-container/10"
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-base">
-                auto_awesome
-              </span>
+              <Sparkles aria-hidden="true" size={18} />
               Structurer avec l'IA
             </button>
             <button
@@ -89,9 +88,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               aria-label="Fermer"
               className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
             >
-              <span aria-hidden="true" className="material-symbols-outlined">
-                close
-              </span>
+              <X aria-hidden="true" size={24} />
             </button>
           </div>
         </div>
@@ -175,12 +172,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           <div>
             <p className={labelCls}>Images du projet</p>
             <div className="mt-2 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 bg-surface-container px-6 py-10 text-center">
-              <span
-                aria-hidden="true"
-                className="material-symbols-outlined text-3xl text-on-surface-variant"
-              >
-                cloud_upload
-              </span>
+              <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
               <p className="text-sm text-on-surface-variant">
                 Glissez-déposez vos images ou <span className="text-primary">parcourir</span>
               </p>

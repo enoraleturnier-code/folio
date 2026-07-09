@@ -1,3 +1,4 @@
+import { ArrowRight, AtSign, Calendar, Globe, Link2, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react-router-dom";
 
@@ -60,9 +61,7 @@ export function ProfilePage() {
                 className="inline-flex items-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
               >
                 Voir les projets
-                <span aria-hidden="true" className="material-symbols-outlined text-base">
-                  arrow_forward
-                </span>
+                <ArrowRight aria-hidden="true" size={18} />
               </Link>
               <div className="flex gap-3">
                 <a
@@ -70,27 +69,21 @@ export function ProfilePage() {
                   aria-label={`Visiter le site web de ${designer.fullName}`}
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined">
-                    public
-                  </span>
+                  <Globe aria-hidden="true" size={22} />
                 </a>
                 <a
                   href={`mailto:${designer.email}`}
                   aria-label="M'envoyer un e-mail"
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined">
-                    alternate_email
-                  </span>
+                  <AtSign aria-hidden="true" size={22} />
                 </a>
                 <a
                   href={designer.linkedin}
                   aria-label="Ouvrir le profil LinkedIn"
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined">
-                    link
-                  </span>
+                  <Link2 aria-hidden="true" size={22} />
                 </a>
               </div>
             </div>
@@ -102,9 +95,7 @@ export function ProfilePage() {
                   onClick={() => setModalOpen(true)}
                   className="inline-flex items-center gap-3 rounded-full border border-primary px-6 py-3 text-primary transition-colors hover:bg-primary-container/10"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined text-base">
-                    lock
-                  </span>
+                  <Lock aria-hidden="true" size={18} />
                   <span className="text-sm font-bold tracking-wider">
                     Accéder aux projets confidentiels
                   </span>
@@ -151,12 +142,7 @@ export function ProfilePage() {
             <div className="relative flex-grow bg-background/30">
               <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-on-primary/10">
-                  <span
-                    aria-hidden="true"
-                    className="material-symbols-outlined text-4xl text-primary"
-                  >
-                    calendar_month
-                  </span>
+                  <Calendar aria-hidden="true" className="text-primary" size={36} />
                 </div>
                 <p className="mb-2 text-base text-on-surface">
                   Chargement du calendrier interactif…

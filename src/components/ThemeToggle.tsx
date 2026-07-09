@@ -1,3 +1,4 @@
+import { Check, Contrast, Moon, Sun, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type ThemeMode = "dark" | "light" | "system";
@@ -65,14 +66,13 @@ export function ThemeToggle() {
     setOpen(false);
   };
 
-  const options: { key: ThemeMode; icon: string; label: string }[] = [
-    { key: "dark", icon: "dark_mode", label: "Sombre" },
-    { key: "light", icon: "light_mode", label: "Clair" },
-    { key: "system", icon: "contrast", label: "Auto" },
+  const options: { key: ThemeMode; icon: LucideIcon; label: string }[] = [
+    { key: "dark", icon: Moon, label: "Sombre" },
+    { key: "light", icon: Sun, label: "Clair" },
+    { key: "system", icon: Contrast, label: "Auto" },
   ];
 
-  const triggerIcon =
-    mode === "light" ? "light_mode" : mode === "system" ? "contrast" : "dark_mode";
+  const TriggerIcon = mode === "light" ? Sun : mode === "system" ? Contrast : Moon;
 
   return (
     <div className="relative" ref={ref}>
@@ -84,9 +84,7 @@ export function ThemeToggle() {
         onClick={() => setOpen((v) => !v)}
         className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <span aria-hidden="true" className="material-symbols-outlined">
-          {triggerIcon}
-        </span>
+        <TriggerIcon aria-hidden="true" size={24} />
       </button>
 
       {open && (
@@ -94,6 +92,7 @@ export function ThemeToggle() {
           <div className="flex flex-col py-1">
             {options.map((opt) => {
               const active = mode === opt.key;
+              const OptIcon = opt.icon;
               return (
                 <button
                   key={opt.key}
@@ -104,18 +103,9 @@ export function ThemeToggle() {
                     (active ? "text-primary" : "text-on-surface-variant")
                   }
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined text-base">
-                    {opt.icon}
-                  </span>
+                  <OptIcon aria-hidden="true" size={18} />
                   <span className="flex-1 text-left">{opt.label}</span>
-                  {active && (
-                    <span
-                      aria-hidden="true"
-                      className="material-symbols-outlined text-base text-primary"
-                    >
-                      check
-                    </span>
-                  )}
+                  {active && <Check aria-hidden="true" className="text-primary" size={18} />}
                 </button>
               );
             })}

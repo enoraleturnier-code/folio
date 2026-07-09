@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { StatusBadge } from "@/components/StatusBadge";
@@ -28,9 +29,7 @@ export function ProjectDetailPage() {
         to={`/${designer.slug}/projects`}
         className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-background/60 px-4 py-2 text-xs font-medium text-on-surface hover:border-primary hover:text-primary"
       >
-        <span aria-hidden="true" className="material-symbols-outlined text-base">
-          arrow_back
-        </span>
+        <ArrowLeft aria-hidden="true" size={18} />
         Tous les projets
       </Link>
 

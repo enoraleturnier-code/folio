@@ -1,3 +1,4 @@
+import { MailCheck } from "lucide-react";
 import { useState } from "react";
 
 export function ContactForm() {
@@ -23,9 +24,7 @@ export function ContactForm() {
   if (submitted) {
     return (
       <div className="glass-card rounded-2xl p-8 text-center">
-        <span aria-hidden="true" className="material-symbols-outlined text-3xl text-primary">
-          mark_email_read
-        </span>
+        <MailCheck aria-hidden="true" className="text-primary" size={30} />
         <h3 className="mt-3 text-lg font-medium text-on-surface">Merci — message reçu.</h3>
         <p className="mt-1 text-sm text-on-surface-variant">
           Je reviens vers vous sous 48 heures ouvrées.

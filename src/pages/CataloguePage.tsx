@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
@@ -84,9 +85,7 @@ export function CataloguePage() {
             className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
           >
             Contacter
-            <span aria-hidden="true" className="material-symbols-outlined text-base">
-              arrow_forward
-            </span>
+            <ArrowRight aria-hidden="true" size={18} />
           </Link>
         </header>
 
