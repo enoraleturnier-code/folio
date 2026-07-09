@@ -64,7 +64,7 @@ export function ProjectCard({ project, accessState = "none", onRequestAccess }: 
           <div className="absolute inset-0 flex items-center justify-center">
             <span
               aria-hidden="true"
-              className="material-symbols-outlined !text-8xl text-[#A78BFA]"
+              className="material-symbols-outlined !text-[45px] text-[#A78BFA]"
             >
               lock
             </span>
