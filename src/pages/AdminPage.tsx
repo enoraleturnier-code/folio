@@ -355,7 +355,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
                 <button
                   type="button"
                   onClick={() => setTab("demandes")}
-                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary"
+                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
                 >
                   Traiter
                 </button>
@@ -373,7 +373,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
                 <button
                   type="button"
                   onClick={() => setTab("contacts")}
-                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary"
+                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
                 >
                   Lire
                 </button>
@@ -463,7 +463,7 @@ function ProjetsTab({
         <button
           type="button"
           onClick={openNew}
-          className="rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-transform hover:scale-105"
+          className="rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
         >
           + Créer un nouveau projet
         </button>
@@ -722,7 +722,7 @@ function DemandesTab() {
                     <button
                       type="button"
                       onClick={() => approve(r.id)}
-                      className="rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90"
+                      className="rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
                     >
                       Valider
                     </button>
@@ -1000,7 +1000,7 @@ function ParametresTab() {
           {saved && <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>}
           <button
             type="submit"
-            className="ml-auto rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
+            className="ml-auto rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
           >
             Enregistrer les modifications
           </button>

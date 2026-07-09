@@ -82,7 +82,7 @@ export function AuthPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="mt-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
           >
             {submitting ? "Connexion…" : "Se connecter"}
           </button>

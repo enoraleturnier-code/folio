@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
@@ -17,6 +17,16 @@ export function ProfilePage() {
   const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof profileLoader>>;
   const [modalOpen, setModalOpen] = useState(false);
   const hasConfidential = projects.some((p) => p.status === "confidential");
+  const { hash } = useLocation();
+
+  // React Router ne scrolle pas automatiquement vers un #hash après une
+  // navigation client-side (contrairement à un chargement de page classique) —
+  // nécessaire pour le lien "Contacter" du catalogue (/${slug}#contact).
+  useEffect(() => {
+    if (!hash) return;
+    const el = document.querySelector(hash);
+    el?.scrollIntoView({ behavior: "smooth" });
+  }, [hash]);
 
   return (
     <>
@@ -47,7 +57,7 @@ export function ProfilePage() {
               <Link
                 to={`/${designer.slug}/projects`}
                 aria-label={`Voir les projets de ${designer.fullName}`}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
               >
                 Voir les projets
                 <span aria-hidden="true" className="material-symbols-outlined text-base">

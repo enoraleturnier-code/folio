@@ -34,6 +34,7 @@ function mapCatalogRow(row: ProjectCatalogRow): Project {
     status: row.status!,
     sensitivity_level: row.sensitivity_level!,
     secteur_activite: row.secteur_activite,
+    client_name: row.client_name,
     company_name: row.company_name,
     role: row.role,
     start_date: row.start_date,
@@ -164,7 +165,9 @@ export async function updateProjectStatus(id: string, status: ProjectStatus): Pr
 
   if (error) throw error;
   if (!data) {
-    throw new Error(`updateProjectStatus: no row updated for id=${id} (not found, or not permitted)`);
+    throw new Error(
+      `updateProjectStatus: no row updated for id=${id} (not found, or not permitted)`,
+    );
   }
 }
 

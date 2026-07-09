@@ -12,8 +12,18 @@ interface Persona {
 
 const PERSONAS: Persona[] = [
   { name: "Léa Martin", role: "admin", email: "lea@folioplus.app", password: "Test1234!" },
-  { name: "Sophie Michelle", role: "pending", email: "sophie@folioplus.app", password: "Test1234!" },
-  { name: "Karim Mansouri", role: "validated_visitor", email: "karim@folioplus.app", password: "Test1234!" },
+  {
+    name: "Sophie Michelle",
+    role: "pending",
+    email: "sophie@folioplus.app",
+    password: "Test1234!",
+  },
+  {
+    name: "Karim Mansouri",
+    role: "validated_visitor",
+    email: "karim@folioplus.app",
+    password: "Test1234!",
+  },
 ];
 
 export function PersonaSwitcher() {
@@ -70,7 +80,7 @@ export function PersonaSwitcher() {
           type="button"
           onClick={signOut}
           disabled={busy !== null}
-          className="w-full rounded-full bg-primary-container px-3 py-1.5 text-center font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-full bg-primary-container px-3 py-1.5 text-center font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:brightness-100"
         >
           {busy === "__signout__" ? "…" : "Se déconnecter"}
         </button>

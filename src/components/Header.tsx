@@ -25,11 +25,11 @@ export function Header() {
                 Folio<span className="text-primary">+</span>
               </Link>
               <div className="h-3.5 w-px bg-white/15" />
+              <span className="whitespace-nowrap text-sm font-medium text-on-surface md:text-base">
+                {designer.fullName}
+              </span>
             </>
           )}
-          <span className="whitespace-nowrap text-sm font-medium text-on-surface md:text-base">
-            {designer.fullName}
-          </span>
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
@@ -142,6 +142,23 @@ function AccountMenu({
           className="absolute right-0 z-[80] mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-surface-container-low shadow-2xl"
         >
           <div className="flex flex-col py-2">
+            {!roleLoading && isAdmin && (
+              <Link
+                to="/admin"
+                role="menuitem"
+                aria-label="Dashboard"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+              >
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-base text-on-surface-variant"
+                >
+                  dashboard
+                </span>
+                Dashboard
+              </Link>
+            )}
             {!roleLoading && isAdmin && (
               <Link
                 to="/admin?tab=parametres"
