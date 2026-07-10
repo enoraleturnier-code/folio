@@ -17,7 +17,17 @@ Le routing est passé de **TanStack Start** (SSR Nitro + file-based routing) à 
 
 ## Design system couleur — source de vérité
 
-**`DESIGN.md`** (fourni par l'utilisateur, hors repo à `C:\Users\user24\Downloads\DESIGN.md` — à rapatrier dans le repo si besoin de le versionner) est la référence unique pour toutes les valeurs de couleur, la nomenclature M3, et les ratios WCAG/RGAA vérifiés. Toujours le consulter avant de toucher à `src/styles.css` ou d'ajouter un token couleur. Il a été mis à jour le 08/07 avec les valeurs dark corrigées ci-dessous.
+**`DESIGN.md`** (fourni par l'utilisateur, hors repo à `C:\Users\user24\Desktop\DESIGN.md` — a déménagé de `Downloads\` le 09/07 ; toujours hors repo, à rapatrier si besoin de le versionner) est la référence **unique** pour toutes les valeurs de couleur, la nomenclature M3, et les ratios WCAG/RGAA vérifiés. Toujours le consulter avant de toucher à `src/styles.css` ou d'ajouter un token couleur.
+
+**Règle permanente** : dès qu'une session modifie le design system (nouveau token, nouvelle couleur, nouveau composant visuel type Alert/Badge), mettre à jour `DESIGN.md` dans la foulée — ce n'est pas une étape optionnelle en fin de session. Si un composant du code s'écarte de ce que documente `DESIGN.md`, corriger le composant (le doc fait foi), sauf divergence explicitement déjà actée comme "à trancher avec l'utilisateur" (voir ci-dessous).
+
+**Corrections appliquées le 09/07 suite à audit composants vs DESIGN.md** :
+- `--tag-sector` (`src/styles.css`) : `#22d3ee` → `#06b6d4` (ne correspondait pas à la valeur "cyan" documentée).
+- `--tag-tools` : `#38bdf8` → `#0ea5e9` (ne correspondait pas à la valeur "sky" documentée).
+- `TagBadge.tsx` utilisait des couleurs Tailwind brutes (`fuchsia-500`, `cyan-500`, etc.) mélangées à des hex arbitraires au lieu des tokens sémantiques `tag-*` déjà câblés dans `@theme inline` — remplacé par `bg-tag-*/10 border-tag-*/30 text-tag-*` partout.
+- Badge "Accès accordé" (F-12, `ProjectCard.tsx`) renommé en "Confidentiel · Accès validé" pour matcher le libellé documenté.
+
+**⚠️ Contradiction non résolue dans DESIGN.md à trancher avec l'utilisateur** : la section "🎫 Badges de statut d'accès (F-12)" décrit pending/rejected comme des **pastilles neutres** (gris `outline-variant`/10 pour pending, rouge très atténué pour rejected, lien "Contacter [Prénom Nom]" dynamique) — alors que la section "🔔 Système d'alertes" et l'implémentation réelle actuelle (`ProjectCard.tsx`, approuvée par l'utilisateur via captures d'écran le 09/07) utilisent le composant `Alert` coloré (info/tertiary pour pending, warning/ambre pour rejected, lien statique "Contacter l'administrateur ?"). Ces deux sections du même document se contredisent — la section badges F-12 semble antérieure et obsolète par rapport à l'implémentation Alert validée en dernier, mais je n'ai pas tranché unilatéralement. **Ne pas réconcilier sans demander.**
 
 Les tokens sont définis **uniquement** dans `src/styles.css` (`@theme inline` + blocs `:root, .dark` et `:root:not(.dark)`). Pas de `tailwind.config.*` (Tailwind v4, config CSS-first). `src/components/ui/` (shadcn) est **du code mort confirmé** — aucun fichier applicatif ne l'importe (vérifié par grep exhaustif) ; ne pas le modifier sauf demande explicite de le réactiver.
 

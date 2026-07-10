@@ -1,6 +1,8 @@
 import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
+import { formatSecteur } from "@/lib/secteurLabels";
+
 export interface FilterState {
   designType: string;
   sector: string;
@@ -19,18 +21,21 @@ interface FilterBarProps {
   onChange: (v: FilterState) => void;
 }
 
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
 const activeClasses: Record<keyof FilterState, string> = {
-  designType: "border-fuchsia-500/30 bg-fuchsia-500/10 text-[#D946EF]",
-  sector: "border-cyan-500/30 bg-cyan-500/10 text-[#22D3EE]",
-  tools: "border-sky-500/30 bg-sky-500/10 text-[#38BDF8]",
-  keywords: "border-indigo-500/30 bg-indigo-500/10 text-[#818CF8]",
+  designType: "border-tag-design-type/40 bg-tag-design-type/15 text-tag-design-type",
+  sector: "border-tag-sector/40 bg-tag-sector/15 text-tag-sector",
+  tools: "border-tag-tools/40 bg-tag-tools/15 text-tag-tools",
+  keywords: "border-tag-keywords/40 bg-tag-keywords/15 text-tag-keywords",
 };
 
 const hoverClasses: Record<keyof FilterState, string> = {
-  designType: "hover:border-fuchsia-500/30 hover:bg-fuchsia-500/10 hover:text-[#D946EF]",
-  sector: "hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-[#22D3EE]",
-  tools: "hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-[#38BDF8]",
-  keywords: "hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-[#818CF8]",
+  designType: "hover:border-tag-design-type/40 hover:bg-tag-design-type/15 hover:text-tag-design-type",
+  sector: "hover:border-tag-sector/40 hover:bg-tag-sector/15 hover:text-tag-sector",
+  tools: "hover:border-tag-tools/40 hover:bg-tag-tools/15 hover:text-tag-tools",
+  keywords: "hover:border-tag-keywords/40 hover:bg-tag-keywords/15 hover:text-tag-keywords",
 };
 
 const secondaryCategories: { key: keyof FilterState; label: string }[] = [
@@ -41,9 +46,16 @@ const secondaryCategories: { key: keyof FilterState; label: string }[] = [
 
 function pillClass(key: keyof FilterState, active: boolean) {
   return (
-    "rounded-full border px-4 py-1.5 text-sm transition-colors " +
-    (active ? activeClasses[key] : `border-white/10 text-on-surface-variant ${hoverClasses[key]}`)
+    "rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
+    focusRing +
+    " " +
+    (active ? activeClasses[key] : `border-outline text-on-surface-variant ${hoverClasses[key]}`)
   );
+}
+
+/** Libellé humain pour une option de filtre — seul le secteur a un mapping enum → libellé. */
+function optionLabel(key: keyof FilterState, opt: string): string {
+  return key === "sector" ? formatSecteur(opt) : opt;
 }
 
 export function FilterBar({ options, value, onChange }: FilterBarProps) {
@@ -66,10 +78,12 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                 aria-expanded={expanded}
                 aria-label="Plus de filtres"
                 className={
-                  "flex items-center gap-2 rounded-full border px-5 py-2 text-[10px] font-bold transition-all " +
+                  "flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
+                  focusRing +
+                  " " +
                   (expanded || activeSecondaryCount > 0
-                    ? "border-primary text-primary"
-                    : "border-white/20 text-on-surface hover:border-primary hover:text-primary")
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
                 }
               >
                 <SlidersHorizontal aria-hidden="true" size={14} />
@@ -135,7 +149,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                       onClick={() => onChange({ ...value, [c.key]: active ? "" : opt })}
                       className={pillClass(c.key, active)}
                     >
-                      {opt}
+                      {optionLabel(c.key, opt)}
                     </button>
                   );
                 })}

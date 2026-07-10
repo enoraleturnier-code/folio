@@ -2,6 +2,7 @@ import { KeyRound, Loader2, Lock, LockOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { designer } from "@/data/designer";
+import { formatSecteur } from "@/lib/secteurLabels";
 import type { Project } from "@/types/project";
 import { Alert } from "./Alert";
 import { StatusBadge } from "./StatusBadge";
@@ -98,7 +99,7 @@ export function ProjectCard({
             {accessState === "granted" ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white">
                 <LockOpen aria-hidden="true" size={14} />
-                Accès accordé
+                Confidentiel · Accès validé
               </span>
             ) : (
               <StatusBadge kind="confidential" />
@@ -206,7 +207,7 @@ export function ProjectCard({
             <TagBadge key={l} category="designType" label={l} />
           ))}
           {project.secteur_activite && (
-            <TagBadge category="sector" label={project.secteur_activite} />
+            <TagBadge category="sector" label={formatSecteur(project.secteur_activite)} />
           )}
           {project.tags.tools.slice(0, 1).map((l) => (
             <TagBadge key={l} category="tools" label={l} />

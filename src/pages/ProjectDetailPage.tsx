@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
 import { designer } from "@/data/designer";
 import { getProjectById } from "@/data/projects";
+import { formatSecteur } from "@/lib/secteurLabels";
 
 function formatPeriod(start: string | null, end: string | null): string {
   const startYear = start ? new Date(start).getFullYear() : null;
@@ -106,7 +107,7 @@ export function ProjectDetailPage() {
                   <TagBadge key={"d" + l} category="designType" label={l} />
                 ))}
                 {project.secteur_activite && (
-                  <TagBadge category="sector" label={project.secteur_activite} />
+                  <TagBadge category="sector" label={formatSecteur(project.secteur_activite)} />
                 )}
                 {project.tags.tools.map((l) => (
                   <TagBadge key={"t" + l} category="tools" label={l} />
