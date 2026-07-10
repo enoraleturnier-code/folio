@@ -1,16 +1,21 @@
-import { Lock } from "lucide-react";
+import { KeyRound, Loader2, Lock, LockOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { designer } from "@/data/designer";
 import type { Project } from "@/types/project";
+import { Alert } from "./Alert";
 import { StatusBadge } from "./StatusBadge";
 import { TagBadge } from "./TagBadge";
 
-type AccessState = "none" | "pending" | "granted" | "refused";
+export type AccessState = "none" | "pending" | "granted" | "refused";
 
 interface ProjectCardProps {
   project: Project;
   accessState?: AccessState;
+  /** access_requests.rejection_reason — affiché dans l'alerte quand accessState==="refused". */
+  rejectionReason?: string | null;
+  /** Ancre vers la section contact du profil designer, pour le lien "Contacter l'administrateur ?". */
+  contactHref?: string;
   onRequestAccess?: (project: Project) => void;
 }
 
@@ -26,7 +31,13 @@ function formatYearDuration(start: string | null, end: string | null): string | 
   return `${startDate.getFullYear()} — ${months} mois`;
 }
 
-export function ProjectCard({ project, accessState = "none", onRequestAccess }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  accessState = "none",
+  rejectionReason,
+  contactHref,
+  onRequestAccess,
+}: ProjectCardProps) {
   const isConfidential = project.status === "confidential";
   const isTeaser = isConfidential && accessState !== "granted";
   // Défense en profondeur : même si la vue renvoyait un jour ces champs pour
@@ -39,12 +50,38 @@ export function ProjectCard({ project, accessState = "none", onRequestAccess }: 
     ? formatYearDuration(project.start_date, project.end_date)
     : null;
 
-  return (
-    <article
-      className="glass-card group relative flex flex-col overflow-hidden rounded-2xl transition-all
-        duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-white/15
-        hover:bg-surface-container-low"
-    >
+  // Comportement d'interaction par état (F-12) : "link"/"modal" rendent toute
+  // la carte cliquable (un seul point d'entrée — pas de <button> imbriqué dans
+  // un élément interactif parent). "pending" est totalement inerte. "refused"
+  // laisse la carte inerte mais garde un lien interne cliquable indépendant
+  // (Contacter l'administrateur), dont le hover suit celui de la carte entière.
+  const mode: "link" | "modal" | "pending" | "refused" = !isTeaser
+    ? "link"
+    : accessState === "pending"
+      ? "pending"
+      : accessState === "refused"
+        ? "refused"
+        : "modal";
+
+  const detailHref = `/${designer.slug}/projects/${project.id}`;
+  const resolvedContactHref = contactHref ?? `/${designer.slug}#contact`;
+
+  const handleCardKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onRequestAccess?.(project);
+    }
+  };
+
+  const isInteractive = mode === "link" || mode === "modal";
+  const cardClasses =
+    "glass-card group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] " +
+    (isInteractive
+      ? "hover:-translate-y-1 hover:border-white/15 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      : "cursor-default");
+
+  const content = (
+    <>
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={project.thumbnail_url ?? ""}
@@ -58,25 +95,36 @@ export function ProjectCard({ project, accessState = "none", onRequestAccess }: 
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
         {isConfidential && (
           <div className="absolute right-4 top-4">
-            <StatusBadge kind="confidential" />
+            {accessState === "granted" ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white">
+                <LockOpen aria-hidden="true" size={14} />
+                Accès accordé
+              </span>
+            ) : (
+              <StatusBadge kind="confidential" />
+            )}
           </div>
         )}
         {isTeaser && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Lock aria-hidden="true" className="text-[#A78BFA]" size={45} />
+            {mode === "pending" ? (
+              <Loader2 aria-hidden="true" className="animate-spin text-[#A78BFA]" size={45} />
+            ) : (
+              <Lock aria-hidden="true" className="text-[#A78BFA]" size={45} />
+            )}
           </div>
         )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-6">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-xl font-medium text-on-surface">
-            <Link
-              to={`/${designer.slug}/projects/${project.id}`}
-              className="hover:text-primary transition-colors"
-            >
-              {project.title}
-            </Link>
+          <h3
+            className={
+              "text-xl font-medium text-on-surface" +
+              (isInteractive ? " transition-colors group-hover:text-primary" : "")
+            }
+          >
+            {project.title}
           </h3>
           {duration && (
             <span className="shrink-0 whitespace-nowrap text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
@@ -106,28 +154,50 @@ export function ProjectCard({ project, accessState = "none", onRequestAccess }: 
           </div>
         )}
 
-        {isTeaser && (
+        {mode === "modal" && (
           <div className="mt-auto pt-2">
-            {accessState === "pending" ? (
-              <span className="block w-full rounded-full border border-[#FBB040]/30 bg-[#FBB040]/10 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-[#FBB040]">
-                Demande en attente
-              </span>
-            ) : accessState === "refused" ? (
-              <span className="block w-full rounded-full border border-[#F87171]/30 bg-[#F87171]/10 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-[#F87171]">
-                Accès refusé
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onRequestAccess?.(project)}
-                className="w-full rounded-full border border-primary py-3 text-[11px] font-bold tracking-[0.1em] text-primary
-                  transition-all duration-300 hover:scale-[1.02] hover:bg-primary hover:text-on-primary
-                  hover:shadow-xl hover:shadow-primary/30 focus-visible:outline-none focus-visible:ring-2
-                  focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                Demander l'accès
-              </button>
-            )}
+            <span
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-container py-3
+                text-[11px] font-bold tracking-[0.1em] text-on-primary-container transition-all duration-300
+                group-hover:scale-[1.02] group-hover:brightness-110 group-focus-visible:scale-[1.02]
+                group-focus-visible:brightness-110 group-active:scale-95"
+            >
+              <KeyRound aria-hidden="true" size={20} strokeWidth={1.5} />
+              Demander l'accès
+            </span>
+          </div>
+        )}
+
+        {mode === "pending" && (
+          <div className="mt-auto pt-2">
+            <Alert
+              type="info"
+              title="Demande en cours de traitement"
+              description="Vous recevrez une réponse dès que votre demande sera traitée."
+            />
+          </div>
+        )}
+
+        {mode === "refused" && (
+          <div className="mt-auto pt-2">
+            <Alert
+              type="warning"
+              title="Demande refusée"
+              description={
+                <>
+                  {rejectionReason}
+                  {rejectionReason && " "}
+                  <Link
+                    to={resolvedContactHref}
+                    className="font-medium text-white no-underline underline-offset-2 transition-colors
+                      group-hover:text-primary group-hover:underline focus-visible:text-primary
+                      focus-visible:underline focus-visible:outline-none"
+                  >
+                    Contacter l'administrateur ?
+                  </Link>
+                </>
+              }
+            />
           </div>
         )}
 
@@ -143,6 +213,31 @@ export function ProjectCard({ project, accessState = "none", onRequestAccess }: 
           ))}
         </div>
       </div>
-    </article>
+    </>
   );
+
+  if (mode === "link") {
+    return (
+      <Link to={detailHref} className={cardClasses}>
+        {content}
+      </Link>
+    );
+  }
+
+  if (mode === "modal") {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Demander l'accès au projet ${project.title}`}
+        onClick={() => onRequestAccess?.(project)}
+        onKeyDown={handleCardKeyDown}
+        className={cardClasses}
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return <article className={cardClasses}>{content}</article>;
 }

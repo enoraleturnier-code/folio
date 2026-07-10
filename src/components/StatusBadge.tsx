@@ -16,7 +16,7 @@ export type StatusKind =
 
 const styles: Record<StatusKind, string> = {
   public: "bg-primary/10 border-primary/30 text-primary",
-  confidential: "bg-secondary/80 border-white/10 text-on-surface",
+  confidential: "bg-secondary/80 border-white/10 text-white",
   draft: "bg-white/5 border-white/10 text-on-surface-variant",
   deleted: "bg-[#F87171]/10 border-[#F87171]/30 text-[#F87171]",
   pending: "bg-[#FBB040]/10 border-[#FBB040]/30 text-[#FBB040]",

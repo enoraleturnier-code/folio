@@ -106,7 +106,11 @@ export async function getProjects(): Promise<Project[]> {
  * this raw `select *` would otherwise leak long_desc/ai_structured_desc/
  * client_name/team for a confidential project to a visitor who only has
  * teaser-level access. So for confidential rows we additionally check the
- * caller's role and return null unless they're validated_visitor/admin.
+ * caller's role and return null unless they're validated_visitor/admin —
+ * OR they hold an individually approved access_requests row for this
+ * exact project (F-12 : une demande approuvée débloque ce projet précis
+ * sans changer le rôle global de la personne, contrairement à
+ * validated_visitor qui débloque tous les confidentiels).
  * Public projects are unaffected — anyone can still see their full detail.
  *
  * Returns null if not found, soft-deleted (and includeDeleted wasn't
@@ -140,7 +144,14 @@ export async function getProjectById(
     const { data: role, error: roleError } = await supabase.rpc("get_my_role");
     if (roleError) throw roleError;
     if (role !== "validated_visitor" && role !== "admin") {
-      return null;
+      const { data: approvedRequest, error: requestError } = await supabase
+        .from("access_requests")
+        .select("id")
+        .eq("project_id", id)
+        .eq("status", "approved")
+        .maybeSingle();
+      if (requestError) throw requestError;
+      if (!approvedRequest) return null;
     }
   }
 

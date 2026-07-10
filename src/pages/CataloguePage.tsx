@@ -1,11 +1,12 @@
 import { ArrowRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
-import { ProjectCard } from "@/components/ProjectCard";
+import { ProjectCard, type AccessState } from "@/components/ProjectCard";
+import { getMyAccessRequests, type MyAccessRequest } from "@/data/accessRequests";
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,12 +24,47 @@ function uniq(xs: string[]) {
 
 export function CataloguePage() {
   const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof catalogueLoader>>;
-  const { role } = useAuth();
+  const { role, session } = useAuth();
   // Un validated_visitor/admin a accès à tous les projets confidentiels (règle
   // RLS projects_select_unified) — pas de suivi par demande individuelle.
   const isEntitled = role === "validated_visitor" || role === "admin";
   const [modalOpen, setModalOpen] = useState(false);
   const [modalProject, setModalProject] = useState<Project | null>(null);
+  const [myRequests, setMyRequests] = useState<MyAccessRequest[]>([]);
+
+  useEffect(() => {
+    if (!session) {
+      setMyRequests([]);
+      return;
+    }
+    let cancelled = false;
+    getMyAccessRequests()
+      .then((rows) => {
+        if (!cancelled) setMyRequests(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setMyRequests([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  const requestByProject = useMemo(() => {
+    const map = new Map<string, MyAccessRequest>();
+    for (const r of myRequests) map.set(r.project_id, r);
+    return map;
+  }, [myRequests]);
+
+  /** Statut d'accès du visiteur courant pour un projet confidentiel donné. */
+  function resolveAccess(p: Project): { accessState: AccessState; rejectionReason?: string | null } {
+    if (isEntitled) return { accessState: "granted" };
+    const req = requestByProject.get(p.id);
+    if (!req) return { accessState: "none" };
+    if (req.status === "approved") return { accessState: "granted" };
+    if (req.status === "pending") return { accessState: "pending" };
+    return { accessState: "refused", rejectionReason: req.rejection_reason };
+  }
   const [filters, setFilters] = useState<FilterState>({
     designType: "",
     sector: "",
@@ -96,14 +132,18 @@ export function CataloguePage() {
             {filtered.length} projet{filtered.length > 1 ? "s" : ""}
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p) => (
-              <ProjectCard
-                key={p.id}
-                project={p}
-                accessState={p.status === "confidential" && isEntitled ? "granted" : "none"}
-                onRequestAccess={openRequest}
-              />
-            ))}
+            {filtered.map((p) => {
+              const { accessState, rejectionReason } = resolveAccess(p);
+              return (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  accessState={accessState}
+                  rejectionReason={rejectionReason}
+                  onRequestAccess={openRequest}
+                />
+              );
+            })}
           </div>
           {filtered.length === 0 && (
             <p className="rounded-2xl border border-white/5 bg-surface-container-low p-10 text-center text-sm text-on-surface-variant">
