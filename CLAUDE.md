@@ -53,7 +53,13 @@ Le dark mode est clos. Récapitulatif de ce qui a été fait :
 - **refused** → carte inerte, `Alert` type warning + lien vers la section contact du profil.
 - **granted** → badge "Confidentiel · Accès validé", carte = lien direct vers la fiche complète.
 
-**Important** : une ligne `access_requests.status = 'approved'` débloque **un seul projet précis** pour ce visiteur, sans changer son rôle global (`validated_visitor` reste le seul rôle qui débloque *tous* les confidentiels). Ce mécanisme est reconnu à deux endroits qu'il faut garder synchronisés si on retouche les RLS : la vue `projects_catalog_view` (masquage colonnes `start_date`/`end_date`/`client_name`) et `getProjectById` (`src/data/projects.ts`, fiche détail complète).
+**Important** : une ligne `access_requests.status = 'approved'` débloque **un seul projet précis** pour ce visiteur, sans changer son rôle global (`validated_visitor` reste le seul rôle qui débloque *tous* les confidentiels — vérifié en base : approuver une demande ne touche jamais `user_profiles.role`, aucun trigger ne le fait non plus). Ce mécanisme est reconnu à deux endroits qu'il faut garder synchronisés si on retouche les RLS : la policy `projects_select_unified` (branche `exists (select 1 from access_requests ...)`) et `getProjectById` (`src/data/projects.ts`, fiche détail complète).
+
+**⚠️ Piège RLS récursion croisée** : `projects_select_unified` interroge `access_requests`, et la policy d'insert sur `access_requests` interroge `projects` (pour vérifier `sensitivity_level`) — deux policies sur deux tables qui se référencent mutuellement en sous-requête directe déclenchent `42P17 infinite recursion detected in policy`. Fix : passer par des fonctions `SECURITY DEFINER` (`project_is_sensible()`, `has_other_approved_access_request()`) qui bypassent RLS, exactement comme `get_my_role()` le fait déjà pour `user_profiles`. Ne jamais remettre une sous-requête brute inter-tables dans une policy ici sans repasser par ce pattern.
+
+Back-office admin (`AdminPage.tsx`, onglet Demandes + dashboard) branché sur les vraies fonctions `src/data/accessRequests.ts` (`getAllAccessRequests`/`approveAccessRequest`/`rejectAccessRequest`) — le mock `seedRequests`/`src/data/requests.ts` a été supprimé, ne plus le chercher.
+
+F-11 — auto-approbation par projet dans `AccessRequestModal.tsx` (`handleSubmit`) : si le projet demandé est `sensitivity_level = 'sensible'` et que le visiteur a déjà au moins une autre demande `approved` sur un projet différent, la nouvelle ligne est insérée directement en `status: 'approved'` (skip la revue admin). Les projets `tres_sensible` passent toujours en revue.
 
 `AccessRequestModal.tsx` fait un vrai travail, plus un mock :
 - Visiteur **anon** : formulaire complet (nom/entreprise/email/mdp) → `supabase.auth.signUp()` + update `user_profiles` + insert `access_requests`.
@@ -70,6 +76,8 @@ Composants/helpers partagés à réutiliser (ne pas dupliquer) : `Alert` (`src/c
 `lucide-react` est la seule librairie d'icônes du projet (migration complète depuis `material-symbols-outlined`, 09/07). Ne jamais réintroduire Material Symbols ou une autre lib. Icônes dynamiques (mapping état → icône) : typer en `LucideIcon`, assigner le composant directement plutôt qu'une chaîne — voir `StatusBadge.tsx`/`ThemeToggle.tsx`/`Alert.tsx`.
 
 ## Reste à faire (prochaine session — week-end)
+
+**Migrations Supabase — rattrapées le 10/07** : `supabase/migrations/` ne remontait qu'au 06/07 alors que le projet Supabase live (`rctedezgdxadmkjeawsj`) est créé le 22/06 — avant même le premier commit git (03/07, messages génériques "Changes"/"Work in progress" typiques d'auto-commits Lovable). 6 migrations historiques (24/06 → 09/07, fondation RLS/triggers, seeds de démo, masquage colonnes vue catalogue) plus les 2 migrations RLS de cette session ont été récupérées via `supabase_migrations.schema_migrations.statements` et versionnées à l'identique du live (vérifié par comparaison directe, ex. `pg_get_viewdef()`). 3 migrations intermédiaires ignorées volontairement car entièrement remplacées par une version plus récente (aucune perte). Écart mineur restant, non résolu : les 2 fichiers locaux du 06/07 (`20260706125303`/`125315`) n'apparaissent pas dans `supabase_migrations.schema_migrations` — origine non investiguée.
 
 **Mapping complet du LIGHT mode** — c'est LA tâche restante, reportée explicitement par l'utilisateur le 08/07.
 
