@@ -27,7 +27,7 @@ Le routing est passé de **TanStack Start** (SSR Nitro + file-based routing) à 
 - `TagBadge.tsx` utilisait des couleurs Tailwind brutes (`fuchsia-500`, `cyan-500`, etc.) mélangées à des hex arbitraires au lieu des tokens sémantiques `tag-*` déjà câblés dans `@theme inline` — remplacé par `bg-tag-*/10 border-tag-*/30 text-tag-*` partout.
 - Badge "Accès accordé" (F-12, `ProjectCard.tsx`) renommé en "Confidentiel · Accès validé" pour matcher le libellé documenté.
 
-**Contradiction DESIGN.md tranchée** : la section "🎫 Badges de statut d'accès (F-12)" (pastilles neutres) était obsolète par rapport à la section "🔔 Système d'alertes" — l'implémentation retenue et validée utilise bien le composant `Alert` coloré (info/tertiary pour pending, warning/ambre pour rejected). C'est la référence désormais ; DESIGN.md reste à corriger pour supprimer l'ancienne section si besoin.
+**Contradiction DESIGN.md tranchée et corrigée (11/07)** : la section "🎫 Badges de statut d'accès (F-12)" (pastilles neutres) était obsolète par rapport à la section "🔔 Système d'alertes" — l'implémentation retenue et validée utilise bien le composant `Alert` coloré (info pour pending, warning pour refused). `DESIGN.md` a été corrigé pour matcher `ProjectCard.tsx` (vérifié ligne par ligne) — ne plus chercher l'ancienne version "pastilles".
 
 Les tokens sont définis **uniquement** dans `src/styles.css` (`@theme inline` + blocs `:root, .dark` et `:root:not(.dark)`). Pas de `tailwind.config.*` (Tailwind v4, config CSS-first). `src/components/ui/` (shadcn) est **du code mort confirmé** — aucun fichier applicatif ne l'importe (vérifié par grep exhaustif) ; ne pas le modifier sauf demande explicite de le réactiver.
 
