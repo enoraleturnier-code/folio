@@ -72,19 +72,6 @@ export interface Designer {
   location: string;
 }
 
-export type RequestStatus = "pending" | "approved" | "rejected";
-export interface AccessRequest {
-  id: string;
-  fullName: string;
-  company: string;
-  email: string;
-  projectTitles: string[];
-  message: string;
-  date: string; // ISO
-  status: RequestStatus;
-  rejectionReason?: string;
-}
-
 export type ContactStatus = "nouveau" | "traite" | "archive";
 export interface ContactMessage {
   id: string;

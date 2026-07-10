@@ -27,7 +27,7 @@ Le routing est passé de **TanStack Start** (SSR Nitro + file-based routing) à 
 - `TagBadge.tsx` utilisait des couleurs Tailwind brutes (`fuchsia-500`, `cyan-500`, etc.) mélangées à des hex arbitraires au lieu des tokens sémantiques `tag-*` déjà câblés dans `@theme inline` — remplacé par `bg-tag-*/10 border-tag-*/30 text-tag-*` partout.
 - Badge "Accès accordé" (F-12, `ProjectCard.tsx`) renommé en "Confidentiel · Accès validé" pour matcher le libellé documenté.
 
-**⚠️ Contradiction non résolue dans DESIGN.md à trancher avec l'utilisateur** : la section "🎫 Badges de statut d'accès (F-12)" décrit pending/rejected comme des **pastilles neutres** (gris `outline-variant`/10 pour pending, rouge très atténué pour rejected, lien "Contacter [Prénom Nom]" dynamique) — alors que la section "🔔 Système d'alertes" et l'implémentation réelle actuelle (`ProjectCard.tsx`, approuvée par l'utilisateur via captures d'écran le 09/07) utilisent le composant `Alert` coloré (info/tertiary pour pending, warning/ambre pour rejected, lien statique "Contacter l'administrateur ?"). Ces deux sections du même document se contredisent — la section badges F-12 semble antérieure et obsolète par rapport à l'implémentation Alert validée en dernier, mais je n'ai pas tranché unilatéralement. **Ne pas réconcilier sans demander.**
+**Contradiction DESIGN.md tranchée** : la section "🎫 Badges de statut d'accès (F-12)" (pastilles neutres) était obsolète par rapport à la section "🔔 Système d'alertes" — l'implémentation retenue et validée utilise bien le composant `Alert` coloré (info/tertiary pour pending, warning/ambre pour rejected). C'est la référence désormais ; DESIGN.md reste à corriger pour supprimer l'ancienne section si besoin.
 
 Les tokens sont définis **uniquement** dans `src/styles.css` (`@theme inline` + blocs `:root, .dark` et `:root:not(.dark)`). Pas de `tailwind.config.*` (Tailwind v4, config CSS-first). `src/components/ui/` (shadcn) est **du code mort confirmé** — aucun fichier applicatif ne l'importe (vérifié par grep exhaustif) ; ne pas le modifier sauf demande explicite de le réactiver.
 
@@ -44,6 +44,30 @@ Le dark mode est clos. Récapitulatif de ce qui a été fait :
 - **`tertiary-container` / `on-tertiary-container` ajoutés** au thème dark (étaient absents) + leur mapping dans `@theme inline`.
 - **`StatusBadge.tsx` — `public` harmonisé** : `bg-primary/20` → `bg-primary/10` (aligné sur le pattern uniforme des autres pastilles ; `text-primary` conservé, contraste 10.67:1). Le badge `confidential` (`bg-secondary/80` + `text-on-surface`, 5.79:1) est **volontairement gardé en fill fort** (rôle d'alerte pour un label CONFIDENTIEL) — ne pas y toucher.
 - **Audit héritage bordures** (`@layer base { * { border-color: var(--outline-variant) } }`) : clos. Toutes les bordures de l'app (hors `ui/`) déclarent une couleur explicite — aucune bordure fonctionnelle « nue ». La règle globale est un filet de sécurité inoffensif, aucune correction nécessaire.
+
+## Flux "demande d'accès confidentiel" (F-12) — implémenté, réel (pas un mock)
+
+`ProjectCard.tsx` a 4 états d'accès pour un projet confidentiel — calculés dans `CataloguePage.tsx` (`resolveAccess`) à partir du rôle global (`get_my_role()`) **et** des lignes `access_requests` propres au visiteur connecté (`src/data/accessRequests.ts`) :
+- **none** → carte cliquable, ouvre `AccessRequestModal`.
+- **pending** → carte inerte, `Alert` type info.
+- **refused** → carte inerte, `Alert` type warning + lien vers la section contact du profil.
+- **granted** → badge "Confidentiel · Accès validé", carte = lien direct vers la fiche complète.
+
+**Important** : une ligne `access_requests.status = 'approved'` débloque **un seul projet précis** pour ce visiteur, sans changer son rôle global (`validated_visitor` reste le seul rôle qui débloque *tous* les confidentiels). Ce mécanisme est reconnu à deux endroits qu'il faut garder synchronisés si on retouche les RLS : la vue `projects_catalog_view` (masquage colonnes `start_date`/`end_date`/`client_name`) et `getProjectById` (`src/data/projects.ts`, fiche détail complète).
+
+`AccessRequestModal.tsx` fait un vrai travail, plus un mock :
+- Visiteur **anon** : formulaire complet (nom/entreprise/email/mdp) → `supabase.auth.signUp()` + update `user_profiles` + insert `access_requests`.
+- Visiteur **déjà connecté** (ex. persona `pending` qui redemande un autre projet) : les champs de compte sont masqués, insertion directe dans `access_requests` avec la session existante — **ne jamais rappeler `signUp()` si une session existe déjà**, sinon échec ("email déjà utilisé").
+- Confirmation email désactivée sur le projet Supabase live (`rctedezgdxadmkjeawsj`, dashboard Authentication → Providers → Email) pour que `signUp()` renvoie une session immédiate — sans ça, l'insert `access_requests` échoue (RLS, pas de session).
+- Modal montée via `createPortal(document.body)` (couvre nav/footer), scroll unique interne, body de page bloqué (`overflow:hidden`) tant qu'ouverte.
+
+Composants/helpers partagés à réutiliser (ne pas dupliquer) : `Alert` (`src/components/Alert.tsx`, 4 types info/success/warning/error), `Checkbox` (`src/components/Checkbox.tsx`, circulaire), `textLinkClass()` (`src/lib/linkStyles.ts`, style de lien unifié), `formatSecteur()` (`src/lib/secteurLabels.ts`, mapping enum → libellé).
+
+`PersonaSwitcher.tsx` (dev-only, `import.meta.env.DEV`) a été refait en bouton "⚡ Personas" + drop-up (au lieu d'un panneau toujours ouvert) — ne pas l'exposer en prod.
+
+## Iconographie — Lucide uniquement
+
+`lucide-react` est la seule librairie d'icônes du projet (migration complète depuis `material-symbols-outlined`, 09/07). Ne jamais réintroduire Material Symbols ou une autre lib. Icônes dynamiques (mapping état → icône) : typer en `LucideIcon`, assigner le composant directement plutôt qu'une chaîne — voir `StatusBadge.tsx`/`ThemeToggle.tsx`/`Alert.tsx`.
 
 ## Reste à faire (prochaine session — week-end)
 
