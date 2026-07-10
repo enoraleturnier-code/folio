@@ -1,3 +1,5 @@
+import { Calendar } from "lucide-react";
+
 interface CalEmbedProps {
   calUsername: string;
 }
@@ -7,9 +9,7 @@ export function CalEmbed({ calUsername }: CalEmbedProps) {
   return (
     <div className="rounded-2xl border-2 border-primary/40 bg-surface-container-low p-8 text-center">
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-primary/30 bg-on-primary/10">
-        <span aria-hidden="true" className="material-symbols-outlined text-primary">
-          calendar_month
-        </span>
+        <Calendar aria-hidden="true" className="text-primary" size={24} />
       </div>
       <h3 className="mt-4 text-lg font-medium text-on-surface">
         Calendrier — Prendre un rendez-vous

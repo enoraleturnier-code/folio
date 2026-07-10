@@ -31,8 +31,7 @@ export interface Project {
   status: ProjectStatus;
   sensitivity_level: SensitivityLevel;
   secteur_activite: SecteurActivite | null;
-  /** Absent de projects_catalog_view — idem. */
-  client_name?: string | null;
+  client_name: string | null;
   company_name: string | null;
   role: string | null;
   /** Absent de projects_catalog_view — idem. */

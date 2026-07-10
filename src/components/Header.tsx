@@ -1,3 +1,4 @@
+import { ChevronDown, LayoutDashboard, LogOut, Settings, User } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -25,11 +26,11 @@ export function Header() {
                 Folio<span className="text-primary">+</span>
               </Link>
               <div className="h-3.5 w-px bg-white/15" />
+              <span className="whitespace-nowrap text-sm font-medium text-on-surface md:text-base">
+                {designer.fullName}
+              </span>
             </>
           )}
-          <span className="whitespace-nowrap text-sm font-medium text-on-surface md:text-base">
-            {designer.fullName}
-          </span>
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
@@ -130,9 +131,7 @@ function AccountMenu({
           {fullName ? initials(fullName) : "?"}
         </span>
         {fullName ?? "Mon compte"}
-        <span aria-hidden="true" className="material-symbols-outlined text-sm">
-          expand_more
-        </span>
+        <ChevronDown aria-hidden="true" size={14} />
       </button>
 
       {open && (
@@ -144,18 +143,25 @@ function AccountMenu({
           <div className="flex flex-col py-2">
             {!roleLoading && isAdmin && (
               <Link
+                to="/admin"
+                role="menuitem"
+                aria-label="Dashboard"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+              >
+                <LayoutDashboard aria-hidden="true" className="text-on-surface-variant" size={18} />
+                Dashboard
+              </Link>
+            )}
+            {!roleLoading && isAdmin && (
+              <Link
                 to="/admin?tab=parametres"
                 role="menuitem"
                 aria-label="Paramètres"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
               >
-                <span
-                  aria-hidden="true"
-                  className="material-symbols-outlined text-base text-on-surface-variant"
-                >
-                  settings
-                </span>
+                <Settings aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Paramètres
               </Link>
             )}
@@ -167,12 +173,7 @@ function AccountMenu({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
               >
-                <span
-                  aria-hidden="true"
-                  className="material-symbols-outlined text-base text-on-surface-variant"
-                >
-                  person
-                </span>
+                <User aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Mon profil
               </Link>
             )}
@@ -184,9 +185,7 @@ function AccountMenu({
               onClick={handleSignOut}
               className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10"
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-base">
-                logout
-              </span>
+              <LogOut aria-hidden="true" size={18} />
               Se déconnecter
             </button>
           </div>

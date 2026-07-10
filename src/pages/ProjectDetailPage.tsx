@@ -1,9 +1,11 @@
+import { ArrowLeft } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
 import { designer } from "@/data/designer";
 import { getProjectById } from "@/data/projects";
+import { formatSecteur } from "@/lib/secteurLabels";
 
 function formatPeriod(start: string | null, end: string | null): string {
   const startYear = start ? new Date(start).getFullYear() : null;
@@ -28,9 +30,7 @@ export function ProjectDetailPage() {
         to={`/${designer.slug}/projects`}
         className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-background/60 px-4 py-2 text-xs font-medium text-on-surface hover:border-primary hover:text-primary"
       >
-        <span aria-hidden="true" className="material-symbols-outlined text-base">
-          arrow_back
-        </span>
+        <ArrowLeft aria-hidden="true" size={18} />
         Tous les projets
       </Link>
 
@@ -38,6 +38,9 @@ export function ProjectDetailPage() {
         <img
           src={project.thumbnail_url ?? ""}
           alt={project.title}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
@@ -107,7 +110,7 @@ export function ProjectDetailPage() {
                   <TagBadge key={"d" + l} category="designType" label={l} />
                 ))}
                 {project.secteur_activite && (
-                  <TagBadge category="sector" label={project.secteur_activite} />
+                  <TagBadge category="sector" label={formatSecteur(project.secteur_activite)} />
                 )}
                 {project.tags.tools.map((l) => (
                   <TagBadge key={"t" + l} category="tools" label={l} />

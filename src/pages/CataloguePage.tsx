@@ -1,12 +1,15 @@
-import { useMemo, useState } from "react";
-import { useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
-import { ProjectCard } from "@/components/ProjectCard";
+import { ProjectCard, type AccessState } from "@/components/ProjectCard";
+import { getMyAccessRequests, type MyAccessRequest } from "@/data/accessRequests";
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
+import { useAuth } from "@/hooks/useAuth";
 import type { Project } from "@/types/project";
 
 export async function catalogueLoader({ params }: LoaderFunctionArgs) {
@@ -21,8 +24,47 @@ function uniq(xs: string[]) {
 
 export function CataloguePage() {
   const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof catalogueLoader>>;
+  const { role, session } = useAuth();
+  // Un validated_visitor/admin a accès à tous les projets confidentiels (règle
+  // RLS projects_select_unified) — pas de suivi par demande individuelle.
+  const isEntitled = role === "validated_visitor" || role === "admin";
   const [modalOpen, setModalOpen] = useState(false);
   const [modalProject, setModalProject] = useState<Project | null>(null);
+  const [myRequests, setMyRequests] = useState<MyAccessRequest[]>([]);
+
+  useEffect(() => {
+    if (!session) {
+      setMyRequests([]);
+      return;
+    }
+    let cancelled = false;
+    getMyAccessRequests()
+      .then((rows) => {
+        if (!cancelled) setMyRequests(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setMyRequests([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  const requestByProject = useMemo(() => {
+    const map = new Map<string, MyAccessRequest>();
+    for (const r of myRequests) map.set(r.project_id, r);
+    return map;
+  }, [myRequests]);
+
+  /** Statut d'accès du visiteur courant pour un projet confidentiel donné. */
+  function resolveAccess(p: Project): { accessState: AccessState; rejectionReason?: string | null } {
+    if (isEntitled) return { accessState: "granted" };
+    const req = requestByProject.get(p.id);
+    if (!req) return { accessState: "none" };
+    if (req.status === "approved") return { accessState: "granted" };
+    if (req.status === "pending") return { accessState: "pending" };
+    return { accessState: "refused", rejectionReason: req.rejection_reason };
+  }
   const [filters, setFilters] = useState<FilterState>({
     designType: "",
     sector: "",
@@ -57,25 +99,30 @@ export function CataloguePage() {
     setModalOpen(true);
   };
 
-  const publicCount = list.filter((p) => p.status === "public").length;
-  const confidentialCount = list.filter((p) => p.status === "confidential").length;
-
   return (
     <>
       <AuroraBackground />
       <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
-        <header className="mb-16">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
-            Catalogue
-          </p>
-          <h1 className="text-5xl font-medium text-on-surface md:text-7xl">
-            La galerie <span className="font-display-accent italic text-primary">complète</span>.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg font-light text-on-surface-variant">
-            {list.length} projet{list.length > 1 ? "s" : ""} — {publicCount} public
-            {publicCount > 1 ? "s" : ""}, {confidentialCount} confidentiel
-            {confidentialCount > 1 ? "s" : ""}. Filtrez par type, secteur, outil ou mot-clé.
-          </p>
+        <header className="mb-16 flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
+              Projets
+            </p>
+            <h1 className="text-5xl font-medium text-on-surface md:text-7xl">
+              {designer.fullName}
+              <br />
+              <span className="font-display-accent text-5xl italic font-normal text-primary md:text-6xl">
+                Catalogue de projets
+              </span>
+            </h1>
+          </div>
+          <Link
+            to={`/${designer.slug}#contact`}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+          >
+            Contacter
+            <ArrowRight aria-hidden="true" size={18} />
+          </Link>
         </header>
 
         <FilterBar options={options} value={filters} onChange={setFilters} />
@@ -85,9 +132,18 @@ export function CataloguePage() {
             {filtered.length} projet{filtered.length > 1 ? "s" : ""}
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p, i) => (
-              <ProjectCard key={p.id} project={p} index={i} onRequestAccess={openRequest} />
-            ))}
+            {filtered.map((p) => {
+              const { accessState, rejectionReason } = resolveAccess(p);
+              return (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  accessState={accessState}
+                  rejectionReason={rejectionReason}
+                  onRequestAccess={openRequest}
+                />
+              );
+            })}
           </div>
           {filtered.length === 0 && (
             <p className="rounded-2xl border border-white/5 bg-surface-container-low p-10 text-center text-sm text-on-surface-variant">

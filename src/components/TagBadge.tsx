@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 export type TagCategory = "designType" | "sector" | "tools" | "keywords";
 
 const styles: Record<TagCategory, string> = {
-  designType: "bg-fuchsia-500/10 border-fuchsia-500/30 text-[#D946EF]",
-  sector: "bg-cyan-500/10 border-cyan-500/30 text-[#22D3EE]",
-  tools: "bg-sky-500/10 border-sky-500/30 text-[#38BDF8]",
-  keywords: "bg-indigo-500/10 border-indigo-500/30 text-[#818CF8]",
+  designType: "bg-tag-design-type/10 border-tag-design-type/30 text-tag-design-type",
+  sector: "bg-tag-sector/10 border-tag-sector/30 text-tag-sector",
+  tools: "bg-tag-tools/10 border-tag-tools/30 text-tag-tools",
+  keywords: "bg-tag-keywords/10 border-tag-keywords/30 text-tag-keywords",
 };
 
 interface TagBadgeProps {

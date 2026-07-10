@@ -1,4 +1,7 @@
-import { useMemo, useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
+
+import { formatSecteur } from "@/lib/secteurLabels";
 
 export interface FilterState {
   designType: string;
@@ -18,82 +21,143 @@ interface FilterBarProps {
   onChange: (v: FilterState) => void;
 }
 
-const categories: { key: keyof FilterState; label: string; color: string }[] = [
-  { key: "designType", label: "Type", color: "text-[#D946EF] border-fuchsia-500/30" },
-  { key: "sector", label: "Secteur", color: "text-[#22D3EE] border-cyan-500/30" },
-  { key: "tools", label: "Outils", color: "text-[#38BDF8] border-sky-500/30" },
-  { key: "keywords", label: "Mots-clés", color: "text-[#818CF8] border-indigo-500/30" },
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+const activeClasses: Record<keyof FilterState, string> = {
+  designType: "border-tag-design-type/40 bg-tag-design-type/15 text-tag-design-type",
+  sector: "border-tag-sector/40 bg-tag-sector/15 text-tag-sector",
+  tools: "border-tag-tools/40 bg-tag-tools/15 text-tag-tools",
+  keywords: "border-tag-keywords/40 bg-tag-keywords/15 text-tag-keywords",
+};
+
+const hoverClasses: Record<keyof FilterState, string> = {
+  designType: "hover:border-tag-design-type/40 hover:bg-tag-design-type/15 hover:text-tag-design-type",
+  sector: "hover:border-tag-sector/40 hover:bg-tag-sector/15 hover:text-tag-sector",
+  tools: "hover:border-tag-tools/40 hover:bg-tag-tools/15 hover:text-tag-tools",
+  keywords: "hover:border-tag-keywords/40 hover:bg-tag-keywords/15 hover:text-tag-keywords",
+};
+
+const secondaryCategories: { key: keyof FilterState; label: string }[] = [
+  { key: "sector", label: "Secteur" },
+  { key: "tools", label: "Outils" },
+  { key: "keywords", label: "Mots-clés" },
 ];
 
+function pillClass(key: keyof FilterState, active: boolean) {
+  return (
+    "rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
+    focusRing +
+    " " +
+    (active ? activeClasses[key] : `border-outline text-on-surface-variant ${hoverClasses[key]}`)
+  );
+}
+
+/** Libellé humain pour une option de filtre — seul le secteur a un mapping enum → libellé. */
+function optionLabel(key: keyof FilterState, opt: string): string {
+  return key === "sector" ? formatSecteur(opt) : opt;
+}
+
 export function FilterBar({ options, value, onChange }: FilterBarProps) {
-  const [query, setQuery] = useState("");
-  const q = query.trim().toLowerCase();
-  const filteredOptions = useMemo(() => options, [options]);
+  const [expanded, setExpanded] = useState(false);
+
+  const visibleSecondaryCategories = secondaryCategories.filter((c) => options[c.key].length > 0);
+  const activeSecondaryCount = visibleSecondaryCategories.filter((c) => value[c.key] !== "").length;
+
+  const hasTypeOptions = options.designType.length > 0;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 rounded-full border border-white/10 bg-surface-container px-5 py-3">
-        <span aria-hidden="true" className="material-symbols-outlined text-on-surface-variant">
-          search
-        </span>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher un projet, un client, un outil…"
-          aria-label="Rechercher"
-          className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none"
-        />
-        {q && (
-          <button
-            type="button"
-            onClick={() => setQuery("")}
-            className="text-xs font-medium text-on-surface-variant hover:text-primary"
-          >
-            Effacer
-          </button>
-        )}
-      </div>
+      {(visibleSecondaryCategories.length > 0 || hasTypeOptions) && (
+        <div className="flex flex-wrap items-center gap-4 border-b border-white/5 pb-6">
+          {visibleSecondaryCategories.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                aria-expanded={expanded}
+                aria-label="Plus de filtres"
+                className={
+                  "flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
+                  focusRing +
+                  " " +
+                  (expanded || activeSecondaryCount > 0
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
+                }
+              >
+                <SlidersHorizontal aria-hidden="true" size={14} />
+                Filtrer
+                {activeSecondaryCount > 0 && (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">
+                    {activeSecondaryCount}
+                  </span>
+                )}
+              </button>
+              <div className="h-8 w-px bg-white/10" />
+            </>
+          )}
 
-      <div className="space-y-3">
-        {categories.map((c) => (
-          <div key={c.key} className="flex flex-wrap items-center gap-2">
-            <span className="mr-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-              {c.label}
-            </span>
-            <button
-              type="button"
-              onClick={() => onChange({ ...value, [c.key]: "" })}
-              className={
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors " +
-                (value[c.key] === ""
-                  ? "border-white/25 bg-white/5 text-on-surface"
-                  : "border-white/10 text-on-surface-variant hover:text-on-surface")
-              }
-            >
-              Tous
-            </button>
-            {filteredOptions[c.key].map((opt) => {
-              const active = value[c.key] === opt;
-              return (
+          {hasTypeOptions && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => onChange({ ...value, designType: "" })}
+                className={pillClass("designType", value.designType === "")}
+              >
+                Tous les types
+              </button>
+              {options.designType.map((opt) => {
+                const active = value.designType === opt;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => onChange({ ...value, designType: active ? "" : opt })}
+                    className={pillClass("designType", active)}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {expanded && visibleSecondaryCategories.length > 0 && (
+        <div className="flex flex-wrap gap-x-12 gap-y-5 border-b border-white/5 pb-6 pt-2">
+          {visibleSecondaryCategories.map((c) => (
+            <div key={c.key} className="flex flex-col gap-3">
+              <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-on-surface-variant/65">
+                {c.label}
+              </span>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={opt}
                   type="button"
-                  onClick={() => onChange({ ...value, [c.key]: active ? "" : opt })}
-                  className={
-                    "rounded-full border px-3 py-1 text-xs font-medium transition-colors " +
-                    (active
-                      ? `${c.color} bg-white/5`
-                      : "border-white/10 text-on-surface-variant hover:text-on-surface")
-                  }
+                  onClick={() => onChange({ ...value, [c.key]: "" })}
+                  className={pillClass(c.key, value[c.key] === "")}
                 >
-                  {opt}
+                  Tous
                 </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+                {options[c.key].map((opt) => {
+                  const active = value[c.key] === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => onChange({ ...value, [c.key]: active ? "" : opt })}
+                      className={pillClass(c.key, active)}
+                    >
+                      {optionLabel(c.key, opt)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

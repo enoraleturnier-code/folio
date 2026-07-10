@@ -27,7 +27,7 @@ export function RouteError() {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => revalidator.revalidate()}
-            className="inline-flex items-center justify-center rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
+            className="inline-flex items-center justify-center rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
           >
             Réessayer
           </button>

@@ -1,8 +1,27 @@
+import {
+  ArchiveRestore,
+  ArrowLeftRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CloudUpload,
+  Copy,
+  Folder,
+  Inbox,
+  KeyRound,
+  LayoutDashboard,
+  Mail,
+  Pencil,
+  Settings,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 
+import { Alert } from "@/components/Alert";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProjectDrawer } from "@/components/ProjectDrawer";
@@ -10,8 +29,13 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
 import { contactMessages as seedContacts } from "@/data/contacts";
 import { getProjects, restoreProject, softDeleteProject } from "@/data/projects";
-import { accessRequests as seedRequests } from "@/data/requests";
-import type { AccessRequest, ContactMessage, ContactStatus, RequestStatus } from "@/data/types";
+import {
+  approveAccessRequest,
+  getAllAccessRequests,
+  rejectAccessRequest,
+  type AdminAccessRequest,
+} from "@/data/accessRequests";
+import type { ContactMessage, ContactStatus } from "@/data/types";
 import type { Project } from "@/types/project";
 
 const ALLOWED_TABS = ["dashboard", "projets", "demandes", "contacts", "parametres"] as const;
@@ -31,6 +55,8 @@ export function AdminPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
+  const [accessRequests, setAccessRequests] = useState<AdminAccessRequest[]>([]);
+  const [accessRequestsLoading, setAccessRequestsLoading] = useState(true);
 
   useEffect(() => {
     if (loading || roleLoading) return;
@@ -59,7 +85,26 @@ export function AdminPage() {
     };
   }, [loading, roleLoading, session, role]);
 
-  const pendingCount = useMemo(() => seedRequests.filter((r) => r.status === "pending").length, []);
+  useEffect(() => {
+    if (loading || roleLoading || !session || role !== "admin") return;
+    let cancelled = false;
+    setAccessRequestsLoading(true);
+    getAllAccessRequests()
+      .then((data) => {
+        if (!cancelled) setAccessRequests(data);
+      })
+      .finally(() => {
+        if (!cancelled) setAccessRequestsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, roleLoading, session, role]);
+
+  const pendingCount = useMemo(
+    () => accessRequests.filter((r) => r.status === "pending").length,
+    [accessRequests],
+  );
 
   if (loading || roleLoading || !session || role !== "admin") {
     return <div className="min-h-screen bg-background" />;
@@ -84,7 +129,9 @@ export function AdminPage() {
         }
       >
         <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
-          {tab === "dashboard" && <DashboardTab setTab={setTab} projects={projects} />}
+          {tab === "dashboard" && (
+            <DashboardTab setTab={setTab} projects={projects} accessRequests={accessRequests} />
+          )}
           {tab === "projets" && (
             <ProjetsTab
               projects={projects}
@@ -92,7 +139,13 @@ export function AdminPage() {
               onProjectsChange={setProjects}
             />
           )}
-          {tab === "demandes" && <DemandesTab />}
+          {tab === "demandes" && (
+            <DemandesTab
+              items={accessRequests}
+              loading={accessRequestsLoading}
+              onItemsChange={setAccessRequests}
+            />
+          )}
           {tab === "contacts" && <ContactsTab />}
           {tab === "parametres" && <ParametresTab />}
         </div>
@@ -119,19 +172,19 @@ function AdminSidebar({
 }) {
   const items: {
     key: TabKey;
-    icon: string;
+    icon: LucideIcon;
     label: string;
     badge?: number;
   }[] = [
-    { key: "projets", icon: "folder", label: "Catalogue projets" },
+    { key: "projets", icon: Folder, label: "Catalogue projets" },
     {
       key: "demandes",
-      icon: "vpn_key",
+      icon: KeyRound,
       label: "Accès",
       badge: pendingCount,
     },
-    { key: "contacts", icon: "mail", label: "Messages" },
-    { key: "parametres", icon: "settings", label: "Paramètres " },
+    { key: "contacts", icon: Mail, label: "Messages" },
+    { key: "parametres", icon: Settings, label: "Paramètres " },
   ];
   return (
     <aside
@@ -178,9 +231,11 @@ function AdminSidebar({
           (collapsed ? "" : "md:self-end")
         }
       >
-        <span aria-hidden="true" className="material-symbols-outlined text-base">
-          {collapsed ? "chevron_right" : "chevron_left"}
-        </span>
+        {collapsed ? (
+          <ChevronRight aria-hidden="true" size={18} />
+        ) : (
+          <ChevronLeft aria-hidden="true" size={18} />
+        )}
       </button>
 
       <div
@@ -217,13 +272,12 @@ function AdminSidebar({
               : "text-on-surface-variant/65 hover:text-on-surface")
           }
         >
-          <span aria-hidden="true" className="material-symbols-outlined">
-            dashboard
-          </span>
+          <LayoutDashboard aria-hidden="true" size={24} />
           {!collapsed && <span className="hidden text-sm md:inline">Dashboard</span>}
         </Link>
         {items.map((it) => {
           const active = tab === it.key;
+          const ItemIcon = it.icon;
           return (
             <button
               key={it.key}
@@ -246,9 +300,7 @@ function AdminSidebar({
                   : "text-on-surface-variant/65 hover:text-on-surface")
               }
             >
-              <span aria-hidden="true" className="material-symbols-outlined">
-                {it.icon}
-              </span>
+              <ItemIcon aria-hidden="true" size={24} />
               {!collapsed && (
                 <span className="hidden flex-1 text-left text-sm md:inline">{it.label}</span>
               )}
@@ -273,8 +325,16 @@ function AdminSidebar({
 }
 /* ---------- Dashboard Tab ---------- */
 
-function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; projects: Project[] }) {
-  const pendingRequests = seedRequests.filter((r) => r.status === "pending");
+function DashboardTab({
+  setTab,
+  projects,
+  accessRequests,
+}: {
+  setTab: (t: TabKey) => void;
+  projects: Project[];
+  accessRequests: AdminAccessRequest[];
+}) {
+  const pendingRequests = accessRequests.filter((r) => r.status === "pending");
   const newMessages = seedContacts.filter((c) => c.status === "nouveau");
   const activeProjects = projects.filter((p) => !p.deleted_at);
   const publishedProjects = activeProjects.filter(
@@ -297,7 +357,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("projets")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">folder</span>
+          <Folder aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">{activeProjects.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Projets</span>
           <span className="mt-2 text-xs text-primary">
@@ -310,7 +370,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("demandes")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">vpn_key</span>
+          <KeyRound aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">{pendingRequests.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Demandes en attente</span>
           <span className="mt-2 text-xs text-primary">À valider ou refuser</span>
@@ -321,7 +381,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("contacts")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">mail</span>
+          <Mail aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">{newMessages.length}</span>
           <span className="mt-1 text-sm text-on-surface-variant">Messages nouveaux</span>
           <span className="mt-2 text-xs text-primary">À traiter</span>
@@ -332,7 +392,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
           onClick={() => setTab("parametres")}
           className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
         >
-          <span className="material-symbols-outlined text-2xl text-primary">settings</span>
+          <Settings aria-hidden="true" className="text-primary" size={24} />
           <span className="mt-4 text-3xl font-bold text-on-surface">1</span>
           <span className="mt-1 text-sm text-on-surface-variant">Paramètres</span>
           <span className="mt-2 text-xs text-primary">Profil public</span>
@@ -349,13 +409,17 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
                 className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-on-surface">{r.fullName}</p>
-                  <p className="text-sm text-on-surface-variant">{r.company} — Demande d'accès</p>
+                  <p className="font-medium text-on-surface">
+                    {r.visitor?.fullName ?? r.visitor?.email ?? "Visiteur"}
+                  </p>
+                  <p className="text-sm text-on-surface-variant">
+                    {r.visitor?.company ?? "—"} — Demande d'accès
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setTab("demandes")}
-                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary"
+                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
                 >
                   Traiter
                 </button>
@@ -373,7 +437,7 @@ function DashboardTab({ setTab, projects }: { setTab: (t: TabKey) => void; proje
                 <button
                   type="button"
                   onClick={() => setTab("contacts")}
-                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary"
+                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
                 >
                   Lire
                 </button>
@@ -463,7 +527,7 @@ function ProjetsTab({
         <button
           type="button"
           onClick={openNew}
-          className="rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-transform hover:scale-105"
+          className="rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
         >
           + Créer un nouveau projet
         </button>
@@ -532,9 +596,7 @@ function ProjetsTab({
                       aria-label={`Restaurer le projet ${p.title}`}
                       className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
                     >
-                      <span aria-hidden="true" className="material-symbols-outlined text-base">
-                        restore_from_trash
-                      </span>
+                      <ArchiveRestore aria-hidden="true" size={18} />
                     </button>
                   ) : (
                     <>
@@ -544,9 +606,7 @@ function ProjetsTab({
                         aria-label={`Éditer ${p.title}`}
                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
                       >
-                        <span aria-hidden="true" className="material-symbols-outlined text-base">
-                          edit
-                        </span>
+                        <Pencil aria-hidden="true" size={18} />
                       </button>
                       <button
                         type="button"
@@ -555,9 +615,7 @@ function ProjetsTab({
                         aria-label={`Supprimer ${p.title}`}
                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50"
                       >
-                        <span aria-hidden="true" className="material-symbols-outlined text-base">
-                          delete
-                        </span>
+                        <Trash2 aria-hidden="true" size={18} />
                       </button>
                     </>
                   )}
@@ -616,23 +674,57 @@ function ProjetsTab({
 
 /* ---------- Demandes Tab ---------- */
 
-function DemandesTab() {
-  const [items, setItems] = useState<AccessRequest[]>(() =>
-    [...seedRequests].sort((a, b) => (a.date < b.date ? 1 : -1)),
-  );
+function DemandesTab({
+  items,
+  loading,
+  onItemsChange,
+}: {
+  items: AdminAccessRequest[];
+  loading: boolean;
+  onItemsChange: (items: AdminAccessRequest[]) => void;
+}) {
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const update = (id: string, patch: Partial<AccessRequest>) =>
-    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  const update = (id: string, patch: Partial<AdminAccessRequest>) =>
+    onItemsChange(items.map((x) => (x.id === id ? { ...x, ...patch } : x)));
 
-  const approve = (id: string) => update(id, { status: "approved" as RequestStatus });
-  const reject = (id: string) => {
-    if (!reason.trim()) return;
-    update(id, { status: "rejected" as RequestStatus, rejectionReason: reason.trim() });
-    setRejecting(null);
-    setReason("");
+  const approve = async (id: string) => {
+    setError(null);
+    setBusyId(id);
+    try {
+      await approveAccessRequest(id);
+      update(id, { status: "approved", validatedAt: new Date().toISOString() });
+    } catch {
+      setError("Impossible de valider cette demande. Réessayez.");
+    } finally {
+      setBusyId(null);
+    }
   };
+
+  const reject = async (id: string) => {
+    if (!reason.trim()) return;
+    setError(null);
+    setBusyId(id);
+    try {
+      await rejectAccessRequest(id, reason.trim());
+      update(id, {
+        status: "rejected",
+        rejectedAt: new Date().toISOString(),
+        rejectionReason: reason.trim(),
+      });
+      setRejecting(null);
+      setReason("");
+    } catch {
+      setError("Impossible de refuser cette demande. Réessayez.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const sorted = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
   return (
     <>
@@ -642,104 +734,129 @@ function DemandesTab() {
         emphasis="accès"
         subtitle="Validez ou refusez l'accès aux projets confidentiels — chaque refus doit être motivé."
       />
-      <div className="mt-10 space-y-3">
-        {items.map((r) => (
-          <div
-            key={r.id}
-            className="flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-base font-medium text-on-surface">{r.fullName}</p>
-                <p className="text-sm text-on-surface-variant">
-                  {r.company} · <span className="text-primary">{r.email}</span>
-                </p>
-                <p className="mt-2 text-sm text-on-surface-variant">
-                  <span className="text-on-surface">Projets :</span> {r.projectTitles.join(", ")}
-                </p>
-                <p className="mt-1 text-xs text-on-surface-variant/70">
-                  {new Date(r.date).toLocaleDateString("fr-FR", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
+      {error && (
+        <div className="mt-6">
+          <Alert type="error" title="Une erreur est survenue" description={error} />
+        </div>
+      )}
+      {loading ? (
+        <p className="mt-10 text-sm text-on-surface-variant">Chargement des demandes…</p>
+      ) : sorted.length === 0 ? (
+        <div className="mt-16 flex flex-col items-center justify-center gap-3">
+          <KeyRound aria-hidden="true" className="text-on-surface-variant/40" size={60} />
+          <p className="text-sm font-light text-on-surface-variant">Aucune demande d'accès</p>
+        </div>
+      ) : (
+        <div className="mt-10 space-y-3">
+          {sorted.map((r) => (
+            <div
+              key={r.id}
+              className="flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-5"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-base font-medium text-on-surface">
+                    {r.visitor?.fullName ?? "Visiteur"}
+                  </p>
+                  <p className="text-sm text-on-surface-variant">
+                    {r.visitor?.company ?? "—"} ·{" "}
+                    <span className="text-primary">{r.visitor?.email ?? "—"}</span>
+                  </p>
+                  <p className="mt-2 text-sm text-on-surface-variant">
+                    <span className="text-on-surface">Projet :</span>{" "}
+                    {r.project?.title ?? "Projet supprimé"}
+                  </p>
+                  {r.message && (
+                    <p className="mt-1 text-sm text-on-surface-variant">
+                      <span className="text-on-surface">Message :</span> {r.message}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-on-surface-variant/70">
+                    {new Date(r.createdAt).toLocaleDateString("fr-FR", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <StatusBadge kind={r.status} />
+                </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <StatusBadge kind={r.status} />
-              </div>
-            </div>
 
-            {r.status === "pending" && (
-              <div className="flex flex-col gap-3">
-                {rejecting === r.id ? (
-                  <div className="rounded-xl border border-[#F87171]/30 bg-[#F87171]/5 p-4">
-                    <label
-                      htmlFor={`reason-${r.id}`}
-                      className="block text-sm font-medium text-on-surface-variant"
-                    >
-                      Motif du refus (obligatoire)
-                    </label>
-                    <textarea
-                      id={`reason-${r.id}`}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      rows={2}
-                      required
-                      className="mt-2 w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                      placeholder="Expliquez brièvement le refus."
-                    />
-                    <div className="mt-3 flex items-center justify-end gap-2">
+              {r.status === "pending" && (
+                <div className="flex flex-col gap-3">
+                  {rejecting === r.id ? (
+                    <div className="rounded-xl border border-[#F87171]/30 bg-[#F87171]/5 p-4">
+                      <label
+                        htmlFor={`reason-${r.id}`}
+                        className="block text-sm font-medium text-on-surface-variant"
+                      >
+                        Motif du refus (obligatoire)
+                      </label>
+                      <textarea
+                        id={`reason-${r.id}`}
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        rows={2}
+                        required
+                        className="mt-2 w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        placeholder="Expliquez brièvement le refus."
+                      />
+                      <div className="mt-3 flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRejecting(null);
+                            setReason("");
+                          }}
+                          className="rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => reject(r.id)}
+                          disabled={!reason.trim() || busyId === r.id}
+                          className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-2 text-xs font-bold text-[#F87171] disabled:opacity-50"
+                        >
+                          Confirmer le refus
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          setRejecting(null);
-                          setReason("");
-                        }}
-                        className="rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface"
+                        onClick={() => setRejecting(r.id)}
+                        disabled={busyId === r.id}
+                        className="rounded-full border border-[#F87171]/30 px-5 py-2 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50"
                       >
-                        Annuler
+                        Refuser
                       </button>
                       <button
                         type="button"
-                        onClick={() => reject(r.id)}
-                        disabled={!reason.trim()}
-                        className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-2 text-xs font-bold text-[#F87171] disabled:opacity-50"
+                        onClick={() => approve(r.id)}
+                        disabled={busyId === r.id}
+                        className="rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50"
                       >
-                        Confirmer le refus
+                        Valider
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setRejecting(r.id)}
-                      className="rounded-full border border-[#F87171]/30 px-5 py-2 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10"
-                    >
-                      Refuser
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => approve(r.id)}
-                      className="rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90"
-                    >
-                      Valider
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
 
-            {r.status === "rejected" && r.rejectionReason && (
-              <p className="rounded-xl border border-white/5 bg-surface-container p-3 text-xs text-on-surface-variant">
-                <span className="font-medium text-[#F87171]">Motif du refus :</span>{" "}
-                {r.rejectionReason}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+              {r.status === "rejected" && r.rejectionReason && (
+                <p className="rounded-xl border border-white/5 bg-surface-container p-3 text-xs text-on-surface-variant">
+                  <span className="font-medium text-[#F87171]">Motif du refus :</span>{" "}
+                  {r.rejectionReason}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }
@@ -772,12 +889,7 @@ function ContactsTab() {
       />
       {items.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center gap-3">
-          <span
-            aria-hidden="true"
-            className="material-symbols-outlined text-6xl text-on-surface-variant/40"
-          >
-            inbox
-          </span>
+          <Inbox aria-hidden="true" className="text-on-surface-variant/40" size={60} />
           <p className="text-sm font-light text-on-surface-variant">Aucun message reçu</p>
         </div>
       ) : (
@@ -821,9 +933,7 @@ function ContactsTab() {
                   aria-label={`Changer le statut du message de ${m.fullName}`}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary"
                 >
-                  <span aria-hidden="true" className="material-symbols-outlined text-base">
-                    swap_horiz
-                  </span>
+                  <ArrowLeftRight aria-hidden="true" size={18} />
                 </button>
               </div>
             </li>
@@ -892,12 +1002,7 @@ function ParametresTab() {
               className="h-20 w-20 rounded-full border border-white/10 object-cover"
             />
             <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/15 bg-surface-container px-6 py-6 text-center">
-              <span
-                aria-hidden="true"
-                className="material-symbols-outlined text-2xl text-on-surface-variant"
-              >
-                cloud_upload
-              </span>
+              <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={24} />
               <p className="text-sm text-on-surface-variant">
                 Glissez-déposez une image ou <span className="text-primary">parcourir</span>
               </p>
@@ -983,9 +1088,11 @@ function ParametresTab() {
               aria-label="Copier le lien du profil"
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-base">
-                {copied ? "check" : "content_copy"}
-              </span>
+              {copied ? (
+                <Check aria-hidden="true" size={18} />
+              ) : (
+                <Copy aria-hidden="true" size={18} />
+              )}
             </button>
           </div>
           <p className="mt-2 text-xs text-on-surface-variant/70">
@@ -1000,7 +1107,7 @@ function ParametresTab() {
           {saved && <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>}
           <button
             type="submit"
-            className="ml-auto rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary hover:opacity-90"
+            className="ml-auto rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
           >
             Enregistrer les modifications
           </button>

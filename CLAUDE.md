@@ -17,7 +17,17 @@ Le routing est passé de **TanStack Start** (SSR Nitro + file-based routing) à 
 
 ## Design system couleur — source de vérité
 
-**`DESIGN.md`** (fourni par l'utilisateur, hors repo à `C:\Users\user24\Downloads\DESIGN.md` — à rapatrier dans le repo si besoin de le versionner) est la référence unique pour toutes les valeurs de couleur, la nomenclature M3, et les ratios WCAG/RGAA vérifiés. Toujours le consulter avant de toucher à `src/styles.css` ou d'ajouter un token couleur. Il a été mis à jour le 08/07 avec les valeurs dark corrigées ci-dessous.
+**`DESIGN.md`** (fourni par l'utilisateur, hors repo à `C:\Users\user24\Desktop\DESIGN.md` — a déménagé de `Downloads\` le 09/07 ; toujours hors repo, à rapatrier si besoin de le versionner) est la référence **unique** pour toutes les valeurs de couleur, la nomenclature M3, et les ratios WCAG/RGAA vérifiés. Toujours le consulter avant de toucher à `src/styles.css` ou d'ajouter un token couleur.
+
+**Règle permanente** : dès qu'une session modifie le design system (nouveau token, nouvelle couleur, nouveau composant visuel type Alert/Badge), mettre à jour `DESIGN.md` dans la foulée — ce n'est pas une étape optionnelle en fin de session. Si un composant du code s'écarte de ce que documente `DESIGN.md`, corriger le composant (le doc fait foi), sauf divergence explicitement déjà actée comme "à trancher avec l'utilisateur" (voir ci-dessous).
+
+**Corrections appliquées le 09/07 suite à audit composants vs DESIGN.md** :
+- `--tag-sector` (`src/styles.css`) : `#22d3ee` → `#06b6d4` (ne correspondait pas à la valeur "cyan" documentée).
+- `--tag-tools` : `#38bdf8` → `#0ea5e9` (ne correspondait pas à la valeur "sky" documentée).
+- `TagBadge.tsx` utilisait des couleurs Tailwind brutes (`fuchsia-500`, `cyan-500`, etc.) mélangées à des hex arbitraires au lieu des tokens sémantiques `tag-*` déjà câblés dans `@theme inline` — remplacé par `bg-tag-*/10 border-tag-*/30 text-tag-*` partout.
+- Badge "Accès accordé" (F-12, `ProjectCard.tsx`) renommé en "Confidentiel · Accès validé" pour matcher le libellé documenté.
+
+**Contradiction DESIGN.md tranchée et corrigée (11/07)** : la section "🎫 Badges de statut d'accès (F-12)" (pastilles neutres) était obsolète par rapport à la section "🔔 Système d'alertes" — l'implémentation retenue et validée utilise bien le composant `Alert` coloré (info pour pending, warning pour refused). `DESIGN.md` a été corrigé pour matcher `ProjectCard.tsx` (vérifié ligne par ligne) — ne plus chercher l'ancienne version "pastilles".
 
 Les tokens sont définis **uniquement** dans `src/styles.css` (`@theme inline` + blocs `:root, .dark` et `:root:not(.dark)`). Pas de `tailwind.config.*` (Tailwind v4, config CSS-first). `src/components/ui/` (shadcn) est **du code mort confirmé** — aucun fichier applicatif ne l'importe (vérifié par grep exhaustif) ; ne pas le modifier sauf demande explicite de le réactiver.
 
@@ -35,7 +45,47 @@ Le dark mode est clos. Récapitulatif de ce qui a été fait :
 - **`StatusBadge.tsx` — `public` harmonisé** : `bg-primary/20` → `bg-primary/10` (aligné sur le pattern uniforme des autres pastilles ; `text-primary` conservé, contraste 10.67:1). Le badge `confidential` (`bg-secondary/80` + `text-on-surface`, 5.79:1) est **volontairement gardé en fill fort** (rôle d'alerte pour un label CONFIDENTIEL) — ne pas y toucher.
 - **Audit héritage bordures** (`@layer base { * { border-color: var(--outline-variant) } }`) : clos. Toutes les bordures de l'app (hors `ui/`) déclarent une couleur explicite — aucune bordure fonctionnelle « nue ». La règle globale est un filet de sécurité inoffensif, aucune correction nécessaire.
 
+## Flux "demande d'accès confidentiel" (F-12) — implémenté, réel (pas un mock)
+
+`ProjectCard.tsx` a 4 états d'accès pour un projet confidentiel — calculés dans `CataloguePage.tsx` (`resolveAccess`) à partir du rôle global (`get_my_role()`) **et** des lignes `access_requests` propres au visiteur connecté (`src/data/accessRequests.ts`) :
+- **none** → carte cliquable, ouvre `AccessRequestModal`.
+- **pending** → carte inerte, `Alert` type info.
+- **refused** → carte inerte, `Alert` type warning + lien vers la section contact du profil.
+- **granted** → badge "Confidentiel · Accès validé", carte = lien direct vers la fiche complète.
+
+**Important** : une ligne `access_requests.status = 'approved'` débloque **un seul projet précis** pour ce visiteur, sans changer son rôle global (`validated_visitor` reste le seul rôle qui débloque *tous* les confidentiels — vérifié en base : approuver une demande ne touche jamais `user_profiles.role`, aucun trigger ne le fait non plus). Ce mécanisme est reconnu à deux endroits qu'il faut garder synchronisés si on retouche les RLS : la policy `projects_select_unified` (branche `exists (select 1 from access_requests ...)`) et `getProjectById` (`src/data/projects.ts`, fiche détail complète).
+
+**⚠️ Piège RLS récursion croisée** : `projects_select_unified` interroge `access_requests`, et la policy d'insert sur `access_requests` interroge `projects` (pour vérifier `sensitivity_level`) — deux policies sur deux tables qui se référencent mutuellement en sous-requête directe déclenchent `42P17 infinite recursion detected in policy`. Fix : passer par des fonctions `SECURITY DEFINER` (`project_is_sensible()`, `has_other_approved_access_request()`) qui bypassent RLS, exactement comme `get_my_role()` le fait déjà pour `user_profiles`. Ne jamais remettre une sous-requête brute inter-tables dans une policy ici sans repasser par ce pattern.
+
+Back-office admin (`AdminPage.tsx`, onglet Demandes + dashboard) branché sur les vraies fonctions `src/data/accessRequests.ts` (`getAllAccessRequests`/`approveAccessRequest`/`rejectAccessRequest`) — le mock `seedRequests`/`src/data/requests.ts` a été supprimé, ne plus le chercher.
+
+F-11 — auto-approbation par projet dans `AccessRequestModal.tsx` (`handleSubmit`) : si le projet demandé est `sensitivity_level = 'sensible'` et que le visiteur a déjà au moins une autre demande `approved` sur un projet différent, la nouvelle ligne est insérée directement en `status: 'approved'` (skip la revue admin). Les projets `tres_sensible` passent toujours en revue.
+
+`AccessRequestModal.tsx` fait un vrai travail, plus un mock :
+- Visiteur **anon** : formulaire complet (nom/entreprise/email/mdp) → `supabase.auth.signUp()` + update `user_profiles` + insert `access_requests`.
+- Visiteur **déjà connecté** (ex. persona `pending` qui redemande un autre projet) : les champs de compte sont masqués, insertion directe dans `access_requests` avec la session existante — **ne jamais rappeler `signUp()` si une session existe déjà**, sinon échec ("email déjà utilisé").
+- Confirmation email désactivée sur le projet Supabase live (`rctedezgdxadmkjeawsj`, dashboard Authentication → Providers → Email) pour que `signUp()` renvoie une session immédiate — sans ça, l'insert `access_requests` échoue (RLS, pas de session).
+- Modal montée via `createPortal(document.body)` (couvre nav/footer), scroll unique interne, body de page bloqué (`overflow:hidden`) tant qu'ouverte.
+
+Composants/helpers partagés à réutiliser (ne pas dupliquer) : `Alert` (`src/components/Alert.tsx`, 4 types info/success/warning/error), `Checkbox` (`src/components/Checkbox.tsx`, circulaire), `textLinkClass()` (`src/lib/linkStyles.ts`, style de lien unifié), `formatSecteur()` (`src/lib/secteurLabels.ts`, mapping enum → libellé).
+
+`PersonaSwitcher.tsx` (dev-only, `import.meta.env.DEV`) a été refait en bouton "⚡ Personas" + drop-up (au lieu d'un panneau toujours ouvert) — ne pas l'exposer en prod.
+
+## Iconographie — Lucide uniquement
+
+`lucide-react` est la seule librairie d'icônes du projet (migration complète depuis `material-symbols-outlined`, 09/07). Ne jamais réintroduire Material Symbols ou une autre lib. Icônes dynamiques (mapping état → icône) : typer en `LucideIcon`, assigner le composant directement plutôt qu'une chaîne — voir `StatusBadge.tsx`/`ThemeToggle.tsx`/`Alert.tsx`.
+
+## Thumbnails projets — bucket Storage créé le 10/07
+
+Le commentaire de `projects.thumbnail_url` dit "URL Supabase Storage" mais **aucun bucket n'existait** — les 4 projets démo pointent tous vers des URLs Google externes (`lh3.googleusercontent.com/aida-public/...`) non contrôlées par ce projet, donc potentiellement fragiles (pas de garantie de permanence). Créé `project-thumbnails` (bucket public, policies RLS : lecture publique, écriture réservée à `admin`). Pour uploader une image : Supabase Studio → Storage → `project-thumbnails`, puis coller l'URL publique générée dans `thumbnail_url`.
+
+Ajouté aussi un filet de sécurité `onError` sur les deux `<img>` qui affichent `thumbnail_url` (`ProjectCard.tsx`, `ProjectDetailPage.tsx`) : avant, une image cassée/inaccessible ne s'effaçait pas, elle restait affichée en icône cassée sans aucune gestion. Désormais l'image se masque proprement (`display: none`) si elle ne charge pas.
+
 ## Reste à faire (prochaine session — week-end)
+
+**Migrations Supabase — rattrapées le 10/07** : `supabase/migrations/` ne remontait qu'au 06/07 alors que le projet Supabase live (`rctedezgdxadmkjeawsj`) est créé le 22/06 — avant même le premier commit git (03/07, messages génériques "Changes"/"Work in progress" typiques d'auto-commits Lovable). 6 migrations historiques (24/06 → 09/07, fondation RLS/triggers, seeds de démo, masquage colonnes vue catalogue) plus les 2 migrations RLS de cette session ont été récupérées via `supabase_migrations.schema_migrations.statements` et versionnées à l'identique du live (vérifié par comparaison directe, ex. `pg_get_viewdef()`). 3 migrations intermédiaires ignorées volontairement car entièrement remplacées par une version plus récente (aucune perte). Écart mineur restant, non résolu : les 2 fichiers locaux du 06/07 (`20260706125303`/`125315`) n'apparaissent pas dans `supabase_migrations.schema_migrations` — origine non investiguée.
+
+**⚠️ Piège `security_invoker` sur les vues** : `CREATE OR REPLACE VIEW` ne préserve **pas** l'option `security_invoker = true` si elle n'est pas re-précisée dans la nouvelle définition — elle retombe silencieusement en mode `SECURITY DEFINER` implicite (bypass RLS). C'est exactement ce qui est arrivé à `projects_catalog_view` : créée avec `security_invoker = true` dans `audit_corrections_v2_0`, puis perdue au fil des `CREATE OR REPLACE VIEW` successifs (masquage colonnes, etc.) sans que personne ne le remarque. Conséquence vérifiée en direct le 10/07 : les projets `status='draft'` étaient visibles par n'importe quel visiteur anonyme via l'API. Corrigé par `alter view ... set (security_invoker = true)`. **Règle à appliquer désormais** : toute vue qui doit respecter la RLS des tables sous-jacentes doit soit passer par `ALTER VIEW ... SET (security_invoker = true)` après un `CREATE OR REPLACE VIEW`, soit repréciser l'option dans le `CREATE VIEW` lui-même. Vérifier après coup avec `select reloptions from pg_class where relname = '...'` (`null` = mode dangereux par défaut). Au passage, `designer_public_profile` (même alerte, vue jamais utilisée dans le code, absente du PRD) a été supprimée plutôt que corrigée.
 
 **Mapping complet du LIGHT mode** — c'est LA tâche restante, reportée explicitement par l'utilisateur le 08/07.
 

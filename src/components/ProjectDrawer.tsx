@@ -1,3 +1,4 @@
+import { CloudUpload, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import type { Project, ProjectStatus, SensitivityLevel } from "@/types/project";
@@ -52,8 +53,17 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const labelCls = "block text-sm font-medium text-on-surface-variant";
 
   return (
-    <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label="Éditer le projet">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+    <div
+      className="fixed inset-0 z-[100]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Éditer le projet"
+    >
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
       <aside className="absolute right-0 top-0 flex h-screen w-full max-w-2xl flex-col border-l border-white/10 bg-surface-container-lowest">
         <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
           <div>
@@ -69,9 +79,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               type="button"
               className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary-container/10"
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-base">
-                auto_awesome
-              </span>
+              <Sparkles aria-hidden="true" size={18} />
               Structurer avec l'IA
             </button>
             <button
@@ -80,9 +88,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               aria-label="Fermer"
               className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
             >
-              <span aria-hidden="true" className="material-symbols-outlined">
-                close
-              </span>
+              <X aria-hidden="true" size={24} />
             </button>
           </div>
         </div>
@@ -166,12 +172,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           <div>
             <p className={labelCls}>Images du projet</p>
             <div className="mt-2 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 bg-surface-container px-6 py-10 text-center">
-              <span aria-hidden="true" className="material-symbols-outlined text-3xl text-on-surface-variant">
-                cloud_upload
-              </span>
+              <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
               <p className="text-sm text-on-surface-variant">
-                Glissez-déposez vos images ou{" "}
-                <span className="text-primary">parcourir</span>
+                Glissez-déposez vos images ou <span className="text-primary">parcourir</span>
               </p>
               <p className="text-xs text-on-surface-variant/70">PNG, JPG jusqu'à 8 Mo</p>
             </div>
@@ -291,7 +294,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           <button
             type="button"
             onClick={() => onSave(draft)}
-            className="rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary hover:opacity-90"
+            className="rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
           >
             Enregistrer
           </button>

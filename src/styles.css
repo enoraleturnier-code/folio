@@ -104,11 +104,11 @@
   --on-error: #690005;
   --violet-text: #a78bfa;
   --success: #34d399;
-  --warning: #fbb040;
+  --warning: #fbbf24;
   --info: #818cf8;
   --tag-design-type: #d946ef;
-  --tag-sector: #22d3ee;
-  --tag-tools: #38bdf8;
+  --tag-sector: #06b6d4;
+  --tag-tools: #0ea5e9;
   --tag-keywords: #818cf8;
   --aurora-teal: rgba(45, 212, 191, 0.12);
   --aurora-purple: rgba(124, 58, 237, 0.1);
@@ -249,19 +249,4 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
-}
-.material-symbols-outlined {
-  font-family: "Material Symbols Outlined";
-  font-weight: normal;
-  font-style: normal;
-  font-size: 20px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
 }

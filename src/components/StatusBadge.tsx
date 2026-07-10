@@ -1,3 +1,5 @@
+import { Check, Lock, NotebookPen, Trash2, type LucideIcon } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export type StatusKind =
@@ -14,7 +16,7 @@ export type StatusKind =
 
 const styles: Record<StatusKind, string> = {
   public: "bg-primary/10 border-primary/30 text-primary",
-  confidential: "bg-secondary/80 border-white/10 text-on-surface",
+  confidential: "bg-secondary/80 border-white/10 text-white",
   draft: "bg-white/5 border-white/10 text-on-surface-variant",
   deleted: "bg-[#F87171]/10 border-[#F87171]/30 text-[#F87171]",
   pending: "bg-[#FBB040]/10 border-[#FBB040]/30 text-[#FBB040]",
@@ -38,15 +40,15 @@ const labels: Record<StatusKind, string> = {
   archive: "Archivé",
 };
 
-const icons: Partial<Record<StatusKind, string>> = {
-  public: "check",
-  confidential: "lock",
-  draft: "edit_note",
-  deleted: "delete",
+const icons: Partial<Record<StatusKind, LucideIcon>> = {
+  public: Check,
+  confidential: Lock,
+  draft: NotebookPen,
+  deleted: Trash2,
 };
 
 export function StatusBadge({ kind }: { kind: StatusKind }) {
-  const icon = icons[kind];
+  const Icon = icons[kind];
   return (
     <span
       className={cn(
@@ -54,11 +56,7 @@ export function StatusBadge({ kind }: { kind: StatusKind }) {
         styles[kind],
       )}
     >
-      {icon && (
-        <span aria-hidden="true" className="material-symbols-outlined text-[14px] leading-none">
-          {icon}
-        </span>
-      )}
+      {Icon && <Icon aria-hidden="true" size={14} />}
       {labels[kind]}
     </span>
   );
