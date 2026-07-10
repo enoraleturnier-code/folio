@@ -88,6 +88,9 @@ export function ProjectCard({
           src={project.thumbnail_url ?? ""}
           alt={project.title}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           className={
             "h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 " +
             (isTeaser ? "blur-2xl scale-110" : "")

@@ -75,6 +75,12 @@ Composants/helpers partagés à réutiliser (ne pas dupliquer) : `Alert` (`src/c
 
 `lucide-react` est la seule librairie d'icônes du projet (migration complète depuis `material-symbols-outlined`, 09/07). Ne jamais réintroduire Material Symbols ou une autre lib. Icônes dynamiques (mapping état → icône) : typer en `LucideIcon`, assigner le composant directement plutôt qu'une chaîne — voir `StatusBadge.tsx`/`ThemeToggle.tsx`/`Alert.tsx`.
 
+## Thumbnails projets — bucket Storage créé le 10/07
+
+Le commentaire de `projects.thumbnail_url` dit "URL Supabase Storage" mais **aucun bucket n'existait** — les 4 projets démo pointent tous vers des URLs Google externes (`lh3.googleusercontent.com/aida-public/...`) non contrôlées par ce projet, donc potentiellement fragiles (pas de garantie de permanence). Créé `project-thumbnails` (bucket public, policies RLS : lecture publique, écriture réservée à `admin`). Pour uploader une image : Supabase Studio → Storage → `project-thumbnails`, puis coller l'URL publique générée dans `thumbnail_url`.
+
+Ajouté aussi un filet de sécurité `onError` sur les deux `<img>` qui affichent `thumbnail_url` (`ProjectCard.tsx`, `ProjectDetailPage.tsx`) : avant, une image cassée/inaccessible ne s'effaçait pas, elle restait affichée en icône cassée sans aucune gestion. Désormais l'image se masque proprement (`display: none`) si elle ne charge pas.
+
 ## Reste à faire (prochaine session — week-end)
 
 **Migrations Supabase — rattrapées le 10/07** : `supabase/migrations/` ne remontait qu'au 06/07 alors que le projet Supabase live (`rctedezgdxadmkjeawsj`) est créé le 22/06 — avant même le premier commit git (03/07, messages génériques "Changes"/"Work in progress" typiques d'auto-commits Lovable). 6 migrations historiques (24/06 → 09/07, fondation RLS/triggers, seeds de démo, masquage colonnes vue catalogue) plus les 2 migrations RLS de cette session ont été récupérées via `supabase_migrations.schema_migrations.statements` et versionnées à l'identique du live (vérifié par comparaison directe, ex. `pg_get_viewdef()`). 3 migrations intermédiaires ignorées volontairement car entièrement remplacées par une version plus récente (aucune perte). Écart mineur restant, non résolu : les 2 fichiers locaux du 06/07 (`20260706125303`/`125315`) n'apparaissent pas dans `supabase_migrations.schema_migrations` — origine non investiguée.

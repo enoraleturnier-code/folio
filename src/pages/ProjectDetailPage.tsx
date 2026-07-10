@@ -38,6 +38,9 @@ export function ProjectDetailPage() {
         <img
           src={project.thumbnail_url ?? ""}
           alt={project.title}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
