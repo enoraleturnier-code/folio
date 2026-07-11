@@ -9,7 +9,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { SECTEUR_LABELS } from "@/lib/secteurLabels";
 import { uploadProjectThumbnail } from "@/lib/storage";
 import { MAX_LENGTHS, validateProject, type ValidationError } from "@/lib/projectValidation";
-import type { AiStructuredDesc, Project, ProjectStatus, SensitivityLevel } from "@/types/project";
+import type { AiGenerationResult, Project, ProjectStatus, SensitivityLevel } from "@/types/project";
+
+interface AiSuggestions {
+  tools: string[];
+  keywords: string[];
+  types: string[];
+}
+
+const EMPTY_SUGGESTIONS: AiSuggestions = { tools: [], keywords: [], types: [] };
 
 interface ProjectDrawerProps {
   open: boolean;
@@ -64,10 +72,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
-  const [showLongDescOverride, setShowLongDescOverride] = useState(false);
-  const [aiNotes, setAiNotes] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestions>(EMPTY_SUGGESTIONS);
 
   // Instantané de l'état initial (projet chargé ou nouveau projet vide) pris
   // à l'ouverture -- sert de référence pour détecter les modifications non
@@ -84,18 +91,14 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
       setErrors([]);
       setConfirmStatusChange(false);
       setConfirmClose(false);
-      setShowLongDescOverride(false);
-      setAiNotes("");
       setAiError(null);
+      setAiSuggestions(EMPTY_SUGGESTIONS);
       initialSnapshotRef.current = JSON.stringify(initial);
     }
   }, [open, project]);
 
   const isDirty =
-    open &&
-    (JSON.stringify(draft) !== initialSnapshotRef.current ||
-      aiNotes.trim() !== "" ||
-      pendingFile !== null);
+    open && (JSON.stringify(draft) !== initialSnapshotRef.current || pendingFile !== null);
 
   // Fermeture "douce" : si le formulaire a des modifications non enregistrées,
   // on affiche la confirmation dédiée au lieu de fermer directement. Chemin
@@ -228,16 +231,16 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   };
 
   const handleAiStructure = async () => {
-    if (!aiNotes.trim()) return;
+    if (!draft.long_desc?.trim()) return;
     setAiLoading(true);
     setAiError(null);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
-      const { data, error } = await supabase.functions.invoke<AiStructuredDesc>(
+      const { data, error } = await supabase.functions.invoke<AiGenerationResult>(
         "generate-ai-description",
         {
-          body: { notes: aiNotes },
+          body: { long_desc: draft.long_desc },
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         },
       );
@@ -245,18 +248,24 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
 
       setDraft((d) => ({
         ...d,
+        short_desc: data.short_desc ?? d.short_desc ?? "",
         ai_structured_desc: {
           ...d.ai_structured_desc,
           probleme: data.probleme ?? d.ai_structured_desc?.probleme ?? "",
           decisions: data.decisions ?? d.ai_structured_desc?.decisions ?? "",
           resultat: data.resultat ?? d.ai_structured_desc?.resultat ?? "",
         },
-        tags: {
-          types: Array.from(new Set([...d.tags.types, ...(data.types_suggestions ?? [])])),
-          tools: Array.from(new Set([...d.tags.tools, ...(data.tools_suggestions ?? [])])),
-          keywords: Array.from(new Set([...d.tags.keywords, ...(data.keywords_suggestions ?? [])])),
-        },
       }));
+      // Suggestions proposées à côté des TagPicker, jamais fusionnées
+      // automatiquement dans les tags sélectionnés -- l'admin choisit
+      // lesquelles ajouter (cf. bloc "suggestions" plus bas dans le rendu).
+      // Celles déjà sélectionnées sont exclues pour ne pas proposer un
+      // doublon du tag déjà présent.
+      setAiSuggestions({
+        tools: (data.tools_suggestions ?? []).filter((n) => !draft.tags.tools.includes(n)),
+        keywords: (data.keywords_suggestions ?? []).filter((n) => !draft.tags.keywords.includes(n)),
+        types: (data.types_suggestions ?? []).filter((n) => !draft.tags.types.includes(n)),
+      });
     } catch {
       setAiError("La génération a échoué, réessaie.");
     } finally {
@@ -264,19 +273,38 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     }
   };
 
-  // Description longue (rédaction manuelle) et trio Problème/Décisions/Résultat
-  // (IA ou saisie manuelle) sont deux façons alternatives de raconter le
-  // projet : si le trio est déjà complet, la description longue n'est pas
-  // nécessaire et reste masquée par défaut (cf. validateProject) -- sauf si
-  // l'admin choisit explicitement de la rédiger quand même, ou qu'un projet
-  // existant en avait déjà une avant l'usage de l'IA.
-  const hasStructuredContent = Boolean(
-    draft.ai_structured_desc?.probleme?.trim() &&
-    draft.ai_structured_desc?.decisions?.trim() &&
-    draft.ai_structured_desc?.resultat?.trim(),
-  );
-  const showLongDesc =
-    showLongDescOverride || !hasStructuredContent || Boolean(draft.long_desc?.trim());
+  const addSuggestion = (category: keyof AiSuggestions, name: string) => {
+    setDraft((d) => ({
+      ...d,
+      tags: {
+        ...d.tags,
+        [category]: d.tags[category].includes(name) ? d.tags[category] : [...d.tags[category], name],
+      },
+    }));
+    setAiSuggestions((s) => ({ ...s, [category]: s[category].filter((n) => n !== name) }));
+  };
+
+  // Suggestions IA proposées à côté de chaque TagPicker : un clic les ajoute
+  // aux tags sélectionnés, jamais fusionnées automatiquement à la génération.
+  function suggestionChips(category: keyof AiSuggestions) {
+    const items = aiSuggestions[category];
+    if (items.length === 0) return null;
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] text-on-surface-variant/60">Suggestions IA :</span>
+        {items.map((name) => (
+          <button
+            key={name}
+            type="button"
+            onClick={() => addSuggestion(category, name)}
+            className="rounded-full border border-dashed border-primary/40 px-3 py-1 text-[11px] font-medium text-primary hover:bg-primary-container/10"
+          >
+            + {name}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -332,6 +360,42 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             </div>
 
             <div>
+              <label htmlFor="pd-long-desc" className={labelCls}>
+                Description longue
+              </label>
+              <textarea
+                id="pd-long-desc"
+                rows={6}
+                value={draft.long_desc ?? ""}
+                onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
+                className={inputCls + " mt-2 resize-y"}
+                placeholder="Contenu complet de l'étude de cas..."
+              />
+              <div className="mt-1 flex items-center justify-between">
+                {fieldError("long_desc")}
+                {counter("long_desc", draft.long_desc)}
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-white/5 bg-surface-container/50 p-4">
+              {!draft.long_desc?.trim() && (
+                <p className="text-xs text-on-surface-variant/70">
+                  Renseigne la description longue ci-dessus avant de lancer la génération.
+                </p>
+              )}
+              {aiError && <Alert type="error" title={aiError} />}
+              <button
+                type="button"
+                onClick={handleAiStructure}
+                disabled={!draft.long_desc?.trim() || aiLoading}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Sparkles aria-hidden="true" size={18} />
+                {aiLoading ? "Génération…" : "Générer avec l'IA"}
+              </button>
+            </div>
+
+            <div>
               <label htmlFor="pd-subtitle" className={labelCls}>
                 Sous-titre (carte teaser)
               </label>
@@ -346,35 +410,6 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 {fieldError("short_desc")}
                 {counter("short_desc", draft.short_desc)}
               </div>
-            </div>
-
-            <div className="space-y-2 rounded-xl border border-white/5 bg-surface-container/50 p-4">
-              <label htmlFor="pd-ai-notes" className={labelCls}>
-                Notes libres pour l'IA
-              </label>
-              <textarea
-                id="pd-ai-notes"
-                rows={3}
-                value={aiNotes}
-                onChange={(e) => setAiNotes(e.target.value)}
-                placeholder="Décrivez le projet en vrac, l'IA structure Problème / Décisions / Résultat + suggère des tags..."
-                className={inputCls + " resize-y"}
-              />
-              {!aiNotes.trim() && (
-                <p className="text-xs text-on-surface-variant/70">
-                  Saisis des notes ci-dessus avant de lancer la génération.
-                </p>
-              )}
-              {aiError && <Alert type="error" title={aiError} />}
-              <button
-                type="button"
-                onClick={handleAiStructure}
-                disabled={!aiNotes.trim() || aiLoading}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Sparkles aria-hidden="true" size={18} />
-                {aiLoading ? "Génération…" : "Structurer avec l'IA"}
-              </button>
             </div>
 
             <div>
@@ -440,38 +475,6 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 {counter("resultat", draft.ai_structured_desc?.resultat)}
               </div>
             </div>
-
-            {showLongDesc ? (
-              <div>
-                <label htmlFor="pd-long-desc" className={labelCls}>
-                  Description longue
-                </label>
-                <textarea
-                  id="pd-long-desc"
-                  rows={6}
-                  value={draft.long_desc ?? ""}
-                  onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
-                  className={inputCls + " mt-2 resize-y"}
-                  placeholder="Contenu complet de l'étude de cas..."
-                />
-                <div className="mt-1 flex items-center justify-between">
-                  {fieldError("long_desc")}
-                  {counter("long_desc", draft.long_desc)}
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-on-surface-variant">
-                Description longue non nécessaire — le résumé structuré par l'IA ci-dessus (Problème
-                / Décisions / Résultat) couvre déjà le contenu.{" "}
-                <button
-                  type="button"
-                  onClick={() => setShowLongDescOverride(true)}
-                  className="font-medium text-primary hover:underline"
-                >
-                  Rédiger quand même une description longue
-                </button>
-              </div>
-            )}
 
             <div>
               <p className={labelCls}>Image</p>
@@ -656,30 +659,39 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             </div>
 
             <div className="space-y-5 border-t border-white/5 pt-5">
-              <TagPicker
-                label="Types de design"
-                category="designType"
-                refTable="project_types_ref"
-                fetchOptions={getTypesRef}
-                selected={draft.tags.types}
-                onChange={(types) => setDraft({ ...draft, tags: { ...draft.tags, types } })}
-              />
-              <TagPicker
-                label="Outils"
-                category="tools"
-                refTable="tools_ref"
-                fetchOptions={getToolsRef}
-                selected={draft.tags.tools}
-                onChange={(tools) => setDraft({ ...draft, tags: { ...draft.tags, tools } })}
-              />
-              <TagPicker
-                label="Mots-clés"
-                category="keywords"
-                refTable="keywords_ref"
-                fetchOptions={getKeywordsRef}
-                selected={draft.tags.keywords}
-                onChange={(keywords) => setDraft({ ...draft, tags: { ...draft.tags, keywords } })}
-              />
+              <div className="space-y-2">
+                <TagPicker
+                  label="Types de design"
+                  category="designType"
+                  refTable="project_types_ref"
+                  fetchOptions={getTypesRef}
+                  selected={draft.tags.types}
+                  onChange={(types) => setDraft({ ...draft, tags: { ...draft.tags, types } })}
+                />
+                {suggestionChips("types")}
+              </div>
+              <div className="space-y-2">
+                <TagPicker
+                  label="Outils"
+                  category="tools"
+                  refTable="tools_ref"
+                  fetchOptions={getToolsRef}
+                  selected={draft.tags.tools}
+                  onChange={(tools) => setDraft({ ...draft, tags: { ...draft.tags, tools } })}
+                />
+                {suggestionChips("tools")}
+              </div>
+              <div className="space-y-2">
+                <TagPicker
+                  label="Mots-clés"
+                  category="keywords"
+                  refTable="keywords_ref"
+                  fetchOptions={getKeywordsRef}
+                  selected={draft.tags.keywords}
+                  onChange={(keywords) => setDraft({ ...draft, tags: { ...draft.tags, keywords } })}
+                />
+                {suggestionChips("keywords")}
+              </div>
             </div>
           </div>
 

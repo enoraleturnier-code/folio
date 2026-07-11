@@ -13,6 +13,17 @@ export interface AiStructuredDesc {
   types_suggestions?: string[];
 }
 
+/** Réponse de l'Edge Function generate-ai-description : trio + short_desc + suggestions de tags. */
+export interface AiGenerationResult {
+  short_desc?: string;
+  probleme?: string;
+  decisions?: string;
+  resultat?: string;
+  tools_suggestions?: string[];
+  keywords_suggestions?: string[];
+  types_suggestions?: string[];
+}
+
 export interface ProjectTags {
   tools: string[];
   keywords: string[];

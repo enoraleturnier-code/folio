@@ -21,20 +21,25 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: corsHeaders });
 }
 
-// Doit rester synchronise avec MAX_LENGTHS.probleme/decisions/resultat cote
-// src/lib/projectValidation.ts -- pas d'import partage possible entre le
+// Doit rester synchronise avec MAX_LENGTHS.probleme/decisions/resultat/short_desc
+// cote src/lib/projectValidation.ts -- pas d'import partage possible entre le
 // bundle Vite (frontend) et le runtime Deno de l'Edge Function.
 const FIELD_MAX_LENGTH = 1000;
+const SHORT_DESC_MAX_LENGTH = 160;
 
 const STRUCTURE_TOOL = {
   type: "function",
   function: {
     name: "structure_project",
     description:
-      "Structure des notes libres de projet design en probleme/decisions/resultat, avec suggestions de tags.",
+      "Structure la description longue d'un projet design en short_desc + probleme/decisions/resultat, avec suggestions de tags.",
     parameters: {
       type: "object",
       properties: {
+        short_desc: {
+          type: "string",
+          description: `Accroche courte pour une carte teaser, en francais. ${SHORT_DESC_MAX_LENGTH} caracteres maximum.`,
+        },
         probleme: {
           type: "string",
           description: `Le defi initial, en francais, concis. ${FIELD_MAX_LENGTH} caracteres maximum.`,
@@ -51,7 +56,7 @@ const STRUCTURE_TOOL = {
         keywords_suggestions: { type: "array", items: { type: "string" }, description: "Mots-cles courts pertinents." },
         types_suggestions: { type: "array", items: { type: "string" }, description: "Types de design concernes (ex: UX-UI, Branding)." },
       },
-      required: ["probleme", "decisions", "resultat"],
+      required: ["short_desc", "probleme", "decisions", "resultat"],
     },
   },
 };
@@ -72,15 +77,15 @@ Deno.serve(async (req: Request) => {
   const { data: role, error: roleError } = await callerClient.rpc("get_my_role");
   if (roleError || role !== "admin") return json({ error: "forbidden" }, 403);
 
-  let notes: string | undefined;
+  let longDesc: string | undefined;
   try {
     const body = await req.json();
-    notes = body?.notes;
+    longDesc = body?.long_desc;
   } catch {
     return json({ error: "invalid_body" }, 400);
   }
-  if (!notes || typeof notes !== "string" || !notes.trim()) {
-    return json({ error: "missing_notes" }, 400);
+  if (!longDesc || typeof longDesc !== "string" || !longDesc.trim()) {
+    return json({ error: "missing_long_desc" }, 400);
   }
 
   if (!MISTRAL_API_KEY) return json({ error: "mistral_not_configured" }, 500);
@@ -96,9 +101,9 @@ Deno.serve(async (req: Request) => {
       messages: [
         {
           role: "system",
-          content: `Tu structures les notes libres d'un designer freelance sur un projet, pour son portfolio. Reponds en francais, ton professionnel et concis. Chaque champ (probleme, decisions, resultat) doit imperativement faire ${FIELD_MAX_LENGTH} caracteres maximum -- reste bien en dessous plutot que de risquer de le depasser.`,
+          content: `Tu structures la description longue d'un projet design d'un designer freelance, pour son portfolio. Reponds en francais, ton professionnel et concis. Le champ short_desc doit imperativement faire ${SHORT_DESC_MAX_LENGTH} caracteres maximum, et chaque champ (probleme, decisions, resultat) ${FIELD_MAX_LENGTH} caracteres maximum -- reste bien en dessous plutot que de risquer de le depasser.`,
         },
-        { role: "user", content: `Notes libres sur le projet :\n\n${notes}` },
+        { role: "user", content: `Description longue du projet :\n\n${longDesc}` },
       ],
       tools: [STRUCTURE_TOOL],
       tool_choice: "any",
@@ -131,6 +136,9 @@ Deno.serve(async (req: Request) => {
     if (typeof value === "string" && value.length > FIELD_MAX_LENGTH) {
       structured[field] = value.slice(0, FIELD_MAX_LENGTH);
     }
+  }
+  if (typeof structured.short_desc === "string" && structured.short_desc.length > SHORT_DESC_MAX_LENGTH) {
+    structured.short_desc = structured.short_desc.slice(0, SHORT_DESC_MAX_LENGTH);
   }
 
   return json(structured);
