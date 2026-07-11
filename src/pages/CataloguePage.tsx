@@ -32,19 +32,21 @@ export function CataloguePage() {
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [myRequests, setMyRequests] = useState<MyAccessRequest[]>([]);
 
+  // Ne dépend d'aucun état React capturé en closure (ex. `session`) : un onSuccess
+  // appelé depuis AccessRequestModal peut provenir d'un rendu antérieur à une
+  // inscription anonyme réussie, où `session` valait encore null au moment où la
+  // closure a été créée. getMyAccessRequests() interroge le client Supabase global
+  // (toujours à jour), donc cette fonction reste correcte quel que soit l'âge de
+  // la closure qui la retient.
   const refreshMyRequests = useCallback(() => {
-    if (!session) {
-      setMyRequests([]);
-      return;
-    }
     getMyAccessRequests()
       .then((rows) => setMyRequests(rows))
       .catch(() => setMyRequests([]));
-  }, [session]);
+  }, []);
 
   useEffect(() => {
     refreshMyRequests();
-  }, [refreshMyRequests]);
+  }, [session, refreshMyRequests]);
 
   const requestByProject = useMemo(() => {
     const map = new Map<string, MyAccessRequest>();
