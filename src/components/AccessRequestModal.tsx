@@ -28,6 +28,7 @@ interface AccessRequestModalProps {
   open: boolean;
   onClose: () => void;
   initialProject?: Project | null;
+  onSuccess?: () => void;
 }
 
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -123,7 +124,12 @@ function borderClassFor(state: FieldState | null): string {
   return "border-error";
 }
 
-export function AccessRequestModal({ open, onClose, initialProject }: AccessRequestModalProps) {
+export function AccessRequestModal({
+  open,
+  onClose,
+  initialProject,
+  onSuccess,
+}: AccessRequestModalProps) {
   const { session } = useAuth();
   const navigate = useNavigate();
   const isAuthenticated = !!session;
@@ -254,6 +260,7 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
       if (insertError) throw insertError;
 
       setSubmitted(true);
+      onSuccess?.();
     } catch (err) {
       setSubmitError(mapSubmitError(err));
     } finally {

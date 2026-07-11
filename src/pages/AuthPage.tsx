@@ -1,7 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+import { designer } from "@/data/designer";
 import { supabase } from "@/integrations/supabase/client";
+
+async function redirectByRole(userId: string, navigate: (path: string) => void) {
+  const { data } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  navigate(data?.role === "admin" ? "/admin" : `/${designer.slug}/projects`);
+}
 
 export function AuthPage() {
   const navigate = useNavigate();
@@ -12,7 +22,7 @@ export function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/admin");
+      if (data.session) redirectByRole(data.session.user.id, navigate);
     });
   }, [navigate]);
 
@@ -20,16 +30,16 @@ export function AuthPage() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const { error: err } = await supabase.auth.signInWithPassword({
+    const { data, error: err } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     setSubmitting(false);
-    if (err) {
+    if (err || !data.user) {
       setError("Email ou mot de passe incorrect.");
       return;
     }
-    navigate("/admin");
+    await redirectByRole(data.user.id, navigate);
   };
 
   return (

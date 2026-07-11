@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
@@ -32,23 +32,19 @@ export function CataloguePage() {
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [myRequests, setMyRequests] = useState<MyAccessRequest[]>([]);
 
-  useEffect(() => {
+  const refreshMyRequests = useCallback(() => {
     if (!session) {
       setMyRequests([]);
       return;
     }
-    let cancelled = false;
     getMyAccessRequests()
-      .then((rows) => {
-        if (!cancelled) setMyRequests(rows);
-      })
-      .catch(() => {
-        if (!cancelled) setMyRequests([]);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .then((rows) => setMyRequests(rows))
+      .catch(() => setMyRequests([]));
   }, [session]);
+
+  useEffect(() => {
+    refreshMyRequests();
+  }, [refreshMyRequests]);
 
   const requestByProject = useMemo(() => {
     const map = new Map<string, MyAccessRequest>();
@@ -156,6 +152,7 @@ export function CataloguePage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         initialProject={modalProject}
+        onSuccess={refreshMyRequests}
       />
     </>
   );
