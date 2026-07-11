@@ -12,17 +12,22 @@ interface Persona {
 }
 
 const PERSONAS: Persona[] = [
-  { name: "Léa Martin", role: "admin", email: "lea@folioplus.app", password: "Test1234!" },
+  {
+    name: "Léa Martin",
+    role: "admin",
+    email: "enoraleturnier+lea-persona@gmail.com",
+    password: "Test1234!",
+  },
   {
     name: "Sophie Michelle",
     role: "pending",
-    email: "sophie@folioplus.app",
+    email: "enoraleturnier+sophie-persona@gmail.com",
     password: "Test1234!",
   },
   {
     name: "Karim Mansouri",
     role: "validated_visitor",
-    email: "karim@folioplus.app",
+    email: "enoraleturnier+karim-persona@gmail.com",
     password: "Test1234!",
   },
 ];
