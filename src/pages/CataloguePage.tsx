@@ -155,6 +155,7 @@ export function CataloguePage() {
         onClose={() => setModalOpen(false)}
         initialProject={modalProject}
         onSuccess={refreshMyRequests}
+        excludeProjectIds={myRequests.map((r) => r.project_id)}
       />
     </>
   );

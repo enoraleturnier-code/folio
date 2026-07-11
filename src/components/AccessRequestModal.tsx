@@ -29,6 +29,8 @@ interface AccessRequestModalProps {
   onClose: () => void;
   initialProject?: Project | null;
   onSuccess?: () => void;
+  /** Projets pour lesquels le visiteur a déjà une demande (pending/approved/refused) — exclus de la sélection pour éviter les doublons. */
+  excludeProjectIds?: string[];
 }
 
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -129,6 +131,7 @@ export function AccessRequestModal({
   onClose,
   initialProject,
   onSuccess,
+  excludeProjectIds,
 }: AccessRequestModalProps) {
   const { session } = useAuth();
   const navigate = useNavigate();
@@ -148,10 +151,18 @@ export function AccessRequestModal({
       setSubmitError(null);
       setTouched({});
       setForm({ ...emptyForm, projectIds: initialProject ? [initialProject.id] : [] });
+      const exclude = new Set(excludeProjectIds);
       getProjects()
-        .then((all) => setConfidentialProjects(all.filter((p) => p.status === "confidential")))
+        .then((all) =>
+          setConfidentialProjects(
+            all.filter((p) => p.status === "confidential" && !exclude.has(p.id)),
+          ),
+        )
         .catch(() => setConfidentialProjects([]));
     }
+    // excludeProjectIds volontairement absent des deps : ne re-filtrer qu'à l'ouverture,
+    // pas à chaque changement de myRequests pendant que la modale est ouverte.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialProject]);
 
   useEffect(() => {
