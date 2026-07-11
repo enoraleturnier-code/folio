@@ -1,5 +1,5 @@
 import { CloudUpload, Sparkles, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
 import { TagPicker } from "@/components/TagPicker";
@@ -63,29 +63,73 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const [saveError, setSaveError] = useState<string | null>(null);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [showLongDescOverride, setShowLongDescOverride] = useState(false);
   const [aiNotes, setAiNotes] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  // Instantané de l'état initial (projet chargé ou nouveau projet vide) pris
+  // à l'ouverture -- sert de référence pour détecter les modifications non
+  // enregistrées (cf. isDirty ci-dessous), sans re-render à chaque frappe.
+  const initialSnapshotRef = useRef("");
+
   useEffect(() => {
     if (open) {
-      setDraft(project ?? emptyProject());
+      const initial = project ?? emptyProject();
+      setDraft(initial);
       setPendingFile(null);
       setPendingPreview(null);
       setSaveError(null);
       setErrors([]);
       setConfirmStatusChange(false);
+      setConfirmClose(false);
+      setShowLongDescOverride(false);
       setAiNotes("");
       setAiError(null);
+      initialSnapshotRef.current = JSON.stringify(initial);
     }
   }, [open, project]);
 
+  const isDirty =
+    open &&
+    (JSON.stringify(draft) !== initialSnapshotRef.current ||
+      aiNotes.trim() !== "" ||
+      pendingFile !== null);
+
+  // Fermeture "douce" : si le formulaire a des modifications non enregistrées,
+  // on affiche la confirmation dédiée au lieu de fermer directement. Chemin
+  // commun pour le bouton Fermer (X), Échap et Annuler -- les seules sorties
+  // possibles avec le clic sur l'overlay désormais désactivé (cf. rendu).
+  const requestClose = () => {
+    if (isDirty) {
+      setConfirmClose(true);
+    } else {
+      onClose();
+    }
+  };
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && requestClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isDirty]);
+
+  // Navigateur (fermeture d'onglet, F5, saisie d'URL) : seul filet possible
+  // en dehors du SPA lui-même -- le message personnalisé n'est plus affiché
+  // par les navigateurs modernes (prompt générique imposé), mais l'appel à
+  // preventDefault()/returnValue déclenche bien leur confirmation native.
+  useEffect(() => {
+    if (!open || !isDirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [open, isDirty]);
 
   useEffect(() => {
     return () => {
@@ -220,6 +264,20 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     }
   };
 
+  // Description longue (rédaction manuelle) et trio Problème/Décisions/Résultat
+  // (IA ou saisie manuelle) sont deux façons alternatives de raconter le
+  // projet : si le trio est déjà complet, la description longue n'est pas
+  // nécessaire et reste masquée par défaut (cf. validateProject) -- sauf si
+  // l'admin choisit explicitement de la rédiger quand même, ou qu'un projet
+  // existant en avait déjà une avant l'usage de l'IA.
+  const hasStructuredContent = Boolean(
+    draft.ai_structured_desc?.probleme?.trim() &&
+    draft.ai_structured_desc?.decisions?.trim() &&
+    draft.ai_structured_desc?.resultat?.trim(),
+  );
+  const showLongDesc =
+    showLongDescOverride || !hasStructuredContent || Boolean(draft.long_desc?.trim());
+
   return (
     <div
       className="fixed inset-0 z-[100]"
@@ -227,11 +285,10 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
       aria-modal="true"
       aria-label="Éditer le projet"
     >
-      <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      {/* Clic extérieur volontairement sans effet (aria-hidden, pas de onClick) :
+          seuls les boutons explicites (Fermer, Annuler, Enregistrer) peuvent
+          fermer la modale. */}
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" aria-hidden="true" />
       <aside className="absolute right-0 top-0 flex h-screen w-full max-w-2xl flex-col border-l border-white/10 bg-surface-container-lowest">
         <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
           <div>
@@ -244,7 +301,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             aria-label="Fermer"
             className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
           >
@@ -254,7 +311,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 space-y-5 overflow-y-auto p-6">
-            {saveError && <Alert type="error" title="Échec de l'enregistrement" description={saveError} />}
+            {saveError && (
+              <Alert type="error" title="Échec de l'enregistrement" description={saveError} />
+            )}
 
             <div>
               <label htmlFor="pd-title" className={labelCls}>
@@ -382,29 +441,41 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </div>
             </div>
 
-            <div>
-              <label htmlFor="pd-long-desc" className={labelCls}>
-                Description longue
-              </label>
-              <textarea
-                id="pd-long-desc"
-                rows={6}
-                value={draft.long_desc ?? ""}
-                onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
-                className={inputCls + " mt-2 resize-y"}
-                placeholder="Contenu complet de l'étude de cas..."
-              />
-              <div className="mt-1 flex items-center justify-between">
-                {fieldError("long_desc")}
-                {counter("long_desc", draft.long_desc)}
+            {showLongDesc ? (
+              <div>
+                <label htmlFor="pd-long-desc" className={labelCls}>
+                  Description longue
+                </label>
+                <textarea
+                  id="pd-long-desc"
+                  rows={6}
+                  value={draft.long_desc ?? ""}
+                  onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
+                  className={inputCls + " mt-2 resize-y"}
+                  placeholder="Contenu complet de l'étude de cas..."
+                />
+                <div className="mt-1 flex items-center justify-between">
+                  {fieldError("long_desc")}
+                  {counter("long_desc", draft.long_desc)}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-on-surface-variant">
+                Description longue non nécessaire — le résumé structuré par l'IA ci-dessus (Problème
+                / Décisions / Résultat) couvre déjà le contenu.{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowLongDescOverride(true)}
+                  className="font-medium text-primary hover:underline"
+                >
+                  Rédiger quand même une description longue
+                </button>
+              </div>
+            )}
 
             <div>
               <p className={labelCls}>Image</p>
-              <label
-                className="mt-2 flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-white/15 bg-surface-container text-center hover:bg-white/5"
-              >
+              <label className="mt-2 flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-white/15 bg-surface-container text-center hover:bg-white/5">
                 {pendingPreview || draft.thumbnail_url ? (
                   <img
                     src={pendingPreview ?? draft.thumbnail_url ?? ""}
@@ -417,7 +488,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     <p className="text-sm text-on-surface-variant">
                       Glissez-déposez ou <span className="text-primary">parcourir</span>
                     </p>
-                    <p className="text-xs text-on-surface-variant/70">JPG, PNG ou WebP (max 5 Mo)</p>
+                    <p className="text-xs text-on-surface-variant/70">
+                      JPG, PNG ou WebP (max 5 Mo)
+                    </p>
                   </>
                 )}
                 <input
@@ -480,8 +553,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      secteur_activite: (e.target.value ||
-                        null) as Project["secteur_activite"],
+                      secteur_activite: (e.target.value || null) as Project["secteur_activite"],
                     })
                   }
                   className={inputCls + " mt-2"}
@@ -614,7 +686,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           <div className="flex items-center justify-end gap-3 border-t border-white/5 px-6 py-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               className="rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface hover:border-white/30"
             >
               Annuler
@@ -638,7 +710,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             aria-hidden="true"
           />
           <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
-            <h3 className="text-lg font-medium text-on-surface">Confirmer le changement de statut ?</h3>
+            <h3 className="text-lg font-medium text-on-surface">
+              Confirmer le changement de statut ?
+            </h3>
             <p className="mt-2 text-sm text-on-surface-variant">
               {STATUS_LABELS[project.status]} → {STATUS_LABELS[draft.status]}. Effet immédiat sur le
               catalogue une fois confirmé.
@@ -660,6 +734,42 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 className="rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
               >
                 Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmClose && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setConfirmClose(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
+            <Alert
+              type="warning"
+              title="Quitter sans enregistrer ?"
+              description="Êtes-vous sûr de vouloir quitter sans enregistrer ? Vos données seront perdues."
+            />
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmClose(false)}
+                className="rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface"
+              >
+                Annuler / Revenir au formulaire
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmClose(false);
+                  onClose();
+                }}
+                className="rounded-full bg-error px-6 py-2.5 text-sm font-bold text-on-error shadow-lg transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+              >
+                Continuer sans enregistrer
               </button>
             </div>
           </div>
