@@ -27,6 +27,23 @@ function json(body: unknown, status = 200) {
 const FIELD_MAX_LENGTH = 1000;
 const SHORT_DESC_MAX_LENGTH = 160;
 
+/**
+ * Troncature de secours si le modele depasse la limite malgre l'instruction
+ * de prompt. Un slice() brut coupait parfois en plein milieu d'un mot (ou
+ * d'un marqueur Markdown genre "**"), ce qui donnait l'impression que le
+ * texte etait tronque de facon abrupte cote affichage (probleme signale).
+ * On recule jusqu'au dernier espace pour finir sur un mot complet, sauf si
+ * ca reviendrait a jeter plus de la moitie du texte (texte sans espaces,
+ * ou coupure trop en amont) -- dans ce cas on garde la coupure brute plutot
+ * que de perdre une portion excessive du contenu.
+ */
+function truncateSafely(value: string, max: number): string {
+  if (value.length <= max) return value;
+  const cut = value.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return lastSpace > max * 0.5 ? cut.slice(0, lastSpace).trimEnd() : cut.trimEnd();
+}
+
 const STRUCTURE_TOOL = {
   type: "function",
   function: {
@@ -101,7 +118,7 @@ Deno.serve(async (req: Request) => {
       messages: [
         {
           role: "system",
-          content: `Tu structures la description longue d'un projet design d'un designer freelance, pour son portfolio. Reponds en francais, ton professionnel et concis. Le champ short_desc doit imperativement faire ${SHORT_DESC_MAX_LENGTH} caracteres maximum, et chaque champ (probleme, decisions, resultat) ${FIELD_MAX_LENGTH} caracteres maximum -- reste bien en dessous plutot que de risquer de le depasser.`,
+          content: `Tu structures la description longue d'un projet design d'un designer freelance, pour son portfolio. Reponds en francais, ton professionnel et concis. Le champ short_desc doit imperativement faire ${SHORT_DESC_MAX_LENGTH} caracteres maximum, et chaque champ (probleme, decisions, resultat) ${FIELD_MAX_LENGTH} caracteres maximum -- reste bien en dessous plutot que de risquer de le depasser. N'utilise aucun formatage Markdown (pas d'astérisques **, pas de listes numerotees ou a puces, pas de titres) : ces champs sont affiches tels quels en texte brut, jamais interpretes comme du Markdown -- ecris des paragraphes de prose simple.`,
         },
         { role: "user", content: `Description longue du projet :\n\n${longDesc}` },
       ],
@@ -134,11 +151,11 @@ Deno.serve(async (req: Request) => {
   for (const field of ["probleme", "decisions", "resultat"] as const) {
     const value = structured[field];
     if (typeof value === "string" && value.length > FIELD_MAX_LENGTH) {
-      structured[field] = value.slice(0, FIELD_MAX_LENGTH);
+      structured[field] = truncateSafely(value, FIELD_MAX_LENGTH);
     }
   }
   if (typeof structured.short_desc === "string" && structured.short_desc.length > SHORT_DESC_MAX_LENGTH) {
-    structured.short_desc = structured.short_desc.slice(0, SHORT_DESC_MAX_LENGTH);
+    structured.short_desc = truncateSafely(structured.short_desc, SHORT_DESC_MAX_LENGTH);
   }
 
   return json(structured);

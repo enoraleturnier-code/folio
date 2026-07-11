@@ -74,7 +74,7 @@ export function TagPicker({
 
   return (
     <div className="space-y-2">
-      <p className="text-[10px] font-bold tracking-widest text-on-surface-variant/70">{label}</p>
+      <p className="block text-sm font-medium text-on-surface-variant">{label}</p>
       <div className="flex flex-wrap items-center gap-2">
         {selected.map((name) => (
           <span

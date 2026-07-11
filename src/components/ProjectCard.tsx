@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { designer } from "@/data/designer";
 import { formatSecteur } from "@/lib/secteurLabels";
+import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
 import type { Project } from "@/types/project";
 import { Alert } from "./Alert";
 import { StatusBadge } from "./StatusBadge";
@@ -18,6 +19,8 @@ interface ProjectCardProps {
   /** Ancre vers la section contact du profil designer, pour le lien "Contacter l'administrateur ?". */
   contactHref?: string;
   onRequestAccess?: (project: Project) => void;
+  /** Admin (propriétaire du portfolio) : affiche le niveau de sensibilité dans le badge confidentiel. */
+  isAdmin?: boolean;
 }
 
 /** "2024 — 4 mois" ; null si aucune date de début (rien à afficher). */
@@ -38,6 +41,7 @@ export function ProjectCard({
   rejectionReason,
   contactHref,
   onRequestAccess,
+  isAdmin = false,
 }: ProjectCardProps) {
   const isConfidential = project.status === "confidential";
   const isTeaser = isConfidential && accessState !== "granted";
@@ -99,7 +103,12 @@ export function ProjectCard({
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
         {isConfidential && (
           <div className="absolute right-4 top-4">
-            {accessState === "granted" ? (
+            {isAdmin ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white">
+                <LockOpen aria-hidden="true" size={14} />
+                Confidentiel • {SENSITIVITY_LABELS[project.sensitivity_level]}
+              </span>
+            ) : accessState === "granted" ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white">
                 <LockOpen aria-hidden="true" size={14} />
                 Confidentiel · Accès validé

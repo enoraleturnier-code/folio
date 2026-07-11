@@ -3,7 +3,7 @@ import type { Project } from "@/types/project";
 export const MAX_LENGTHS = {
   title: 80,
   short_desc: 160,
-  long_desc: 3000,
+  long_desc: 1500,
   probleme: 1000,
   decisions: 1000,
   resultat: 1000,
