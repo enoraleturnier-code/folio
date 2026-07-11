@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
@@ -32,23 +32,21 @@ export function CataloguePage() {
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [myRequests, setMyRequests] = useState<MyAccessRequest[]>([]);
 
-  useEffect(() => {
-    if (!session) {
-      setMyRequests([]);
-      return;
-    }
-    let cancelled = false;
+  // Ne dépend d'aucun état React capturé en closure (ex. `session`) : un onSuccess
+  // appelé depuis AccessRequestModal peut provenir d'un rendu antérieur à une
+  // inscription anonyme réussie, où `session` valait encore null au moment où la
+  // closure a été créée. getMyAccessRequests() interroge le client Supabase global
+  // (toujours à jour), donc cette fonction reste correcte quel que soit l'âge de
+  // la closure qui la retient.
+  const refreshMyRequests = useCallback(() => {
     getMyAccessRequests()
-      .then((rows) => {
-        if (!cancelled) setMyRequests(rows);
-      })
-      .catch(() => {
-        if (!cancelled) setMyRequests([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [session]);
+      .then((rows) => setMyRequests(rows))
+      .catch(() => setMyRequests([]));
+  }, []);
+
+  useEffect(() => {
+    refreshMyRequests();
+  }, [session, refreshMyRequests]);
 
   const requestByProject = useMemo(() => {
     const map = new Map<string, MyAccessRequest>();
@@ -156,6 +154,8 @@ export function CataloguePage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         initialProject={modalProject}
+        onSuccess={refreshMyRequests}
+        excludeProjectIds={myRequests.map((r) => r.project_id)}
       />
     </>
   );

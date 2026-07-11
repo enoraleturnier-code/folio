@@ -28,6 +28,9 @@ interface AccessRequestModalProps {
   open: boolean;
   onClose: () => void;
   initialProject?: Project | null;
+  onSuccess?: () => void;
+  /** Projets pour lesquels le visiteur a déjà une demande (pending/approved/refused) — exclus de la sélection pour éviter les doublons. */
+  excludeProjectIds?: string[];
 }
 
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -123,7 +126,13 @@ function borderClassFor(state: FieldState | null): string {
   return "border-error";
 }
 
-export function AccessRequestModal({ open, onClose, initialProject }: AccessRequestModalProps) {
+export function AccessRequestModal({
+  open,
+  onClose,
+  initialProject,
+  onSuccess,
+  excludeProjectIds,
+}: AccessRequestModalProps) {
   const { session } = useAuth();
   const navigate = useNavigate();
   const isAuthenticated = !!session;
@@ -142,10 +151,18 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
       setSubmitError(null);
       setTouched({});
       setForm({ ...emptyForm, projectIds: initialProject ? [initialProject.id] : [] });
+      const exclude = new Set(excludeProjectIds);
       getProjects()
-        .then((all) => setConfidentialProjects(all.filter((p) => p.status === "confidential")))
+        .then((all) =>
+          setConfidentialProjects(
+            all.filter((p) => p.status === "confidential" && !exclude.has(p.id)),
+          ),
+        )
         .catch(() => setConfidentialProjects([]));
     }
+    // excludeProjectIds volontairement absent des deps : ne re-filtrer qu'à l'ouverture,
+    // pas à chaque changement de myRequests pendant que la modale est ouverte.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialProject]);
 
   useEffect(() => {
@@ -254,6 +271,7 @@ export function AccessRequestModal({ open, onClose, initialProject }: AccessRequ
       if (insertError) throw insertError;
 
       setSubmitted(true);
+      onSuccess?.();
     } catch (err) {
       setSubmitError(mapSubmitError(err));
     } finally {
