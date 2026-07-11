@@ -28,7 +28,14 @@ import { ProjectDrawer } from "@/components/ProjectDrawer";
 import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
 import { contactMessages as seedContacts } from "@/data/contacts";
-import { getProjects, restoreProject, softDeleteProject } from "@/data/projects";
+import {
+  createProject,
+  getProjects,
+  restoreProject,
+  softDeleteProject,
+  updateProject,
+  type ProjectInput,
+} from "@/data/projects";
 import {
   approveAccessRequest,
   getAllAccessRequests,
@@ -482,18 +489,13 @@ function ProjetsTab({
     setDrawerOpen(true);
   };
 
-  // TODO: no createProject()/updateProject() yet (only updateProjectStatus,
-  // softDeleteProject, restoreProject were built), and ProjectDrawer itself
-  // isn't migrated yet — creating a project or editing its fields here only
-  // updates local state, it does not persist to Supabase. Only soft-delete
-  // and restore below are real writes.
-  const save = (p: Project) => {
+  const save = async (id: string, input: ProjectInput, isNew: boolean) => {
+    const saved = isNew ? await createProject(id, input) : await updateProject(id, input);
     onProjectsChange(
-      projects.some((x) => x.id === p.id)
-        ? projects.map((x) => (x.id === p.id ? p : x))
-        : [...projects, p],
+      projects.some((x) => x.id === saved.id)
+        ? projects.map((x) => (x.id === saved.id ? saved : x))
+        : [saved, ...projects],
     );
-    setDrawerOpen(false);
   };
 
   const softDelete = async (id: string) => {

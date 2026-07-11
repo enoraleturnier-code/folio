@@ -1,5 +1,7 @@
+import { getKeywordsRef, getToolsRef, getTypesRef } from "@/data/projectRefs";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Json, Tables } from "@/integrations/supabase/types";
+import { deleteProjectThumbnail } from "@/lib/storage";
 import type { AiStructuredDesc, Project, ProjectStatus, ProjectTags } from "@/types/project";
 
 type ProjectCatalogRow = Tables<"projects_catalog_view">;
@@ -166,6 +168,112 @@ export async function getProjectById(
  * .select().maybeSingle() and throws explicitly if it didn't.
  */
 
+type ProjectScalarInput = Pick<
+  Project,
+  | "title"
+  | "short_desc"
+  | "long_desc"
+  | "ai_structured_desc"
+  | "thumbnail_url"
+  | "status"
+  | "sensitivity_level"
+  | "secteur_activite"
+  | "client_name"
+  | "company_name"
+  | "role"
+  | "team"
+  | "start_date"
+  | "end_date"
+>;
+
+export type ProjectInput = ProjectScalarInput & { tags: ProjectTags };
+
+function toScalarRow(input: ProjectScalarInput) {
+  return {
+    title: input.title,
+    short_desc: input.short_desc,
+    long_desc: input.long_desc,
+    ai_structured_desc: input.ai_structured_desc as Json | null,
+    thumbnail_url: input.thumbnail_url,
+    status: input.status,
+    sensitivity_level: input.sensitivity_level,
+    secteur_activite: input.secteur_activite,
+    client_name: input.client_name,
+    company_name: input.company_name,
+    role: input.role,
+    team: input.team,
+    start_date: input.start_date,
+    end_date: input.end_date,
+  };
+}
+
+/** Remplace entierement les tags d'un projet par delete-then-insert (volume trivial, quelques tags par projet). */
+async function syncProjectTags(projectId: string, tags: ProjectTags): Promise<void> {
+  const [tools, keywords, types] = await Promise.all([getToolsRef(), getKeywordsRef(), getTypesRef()]);
+
+  const toolIds = tools.filter((t) => tags.tools.includes(t.name)).map((t) => t.id);
+  const keywordIds = keywords.filter((k) => tags.keywords.includes(k.name)).map((k) => k.id);
+  const typeIds = types.filter((t) => tags.types.includes(t.name)).map((t) => t.id);
+
+  const deletions = await Promise.all([
+    supabase.from("project_tools").delete().eq("project_id", projectId),
+    supabase.from("project_keywords").delete().eq("project_id", projectId),
+    supabase.from("project_types").delete().eq("project_id", projectId),
+  ]);
+  for (const { error } of deletions) if (error) throw error;
+
+  const insertions = await Promise.all([
+    toolIds.length
+      ? supabase.from("project_tools").insert(toolIds.map((tool_id) => ({ project_id: projectId, tool_id })))
+      : Promise.resolve({ error: null }),
+    keywordIds.length
+      ? supabase
+          .from("project_keywords")
+          .insert(keywordIds.map((keyword_id) => ({ project_id: projectId, keyword_id })))
+      : Promise.resolve({ error: null }),
+    typeIds.length
+      ? supabase.from("project_types").insert(typeIds.map((type_id) => ({ project_id: projectId, type_id })))
+      : Promise.resolve({ error: null }),
+  ]);
+  for (const { error } of insertions) if (error) throw error;
+}
+
+/**
+ * `id` est genere cote client (crypto.randomUUID()) et fourni explicitement
+ * plutot que laisse au defaut `gen_random_uuid()` de la colonne : le drawer
+ * en a besoin *avant* l'insert pour construire le chemin Storage de la
+ * thumbnail (upload puis creation du projet, pas l'inverse).
+ */
+export async function createProject(id: string, input: ProjectInput): Promise<Project> {
+  const { error } = await supabase
+    .from("projects")
+    .insert({ id, ...toScalarRow(input) });
+  if (error) throw error;
+
+  await syncProjectTags(id, input.tags);
+
+  const full = await getProjectById(id, { includeDeleted: true });
+  if (!full) throw new Error(`createProject: row not found immediately after insert (id=${id})`);
+  return full;
+}
+
+export async function updateProject(id: string, input: ProjectInput): Promise<Project> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update(toScalarRow(input))
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error(`updateProject: no row updated for id=${id} (not found, or not permitted)`);
+
+  await syncProjectTags(id, input.tags);
+
+  const full = await getProjectById(id, { includeDeleted: true });
+  if (!full) throw new Error(`updateProject: row not found immediately after update (id=${id})`);
+  return full;
+}
+
 export async function updateProjectStatus(id: string, status: ProjectStatus): Promise<void> {
   const { data, error } = await supabase
     .from("projects")
@@ -182,17 +290,26 @@ export async function updateProjectStatus(id: string, status: ProjectStatus): Pr
   }
 }
 
+/**
+ * Soft delete reel (F-06) : vide tout le contenu du projet sauf `title`
+ * (conserve pour l'etat "Projet supprime" sur une URL directe) et supprime
+ * ses tags, via la fonction Postgres `soft_delete_project` (SECURITY INVOKER
+ * -- la policy projects_update_admin s'applique normalement). Supprime
+ * ensuite le fichier thumbnail du Storage si le projet en avait une --
+ * best-effort : un echec de nettoyage Storage ne doit pas faire echouer la
+ * suppression elle-meme, deja actee en base a ce stade.
+ */
 export async function softDeleteProject(id: string): Promise<void> {
-  const { data, error } = await supabase
-    .from("projects")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id)
-    .select("id")
-    .maybeSingle();
-
+  const { data, error } = await supabase.rpc("soft_delete_project", { p_id: id }).single();
   if (error) throw error;
-  if (!data) {
-    throw new Error(`softDeleteProject: no row updated for id=${id} (not found, or not permitted)`);
+
+  const oldThumbnailUrl = (data as { thumbnail_url: string | null } | null)?.thumbnail_url;
+  if (oldThumbnailUrl) {
+    try {
+      await deleteProjectThumbnail(oldThumbnailUrl);
+    } catch (err) {
+      console.error("softDeleteProject: failed to clean up Storage thumbnail", err);
+    }
   }
 }
 

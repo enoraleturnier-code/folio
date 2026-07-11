@@ -1,11 +1,16 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
 import { designer } from "@/data/designer";
 import { getProjectById } from "@/data/projects";
+import { supabase } from "@/integrations/supabase/client";
 import { formatSecteur } from "@/lib/secteurLabels";
+
+type ProjectDetailLoaderData =
+  | { deleted: false; title: null; project: NonNullable<Awaited<ReturnType<typeof getProjectById>>> }
+  | { deleted: true; title: string; project: null };
 
 function formatPeriod(start: string | null, end: string | null): string {
   const startYear = start ? new Date(start).getFullYear() : null;
@@ -14,15 +19,51 @@ function formatPeriod(start: string | null, end: string | null): string {
   return String(startYear ?? endYear ?? "");
 }
 
-export async function projectDetailLoader({ params }: LoaderFunctionArgs) {
+export async function projectDetailLoader({
+  params,
+}: LoaderFunctionArgs): Promise<ProjectDetailLoaderData> {
   if (params.slug !== designer.slug) throw new Response("Not Found", { status: 404 });
   const project = await getProjectById(params.id!);
-  if (!project) throw new Response("Not Found", { status: 404 });
-  return { project };
+  if (project) return { deleted: false, title: null, project };
+
+  // Distingue "jamais existe" (404 brute) de "existait puis a ete supprime"
+  // (etat "Projet supprime" dedie) via un RPC SECURITY DEFINER controle --
+  // la RLS normale n'expose jamais une ligne deleted_at IS NOT NULL a un
+  // non-admin, donc impossible de faire cette distinction autrement.
+  const { data, error } = await supabase.rpc("project_deletion_status", { p_id: params.id! });
+  if (error) throw error;
+  const deletedRow = data?.[0];
+  if (deletedRow) return { deleted: true, title: deletedRow.title, project: null };
+
+  throw new Response("Not Found", { status: 404 });
 }
 
 export function ProjectDetailPage() {
-  const { project } = useLoaderData() as Awaited<ReturnType<typeof projectDetailLoader>>;
+  const { deleted, title, project } = useLoaderData() as ProjectDetailLoaderData;
+
+  if (deleted) {
+    return (
+      <main className="relative z-10 mx-auto flex max-w-2xl flex-col items-center px-5 pb-24 pt-40 text-center md:px-16">
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
+          <Trash2 aria-hidden="true" className="text-error" size={28} />
+        </div>
+        <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">
+          Projet supprimé
+        </p>
+        <h1 className="mt-3 text-3xl font-medium text-on-surface md:text-4xl">{title}</h1>
+        <p className="mt-4 max-w-md text-sm text-on-surface-variant">
+          Ce projet a été retiré du catalogue et n'est plus consultable.
+        </p>
+        <Link
+          to={`/${designer.slug}/projects`}
+          className="mt-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-background/60 px-5 py-2.5 text-sm font-medium text-on-surface hover:border-primary hover:text-primary"
+        >
+          <ArrowLeft aria-hidden="true" size={18} />
+          Tous les projets
+        </Link>
+      </main>
+    );
+  }
 
   return (
     <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-28 md:px-16">
