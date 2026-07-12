@@ -73,30 +73,27 @@ export function AccountPage() {
         <div className="space-y-6 rounded-2xl border border-white/5 bg-surface-container-low p-6">
           <Field label="Nom complet" value={fullName ?? "—"} />
           <Field label="Email" value={user?.email ?? "—"} />
-          <Field label="Rôle actuel" value={role ?? "—"} />
-        </div>
 
-        <div className="mt-10 rounded-2xl border border-error/20 bg-error/5 p-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-error">Zone sensible</p>
-          <h2 className="mt-2 text-lg font-medium text-on-surface">Supprimer mes données</h2>
-          <p className="mt-2 text-sm text-on-surface-variant">
-            Conformément au RGPD, vous pouvez demander la suppression définitive de votre compte
-            et de vos données personnelles. Cette action est irréversible : votre profil sera
-            anonymisé et vous serez déconnecté immédiatement.
-          </p>
-          {deleteError && (
-            <div className="mt-4">
+          <div className="space-y-4">
+            <Alert
+              type="info"
+              title="Supprimer mes données personnelles et mon compte"
+              description="Conformément au RGPD, vous pouvez demander la suppression définitive de votre compte et de vos données personnelles. Cette action est irréversible : votre profil sera anonymisé et vous serez déconnecté immédiatement."
+            />
+            {deleteError && (
               <Alert type="error" title="Échec de la suppression" description={deleteError} />
+            )}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+              >
+                <Trash2 aria-hidden="true" size={16} />
+                Supprimer mon compte
+              </button>
             </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setConfirmOpen(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-error/40 px-6 py-2.5 text-sm font-medium text-error transition-colors hover:bg-error/10"
-          >
-            <Trash2 aria-hidden="true" size={16} />
-            Supprimer mes données
-          </button>
+          </div>
         </div>
       </main>
       <Footer />
