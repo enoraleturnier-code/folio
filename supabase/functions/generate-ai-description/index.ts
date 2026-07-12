@@ -24,22 +24,47 @@ function json(body: unknown, status = 200) {
 // Doit rester synchronise avec MAX_LENGTHS.probleme/decisions/resultat/short_desc
 // cote src/lib/projectValidation.ts -- pas d'import partage possible entre le
 // bundle Vite (frontend) et le runtime Deno de l'Edge Function.
+// Historique : 1000 -> 2500 -> 4000 (le chiffre-cible dans le prompt faisait
+// converger le modele tout pres de la limite, coupe ensuite en plein mot par
+// une troncature "dernier espace") -> revenu a 1000 sur demande produit,
+// mais cette fois avec troncateToLastSentence() (derniere phrase complete,
+// jamais en plein mot) au lieu de l'ancienne coupure au dernier espace --
+// le probleme n'etait pas la valeur de la limite mais la qualite de la
+// coupure quand elle se declenche.
 const FIELD_MAX_LENGTH = 1000;
 const SHORT_DESC_MAX_LENGTH = 160;
 
+// max_tokens reste large malgre le retour a des champs plus courts : couvre
+// confortablement 3 champs a 1000 caracteres + JSON overhead (echappement,
+// cles, tableaux de suggestions) sans jamais etre le facteur limitant.
+const MAX_OUTPUT_TOKENS = 3000;
+
 /**
  * Troncature de secours si le modele depasse la limite malgre l'instruction
- * de prompt. Un slice() brut coupait parfois en plein milieu d'un mot (ou
- * d'un marqueur Markdown genre "**"), ce qui donnait l'impression que le
- * texte etait tronque de facon abrupte cote affichage (probleme signale).
- * On recule jusqu'au dernier espace pour finir sur un mot complet, sauf si
- * ca reviendrait a jeter plus de la moitie du texte (texte sans espaces,
- * ou coupure trop en amont) -- dans ce cas on garde la coupure brute plutot
- * que de perdre une portion excessive du contenu.
+ * de prompt. Cherche la derniere ponctuation de fin de phrase (. ! ?) dans
+ * la portion coupee et s'arrete juste apres -- jamais en plein mot ni en
+ * pleine puce Markdown (cf. bug precedent : "- Tests utilisateurs
+ * iteratifs** :" coupe apres les deux-points, sans suite). Si aucune
+ * ponctuation de fin de phrase n'est trouvee dans une position raisonnable
+ * (texte sans ponctuation, ou toute la ponctuation trop en amont), on
+ * retombe sur le dernier espace -- pour ne jamais couper en plein mot, le
+ * seul invariant qui ne souffre aucune exception.
  */
-function truncateSafely(value: string, max: number): string {
+function truncateToLastSentence(value: string, max: number): string {
   if (value.length <= max) return value;
   const cut = value.slice(0, max);
+
+  let lastSentenceEnd = -1;
+  for (let i = cut.length - 1; i >= 0; i--) {
+    if (cut[i] === "." || cut[i] === "!" || cut[i] === "?") {
+      lastSentenceEnd = i;
+      break;
+    }
+  }
+  if (lastSentenceEnd > max * 0.5) {
+    return cut.slice(0, lastSentenceEnd + 1).trimEnd();
+  }
+
   const lastSpace = cut.lastIndexOf(" ");
   return lastSpace > max * 0.5 ? cut.slice(0, lastSpace).trimEnd() : cut.trimEnd();
 }
@@ -59,15 +84,15 @@ const STRUCTURE_TOOL = {
         },
         probleme: {
           type: "string",
-          description: `Le defi initial, en francais, concis. ${FIELD_MAX_LENGTH} caracteres maximum.`,
+          description: `Le defi initial, en francais, avec formatage Markdown (gras, listes) si pertinent. ${FIELD_MAX_LENGTH} caracteres maximum -- termine imperativement sur une phrase complete, jamais en plein mot.`,
         },
         decisions: {
           type: "string",
-          description: `Les choix strategiques faits, en francais, concis. ${FIELD_MAX_LENGTH} caracteres maximum.`,
+          description: `Les choix strategiques faits, en francais, avec formatage Markdown (gras, listes) si pertinent. ${FIELD_MAX_LENGTH} caracteres maximum -- termine imperativement sur une phrase complete, jamais en plein mot.`,
         },
         resultat: {
           type: "string",
-          description: `L'impact final et les retours, en francais, concis. ${FIELD_MAX_LENGTH} caracteres maximum.`,
+          description: `L'impact final et les retours, en francais, avec formatage Markdown (gras, listes) si pertinent. ${FIELD_MAX_LENGTH} caracteres maximum -- termine imperativement sur une phrase complete, jamais en plein mot.`,
         },
         tools_suggestions: { type: "array", items: { type: "string" }, description: "Outils probables (ex: Figma, Notion)." },
         keywords_suggestions: { type: "array", items: { type: "string" }, description: "Mots-cles courts pertinents." },
@@ -118,12 +143,13 @@ Deno.serve(async (req: Request) => {
       messages: [
         {
           role: "system",
-          content: `Tu structures la description longue d'un projet design d'un designer freelance, pour son portfolio. Reponds en francais, ton professionnel et concis. Le champ short_desc doit imperativement faire ${SHORT_DESC_MAX_LENGTH} caracteres maximum, et chaque champ (probleme, decisions, resultat) ${FIELD_MAX_LENGTH} caracteres maximum -- reste bien en dessous plutot que de risquer de le depasser. N'utilise aucun formatage Markdown (pas d'astérisques **, pas de listes numerotees ou a puces, pas de titres) : ces champs sont affiches tels quels en texte brut, jamais interpretes comme du Markdown -- ecris des paragraphes de prose simple.`,
+          content: `Tu structures la description longue d'un projet design d'un designer freelance, pour son portfolio. Reponds en francais, ton professionnel. Le champ short_desc doit imperativement faire ${SHORT_DESC_MAX_LENGTH} caracteres maximum (prose simple, sans Markdown, affiche tel quel en texte brut) -- contrainte stricte a respecter. Pour probleme, decisions et resultat, reste imperativement sous ${FIELD_MAX_LENGTH} caracteres chacun : termine toujours sur une phrase complete, jamais en plein mot ni en pleine puce -- quitte a etre plus concis ou a omettre un dernier point secondaire pour tenir dans la limite tout en finissant proprement. Utilise le Markdown pour structurer ces 3 champs : **gras** pour les termes-cles et chiffres importants, listes a puces ("- item") si pertinent pour enumerer plusieurs decisions ou plusieurs resultats -- mais la limite de caracteres et la phrase complete priment toujours sur le formatage. Ces 3 champs sont rendus par un moteur Markdown cote portfolio (react-markdown), donc la syntaxe sera affichee formatee, jamais telle quelle.`,
         },
         { role: "user", content: `Description longue du projet :\n\n${longDesc}` },
       ],
       tools: [STRUCTURE_TOOL],
       tool_choice: "any",
+      max_tokens: MAX_OUTPUT_TOKENS,
     }),
   });
 
@@ -151,11 +177,11 @@ Deno.serve(async (req: Request) => {
   for (const field of ["probleme", "decisions", "resultat"] as const) {
     const value = structured[field];
     if (typeof value === "string" && value.length > FIELD_MAX_LENGTH) {
-      structured[field] = truncateSafely(value, FIELD_MAX_LENGTH);
+      structured[field] = truncateToLastSentence(value, FIELD_MAX_LENGTH);
     }
   }
   if (typeof structured.short_desc === "string" && structured.short_desc.length > SHORT_DESC_MAX_LENGTH) {
-    structured.short_desc = truncateSafely(structured.short_desc, SHORT_DESC_MAX_LENGTH);
+    structured.short_desc = truncateToLastSentence(structured.short_desc, SHORT_DESC_MAX_LENGTH);
   }
 
   return json(structured);

@@ -47,7 +47,8 @@ const icons: Partial<Record<StatusKind, LucideIcon>> = {
   deleted: Trash2,
 };
 
-export function StatusBadge({ kind }: { kind: StatusKind }) {
+/** `suffix` : contexte additionnel affiché après le label (ex. "Confidentiel • Sensible" dans le dashboard admin). */
+export function StatusBadge({ kind, suffix }: { kind: StatusKind; suffix?: string }) {
   const Icon = icons[kind];
   return (
     <span
@@ -58,6 +59,7 @@ export function StatusBadge({ kind }: { kind: StatusKind }) {
     >
       {Icon && <Icon aria-hidden="true" size={14} />}
       {labels[kind]}
+      {suffix && <span className="normal-case">&nbsp;• {suffix}</span>}
     </span>
   );
 }

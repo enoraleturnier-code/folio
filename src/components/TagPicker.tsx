@@ -1,4 +1,4 @@
-import { Plus, X } from "lucide-react";
+import { Plus, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { tagBadgeStyles, type TagCategory } from "@/components/TagBadge";
@@ -74,7 +74,10 @@ export function TagPicker({
 
   return (
     <div className="space-y-2">
-      <p className="block text-sm font-medium text-on-surface-variant">{label}</p>
+      <p className="flex items-center gap-1.5 text-sm font-medium text-on-surface-variant">
+        <Sparkles aria-hidden="true" size={14} />
+        {label}
+      </p>
       <div className="flex flex-wrap items-center gap-2">
         {selected.map((name) => (
           <span

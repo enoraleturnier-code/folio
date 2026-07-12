@@ -28,6 +28,7 @@ import { Header } from "@/components/Header";
 import { ProjectDrawer } from "@/components/ProjectDrawer";
 import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
+import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
 import { contactMessages as seedContacts } from "@/data/contacts";
 import {
   createProject,
@@ -600,7 +601,14 @@ function ProjetsTab({
                 </div>
 
                 <div className="shrink-0">
-                  <StatusBadge kind={statusKind} />
+                  <StatusBadge
+                    kind={statusKind}
+                    suffix={
+                      !deleted && p.status === "confidential"
+                        ? SENSITIVITY_LABELS[p.sensitivity_level]
+                        : undefined
+                    }
+                  />
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">

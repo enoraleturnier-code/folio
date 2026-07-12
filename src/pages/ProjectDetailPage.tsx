@@ -1,6 +1,7 @@
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
 import { designer } from "@/data/designer";
@@ -99,6 +100,19 @@ export function ProjectDetailPage() {
 
       <div className="mt-16 grid gap-12 md:grid-cols-12">
         <div className="space-y-14 md:col-span-8">
+          {project.long_desc && (
+            <section>
+              <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-primary">
+                Le projet
+              </p>
+              <h2 className="text-3xl font-medium text-on-surface">
+                Une vue <span className="font-display-accent italic text-primary">d'ensemble</span>.
+              </h2>
+              <div className="mt-4">
+                <MarkdownContent content={project.long_desc} />
+              </div>
+            </section>
+          )}
           <section>
             <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-[#A78BFA]">
               01 — Problème
@@ -106,9 +120,9 @@ export function ProjectDetailPage() {
             <h2 className="text-3xl font-medium text-on-surface">
               Un défi <span className="font-display-accent italic text-primary">clair</span>.
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
-              {project.ai_structured_desc?.probleme}
-            </p>
+            <div className="mt-4">
+              <MarkdownContent content={project.ai_structured_desc?.probleme} />
+            </div>
           </section>
           <section>
             <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-primary">
@@ -118,9 +132,9 @@ export function ProjectDetailPage() {
               Les choix{" "}
               <span className="font-display-accent italic text-primary">structurants</span>.
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
-              {project.ai_structured_desc?.decisions}
-            </p>
+            <div className="mt-4">
+              <MarkdownContent content={project.ai_structured_desc?.decisions} />
+            </div>
           </section>
           <section>
             <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-[#A78BFA]">
@@ -129,9 +143,9 @@ export function ProjectDetailPage() {
             <h2 className="text-3xl font-medium text-on-surface">
               L'impact <span className="font-display-accent italic text-primary">mesuré</span>.
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
-              {project.ai_structured_desc?.resultat}
-            </p>
+            <div className="mt-4">
+              <MarkdownContent content={project.ai_structured_desc?.resultat} />
+            </div>
           </section>
         </div>
 

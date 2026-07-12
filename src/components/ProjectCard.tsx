@@ -223,6 +223,9 @@ export function ProjectCard({
           {project.tags.tools.slice(0, 1).map((l) => (
             <TagBadge key={l} category="tools" label={l} />
           ))}
+          {project.tags.keywords.slice(0, 1).map((l) => (
+            <TagBadge key={l} category="keywords" label={l} />
+          ))}
         </div>
       </div>
     </>
