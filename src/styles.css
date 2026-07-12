@@ -111,10 +111,10 @@
   --tag-sector: #06b6d4;
   --tag-tools: #0ea5e9;
   --tag-keywords: #818cf8;
-  --aurora-teal: rgba(45, 212, 191, 0.12);
-  --aurora-purple: rgba(124, 58, 237, 0.1);
-  --aurora-cyan: rgba(6, 182, 212, 0.08);
-  --aurora-indigo: rgba(129, 140, 248, 0.12);
+  --aurora-teal: rgba(45, 212, 191, 0.36);
+  --aurora-purple: rgba(124, 58, 237, 0.32);
+  --aurora-cyan: rgba(6, 182, 212, 0.28);
+  --aurora-indigo: rgba(129, 140, 248, 0.3);
   --border-glass: rgba(186, 202, 197, 0.1);
   --radius: 1rem;
 }
@@ -134,10 +134,10 @@
   --outline: #5a6a66;
   --outline-variant: #b6c1be;
   --border-glass: rgba(14, 21, 19, 0.08);
-  --aurora-teal: rgba(45, 212, 191, 0.18);
-  --aurora-purple: rgba(124, 58, 237, 0.14);
-  --aurora-cyan: rgba(6, 182, 212, 0.12);
-  --aurora-indigo: rgba(129, 140, 248, 0.16);
+  --aurora-teal: rgba(45, 212, 191, 0.3);
+  --aurora-purple: rgba(124, 58, 237, 0.26);
+  --aurora-cyan: rgba(6, 182, 212, 0.24);
+  --aurora-indigo: rgba(129, 140, 248, 0.28);
 }
 
 @layer base {
@@ -172,7 +172,6 @@
   position: absolute;
   border-radius: 9999px;
   filter: blur(140px);
-  opacity: 0.9;
   will-change: transform;
 }
 .aurora-bg::before {
@@ -203,8 +202,18 @@
   background: radial-gradient(circle, var(--aurora-cyan), transparent 70%);
 
 }
+.aurora-bg > .aurora-blob-indigo {
+  position: absolute;
+  bottom: -10%;
+  left: -5%;
+  width: 40%;
+  height: 40%;
+  border-radius: 9999px;
+  filter: blur(150px);
+  background: radial-gradient(circle, var(--aurora-indigo), transparent 70%);
+}
 
-/* Variante "catalogue" — même famille de 3 couleurs que le profil, mais
+/* Variante "catalogue" — même famille de 4 couleurs que le profil, mais
    répartition/tailles différentes pour que les deux espaces restent
    reconnaissables l'un de l'autre (cf. DESIGN.md, section Aurora). */
 .aurora-bg--catalogue::before {
@@ -227,13 +236,30 @@
   width: 70%;
   height: 70%;
 }
+.aurora-bg--catalogue > .aurora-blob-indigo {
+  top: -8%;
+  bottom: auto;
+  left: -10%;
+  width: 32%;
+  height: 32%;
+}
 
-/* Variante "modal" — même composition que le profil, en plus discret :
-   sert de fond derrière les fenêtres modales (overlay flouté par-dessus). */
-.aurora-bg--modal::before,
-.aurora-bg--modal::after,
-.aurora-bg--modal > .aurora-blob {
-  opacity: 0.6;
+/* Variante "modal" — même géométrie que le profil, mais avec ses propres
+   alphas (plus élevés que les pages) : le fond doit être nettement plus
+   présent derrière une modale, tout en restant diffus (le flou n'est pas
+   touché). Les 4 tokens sont redéfinis localement, aucune règle de
+   propriété séparée à maintenir sur chaque pseudo-élément. */
+.aurora-bg--modal {
+  --aurora-teal: rgba(45, 212, 191, 0.46);
+  --aurora-purple: rgba(124, 58, 237, 0.42);
+  --aurora-cyan: rgba(6, 182, 212, 0.38);
+  --aurora-indigo: rgba(129, 140, 248, 0.4);
+}
+:root:not(.dark) .aurora-bg--modal {
+  --aurora-teal: rgba(45, 212, 191, 0.4);
+  --aurora-purple: rgba(124, 58, 237, 0.36);
+  --aurora-cyan: rgba(6, 182, 212, 0.34);
+  --aurora-indigo: rgba(129, 140, 248, 0.38);
 }
 
 /* Fond boréal léger, un seul halo, utilisé derrière une section du
@@ -286,7 +312,8 @@
 @media (prefers-reduced-motion: reduce) {
   .aurora-bg::before,
   .aurora-bg::after,
-  .aurora-bg > .aurora-blob {
+  .aurora-bg > .aurora-blob,
+  .aurora-bg > .aurora-blob-indigo {
     animation: none !important;
   }
   * {
