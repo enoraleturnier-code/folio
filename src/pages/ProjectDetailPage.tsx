@@ -104,7 +104,7 @@ export function ProjectDetailPage() {
               01 — Problème
             </p>
             <h2 className="text-3xl font-medium text-on-surface">
-              Un défi <span className="font-display-accent italic text-primary">clair</span>.
+              Un défi <span className="font-display-accent italic text-primary">Clair</span>
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
               {project.ai_structured_desc?.probleme}
@@ -116,7 +116,7 @@ export function ProjectDetailPage() {
             </p>
             <h2 className="text-3xl font-medium text-on-surface">
               Les choix{" "}
-              <span className="font-display-accent italic text-primary">structurants</span>.
+              <span className="font-display-accent italic text-primary">Structurants</span>
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
               {project.ai_structured_desc?.decisions}
@@ -127,7 +127,7 @@ export function ProjectDetailPage() {
               03 — Résultat
             </p>
             <h2 className="text-3xl font-medium text-on-surface">
-              L'impact <span className="font-display-accent italic text-primary">mesuré</span>.
+              L'impact <span className="font-display-accent italic text-primary">Mesuré</span>
             </h2>
             <p className="mt-4 text-base leading-relaxed text-on-surface-variant">
               {project.ai_structured_desc?.resultat}
