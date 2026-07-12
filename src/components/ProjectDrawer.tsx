@@ -1002,7 +1002,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             onClick={() => setConfirmClose(false)}
             aria-hidden="true"
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6 text-center shadow-2xl shadow-black/40">
+          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-white/10 bg-surface-container-lowest p-6 text-center shadow-2xl shadow-black/40">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning/15">
               <TriangleAlert aria-hidden="true" className="text-warning" size={32} />
             </div>
@@ -1017,14 +1017,14 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   setConfirmClose(false);
                   onClose();
                 }}
-                className="rounded-full border border-white/40 px-5 py-2.5 text-sm font-medium text-on-surface hover:bg-white/5"
+                className="whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-sm font-medium text-on-surface hover:bg-white/5"
               >
                 Quitter sans enregistrer
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmClose(false)}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98]"
+                className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98]"
               >
                 Revenir au formulaire
                 <ArrowRight aria-hidden="true" size={18} />
