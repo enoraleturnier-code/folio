@@ -1,5 +1,19 @@
 # Folio+ — Notes pour Claude Code
 
+## Passe de finitions UI/UX (12/07, branche `style/ux-ui-ameliorations`) — terminée
+
+Passe de polish visuel sur tout le site suite à un cahier des charges détaillé (11 points). Détail complet des décisions dans `DESIGN.md` (sections Badges, Boutons, Modales, Titres de page, Formulaires, Aurora — toutes datées 12/07). Résumé des points non triviaux :
+
+- **Hauteur de carte catalogue uniforme** (`ProjectCard.tsx`) : `line-clamp-2` + `min-h` sur titre et description courte.
+- **`AccessRequestModal.tsx` restructurée** : plus de doublon de titre, texte explicatif déplacé dans la zone scrollable, header/footer resserrés, bouton Annuler ajouté, `Checkbox` accepte désormais `size="sm"|"md"`.
+- **Badges et boutons resserrés partout**, mapping icône systématique (Enregistrer/Envoyer→`Check`, Annuler→`X`, Supprimer→`Trash2`) — sauf "Voir les projets" (profil) et "Contacter" (catalogue), explicitement exclus de la réduction de taille.
+- **Titres `font-display-accent`** : bug de collage texte+accent trouvé et corrigé dans `AdminPage.tsx` (`TabHeader` — `title="Messages"`/`title="Vos"` ne laissaient aucun espace avant le span, d'où "Messagesreçus"/"Vosparamètres") via un helper `titleWithSpacer()` qui gère aussi le cas d'élision ("Demandes d'accès", pas d'espace avant "accès"). Taille harmonisée à `md:text-6xl` sur les pages visiteur (profil/catalogue/projet) — dashboard admin explicitement exempté par le cahier des charges, garde sa propre échelle.
+- **Modale "Quitter sans enregistrer" (`ProjectDrawer.tsx`) restylée** pour matcher le pattern de confirmation déjà utilisé ailleurs (icône en cercle teinté + titre + description + 2 actions) — devient la référence pour toute future modale de confirmation.
+- **`AuroraBackground.tsx` paramétrée** (`variant?: "profile" | "catalogue" | "modal"`) — composition différente par page (même famille de couleurs), plus un nouveau composant `SectionAurora` (`AdminPage.tsx`, halo `position: absolute` non plein-écran) pour un fond différent par section du dashboard admin, couleur reprise sur l'état actif du lien de nav correspondant. Nouveau token `--aurora-indigo` ajouté (translucide de `tag-keywords`, déjà existant — pas une couleur inventée).
+  - Mapping retenu : Projets→teal (inchangé), Demandes d'accès→violet, Contacts→cyan, Paramètres→indigo. Sur la nav, seule l'**icône** est colorée (le libellé reste `text-on-surface`) car `text-secondary` mesuré à ~3.25:1 sur le fond de la sidebar échoue le seuil AA texte (4.5:1) — règle appliquée uniformément aux 4 sections pour la cohérence, même si cyan/indigo auraient été safe en texte coloré.
+- **Formulaires** : icône `CircleAlert` ajoutée sur `ProjectDrawer.tsx` (`fieldError()` avait déjà le message mais pas l'icône) ; `AuthPage.tsx` et `ContactForm.tsx` n'avaient **aucune** validation de champ avant cette passe (seulement `required` HTML natif) — ajout d'un suivi `touched` minimal + `Alert`/`CircleAlert`, cohérent avec le pattern déjà en place sur `AccessRequestModal`. `AdminPage` → Paramètres et le motif de refus (`DemandesTab`) laissés tels quels : aucun champ n'y est réellement requis, pas de validation fabriquée artificiellement.
+- Vérifié en conditions réelles avec le dev server + persona admin (Léa) : carte catalogue, modale de demande d'accès, dashboard (4 sections + nav colorée), drawer projet (création + confirmation "quitter sans enregistrer") — tout fonctionne, `tsc --noEmit` propre.
+
 ## Passe de polish ProjectDrawer.tsx + catalogue (12/07) — terminée
 
 Suite à la refonte du 11/07 ci-dessous, plusieurs allers-retours de raffinement le 12/07 (l'état ci-dessous est l'état **final**, après une réorganisation en grille qui a ensuite été explicitement annulée — ne pas se fier à l'historique des commits intermédiaires pour deviner la structure actuelle) :

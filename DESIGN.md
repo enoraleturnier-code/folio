@@ -2,7 +2,7 @@
 
 Document de référence **unique** pour l'implémentation des tokens couleur dans Claude Code (Tailwind v4, `src/styles.css`, `:root` / `.dark`). Nomenclature Material 3. Tous les ratios sont vérifiés programmatiquement (WCAG 2.1), pas estimés.
 
-**Dernière mise à jour** : 11 juillet 2026 — section badges d'accès F-12 corrigée pour matcher l'implémentation réelle (voir plus bas). Reste sinon : dark mode conforme AA + système de filtres, badges d'accès et alertes.
+**Dernière mise à jour** : 12 juillet 2026 — passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin. Voir les sections dédiées plus bas. Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.
 **Fond dark de référence officiel** : `#0E1513` (remplace `#050507`, obsolète).
 **Fond light de référence** : `#F9FBFA`.
 
@@ -227,6 +227,8 @@ Les valeurs de l'enum sont techniques, jamais affichées telles quelles :
 
 Section corrigée le 11/07 — l'ancienne version (pastilles neutres dédiées) contredisait la section "🔔 Système d'alertes" ci-dessous et ne correspondait plus à l'implémentation réelle. Vérifié directement dans `ProjectCard.tsx` : 4 états, gérés via la prop `accessState`.
 
+**Hauteur de carte uniforme (12/07)** : titre (`h3`) et description courte (`p`) passés en `line-clamp-2` + `min-h-[3.5rem]`/`min-h-[2.5rem]` respectivement — toutes les cards du catalogue ont désormais la même hauteur de bloc titre+texte quelle que soit la longueur réelle du contenu, au lieu de cards de hauteurs inégales selon le texte.
+
 | État | Visuel | Interaction |
 |---|---|---|
 | **none** (pas de demande) | Thumbnail flouté + icône `Lock` en overlay. CTA plein `bg-primary-container` + `text-on-primary-container`, `rounded-full`, icône `KeyRound`, texte "Demander l'accès" | Carte entière cliquable → ouvre `AccessRequestModal`. |
@@ -237,6 +239,23 @@ Section corrigée le 11/07 — l'ancienne version (pastilles neutres dédiées) 
 Le badge 🔒 CONFIDENTIEL (classification, `StatusBadge kind="confidential"`) est **distinct** du badge de statut d'accès ci-dessus — il reste affiché sur none/pending/refused, remplacé uniquement par "Confidentiel · Accès validé" une fois l'accès obtenu.
 
 Pas de pastille dédiée pour pending/refused : ces deux états réutilisent le composant `Alert` générique (voir section suivante), cohérent avec le reste de l'app plutôt qu'un style propre à cette carte.
+
+---
+
+## 🏷️ Badges (StatusBadge / TagBadge / puces `TagPicker`) — taille & graisse
+
+Resserrés le 12/07 (passe de finitions UI) — trop imposants par rapport au reste des composants pill (filtres, tags) qui étaient déjà en `text-sm font-normal`.
+
+| Composant | Avant | Après |
+|---|---|---|
+| `StatusBadge` | `px-4 py-1.5 text-[10px] font-bold` | `px-3 py-1 text-[10px] font-normal` |
+| `TagBadge` | `px-3 py-1 text-[11px] font-medium` | `px-2.5 py-0.5 text-[10px] font-normal` |
+| Puce sélectionnée `TagPicker` | `py-1 pl-3 pr-1.5 text-[11px] font-medium` | `py-0.5 pl-2.5 pr-1 text-[10px] font-normal` |
+| Badges inline "Confidentiel • {sensibilité}" / "Confidentiel · Accès validé" (`ProjectCard`) | `px-4 py-1.5 text-[10px] font-bold` | `px-3 py-1 text-[10px] font-normal` |
+
+**Règle** : `font-weight: 400` explicite (`font-normal`) sur tout badge — ne jamais se contenter de retirer `font-bold`, le poids hérité de `body` est 300 (trop léger, illisible en `text-[10px]`).
+
+**Non concernés** (catégorie différente, déjà conforme) : les pills de `FilterBar` (déjà `text-sm font-normal` depuis la session filtres) et les petites pastilles de compte (badge de notification `h-5 w-5` sur la sidebar admin, compteur de filtres actifs) — ce sont des indicateurs numériques compacts, pas des étiquettes de statut/tag, réduire encore leur taille les rendrait illisibles.
 
 ---
 
@@ -268,6 +287,70 @@ Chips distinctes des tags déjà sélectionnés (`TagPicker`) — jamais fusionn
 
 ---
 
+## 🔘 Boutons — taille & iconographie (12/07)
+
+**Taille** : resserrée sur tout le site — la plupart des CTA sont passés de `px-6/8/10 py-3/4` à `px-5 py-2.5` (CTA principaux) ou `px-4/5 py-1.5/2` (actions secondaires/inline, footers de modale). Les boutons icône-seul (`h-10/11/12 w-10/11/12`) sont descendus d'un cran (`h-9/10 w-9/10`), icône `size` réduite en proportion (18→16, 22→18).
+
+**Deux exceptions explicitement conservées à leur taille d'origine** (CTA "hero", doivent rester imposants) :
+- "Voir les projets" (page profil, `ProfilePage.tsx`) — `px-8 py-4`
+- "Contacter" (page catalogue, `CataloguePage.tsx`) — `px-6 py-3`
+
+**Icône systématique liée à l'action** — mapping appliqué partout où le libellé correspond, quel que soit le composant :
+
+| Action | Icône Lucide | Exemples |
+|---|---|---|
+| Enregistrer / Envoyer | `Check` | "Enregistrer et publier", "Enregistrer comme brouillon", "Enregistrer les modifications", "Envoyer ma demande", "Envoyer le message", "Confirmer" (changement de statut) |
+| Annuler | `X` | Tous les boutons "Annuler" (modales, footers de formulaire, panneau de refus) |
+| Supprimer | `Trash2` | "Supprimer" (confirmation de suppression projet) |
+
+Exception : le couple "Quitter sans enregistrer" / "Revenir au formulaire" a son propre traitement dédié (voir section Modales de confirmation ci-dessous) — pas d'icône `X` sur "Quitter sans enregistrer", `ArrowRight` sur "Revenir au formulaire".
+
+**Non concerné** : les items de menu déroulant (`AccountMenu`, `ThemeToggle`) gardent leur padding d'origine — ce sont des lignes de liste dans un panneau, pas des boutons CTA autonomes.
+
+---
+
+## 🪟 Modales — ombre & style de confirmation (12/07)
+
+**Ombre systématique** : `shadow-2xl shadow-black/40` sur le conteneur de **toute** modale/dialogue (`AccessRequestModal`, `ProjectDrawer` — le panneau lui-même et ses 2 modales de confirmation imbriquées —, confirmation de suppression `AdminPage`). Remplace un `shadow-2xl` par défaut (teinte neutre du thème) ou une absence totale d'ombre — cohérence visuelle systématique plutôt qu'au cas par cas.
+
+**Overlay** : `bg-background/80` à `/90` (plus opaque qu'avant sur `AccessRequestModal`, passé de `/70` à `/90`) + `backdrop-blur-sm`, combiné à `<AuroraBackground variant="modal" />` en fond (voir section Aurora) — un seul montage d'`AuroraBackground` par pile de modales (le composant est `position: fixed` plein écran ; le monter une seule fois à la racine du dialogue suffit même quand une confirmation s'ouvre par-dessus).
+
+**Modale de confirmation "quitter sans enregistrer" (`ProjectDrawer`)** — restylée pour matcher le pattern de confirmation déjà utilisé sur "Demande envoyée" (`AccessRequestModal`) : icône dans un cercle teinté, titre, description, actions en pied de modale. Devient la référence pour toute future modale de confirmation avertissement/destructive :
+
+- Icône `TriangleAlert` dans un cercle `h-16 w-16 bg-warning/15`, icône `text-warning`
+- Titre "Quitter sans enregistrer ?" + description "Êtes-vous sûr de vouloir quitter sans enregistrer ? Vos données seront perdues."
+- Deux boutons : "Quitter sans enregistrer" (`border-white/40`, pas de fill — neutre, volontairement **sans** icône `X` pour ne pas dupliquer le signal déjà porté par l'icône warning du bloc) / "Revenir au formulaire" (`bg-primary-container` plein, icône `ArrowRight` à droite du texte)
+
+**`AccessRequestModal` — refonte structurelle (12/07)** : suppression du doublon de titre (l'eyebrow "Demande d'accès exclusif" faisait doublon avec le `<h2>` "Demander l'accès" juste en dessous, retiré) ; le texte explicatif, auparavant dans le header fixe (`shrink-0`), déplacé dans la zone scrollable du formulaire ; header et footer resserrés (`px-6 py-5`/`px-6 py-4` au lieu de `p-6`/`p-10`), zone de contenu d'autant agrandie ; bouton "Annuler" explicite ajouté dans le footer à côté du bouton d'envoi ; `border-b` ajoutée sous le header ; checkboxes de sélection de projet réduites (`Checkbox` accepte désormais une prop `size="sm" | "md"`, `h-4 w-4` au lieu de `h-5 w-5` — la checkbox RGPD reste en taille normale).
+
+---
+
+## ✍️ Titres de page — texte blanc (Outfit) + accent italique (12/07)
+
+Grep `font-display-accent` : 8 occurrences (`AdminPage.tsx` ×2, `CataloguePage.tsx`, `ProfilePage.tsx`, `ProjectDetailPage.tsx` ×3, `NotFoundPage.tsx`) — toutes vérifiées individuellement.
+
+**Règles appliquées à chaque occurrence** :
+- L'accent italique commence toujours par une majuscule ("Clair", "Structurants", "Mesuré", "Introuvable", "Bord", "Accès", "Reçus", "Paramètres" — plusieurs corrigés, étaient en minuscule).
+- Aucun point final sur ces titres, où qu'ils apparaissent (plusieurs `.` retirés après le `</span>`).
+- Espace explicite entre le texte blanc et l'accent : `AdminPage.tsx` (`TabHeader` partagé par Dashboard/Demandes/Contacts/Paramètres) construisait `{title}<span>` sans espace garanti — deux appelants (`title="Messages"`, `title="Vos"`) produisaient bien un collage ("Messagesreçus", "Vosparamètres"). Fix générique : helper `titleWithSpacer()` qui ajoute un espace sauf si `title` se termine déjà par une élision (`'`), pour ne pas casser "Demandes d'accès".
+- Taille de l'accent : ne dépasse jamais le texte principal (contrainte dure). Là où l'accent avait déjà sa propre classe de taille plus petite que le titre (`CataloguePage.tsx`), remonté d'un cran pour se rapprocher du titre sans le dépasser. Là où l'accent héritait déjà de la même taille que le titre (`ProjectDetailPage.tsx`, `ProfilePage.tsx`, `NotFoundPage.tsx`, `AdminPage.tsx`), déjà au plafond — pas de changement possible sans violer la contrainte.
+
+**Harmonisation de taille** (visiteur uniquement — dashboard admin explicitement exempté) : `ProfilePage`/`CataloguePage`/`ProjectDetailPage` alignés sur un même palier desktop `md:text-6xl` pour le titre principal (`CataloguePage` était `md:text-7xl`, redescendu). Les tailles mobile (`text-4xl`/`text-5xl` selon la page) restent volontairement différenciées — cf. `headline-lg` (40px desktop / 32px mobile) qui autorise déjà cet écart mobile dans ce document. `AdminPage` (dashboard admin) garde sa propre échelle (`text-4xl md:text-5xl`), non touchée par cette harmonisation.
+
+---
+
+## ⚠️ Formulaires — icône d'erreur sur les champs (12/07)
+
+Pattern déjà en place sur `AccessRequestModal` (`FieldHint`, icône `CircleAlert` + texte `text-error` sous le champ) répliqué partout où un champ peut être en erreur :
+
+- `ProjectDrawer.tsx` (`fieldError()`) — ajoutait déjà le message d'erreur mais sans icône, désormais `CircleAlert size={14}` + `role="alert"`, même style que `AccessRequestModal`.
+- `AuthPage.tsx` — ajout d'une validation de champ minimale (email/mot de passe requis, au blur) qui n'existait pas du tout auparavant, avec le même traitement `CircleAlert`. L'erreur de connexion globale ("Email ou mot de passe incorrect") passe elle par le composant `Alert type="error"` (voir plus bas), pas par ce pattern de champ.
+- `ContactForm.tsx` — idem, formulaire n'avait aucune validation autre que `required` HTML natif ; ajout d'un suivi `touched` par champ + icône `CircleAlert`.
+
+**Non concerné, volontairement** : `AdminPage` → `ParametresTab` (aucun champ n'y est requis, rien à signaler) et le textarea "Motif du refus" de `DemandesTab` (déjà gaté par un bouton disabled, pas de pattern touched/error à dupliquer pour un unique champ) — pas de validation fabriquée artificiellement là où le formulaire n'en avait pas besoin.
+
+---
+
 ## 🌌 Aurora (fond décoratif)
 
 | Token | Light | Dark (opacités +2%) |
@@ -275,8 +358,29 @@ Chips distinctes des tags déjà sélectionnés (`TagPicker`) — jamais fusionn
 | `aurora-teal` | `rgba(10,122,106,0.10)` | ~12% |
 | `aurora-purple` | `rgba(124,58,237,0.08)` | ~10% |
 | `aurora-cyan` | `rgba(4,111,129,0.06)` | ~8% |
+| `aurora-indigo` | `rgba(129,140,248,0.16)` | ~12% |
 
-CSS-only, pages profil public et catalogue uniquement.
+CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `aurora-indigo` ajouté le 12/07 (même valeur hex que `tag-keywords`, cf. section Tags) pour la 4ᵉ teinte du dashboard admin — aucune nouvelle couleur, seulement une variante translucide d'un token déjà existant.
+
+**Variantes (`AuroraBackground` prop `variant`, 12/07)** — même famille de couleurs partout, seule la répartition change :
+
+| Variant | Usage | Composition |
+|---|---|---|
+| `profile` (défaut) | Page profil public | 3 taches : teal en haut-gauche, purple en bas-droite, cyan centrée — composition d'origine |
+| `catalogue` | Catalogue de projets | Mêmes 3 couleurs, réparties différemment (teal en haut-**droite** et plus petit, purple en bas-**gauche** et plus petit, cyan décalée à 30%/65% et plus large) — pour que les deux pages restent reconnaissables l'une de l'autre sans changer de palette |
+| `modal` | Derrière chaque modale ouverte (`AccessRequestModal`, `ProjectDrawer`, confirmations `AdminPage`) | Même composition que `profile`, opacité des 3 taches réduite à 60 % — combinée à l'overlay `bg-background/80-90` + `backdrop-blur-sm` déjà en place, qui apporte le flou |
+
+**Dashboard admin — un halo par section (`SectionAurora`, `AdminPage.tsx`, 12/07)** : une seule tache douce (`.aurora-section`, `position: absolute` dans le conteneur de la section — pas `position: fixed` plein écran comme `.aurora-bg`), couleur dominante différente par onglet, réutilise les 4 teintes déjà existantes :
+
+| Section admin | Couleur | Token aurora | Cohérence nav (icône active) |
+|---|---|---|---|
+| Catalogue projets | teal | `aurora-teal` | `text-primary` (inchangé) |
+| Demandes d'accès | violet | `aurora-purple` | `text-secondary` |
+| Messages (Contacts) | cyan | `aurora-cyan` | `text-tag-sector` |
+| Paramètres | indigo | `aurora-indigo` | `text-tag-keywords` |
+| Vue d'ensemble (Dashboard) | — | aucun | `text-primary` (lien séparé, non concerné par le mapping par section) |
+
+Pour chaque item de nav actif : fond `bg-{teinte}/10` + icône `text-{teinte}`, mais le **libellé reste `text-on-surface`** (jamais coloré) — `secondary` (#7C3AED) mesuré à ~3.25:1 sur le fond `background` de la sidebar, sous le seuil AA texte (4.5:1) bien qu'au-dessus du seuil UI/icône (3:1). Plutôt que de traiter Demandes différemment des 3 autres sections, la même règle (icône colorée / libellé neutre) s'applique uniformément aux 4 — cohérence visuelle et zéro risque de contraste, y compris pour cyan/indigo dont le texte aurait pourtant été safe seul.
 
 ---
 
