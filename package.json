@@ -1,5 +1,6 @@
 {
   "name": "folioplus",
+  "version": "0.8.0",
   "private": true,
   "sideEffects": false,
   "type": "module",

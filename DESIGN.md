@@ -2,7 +2,7 @@
 
 Document de référence **unique** pour l'implémentation des tokens couleur dans Claude Code (Tailwind v4, `src/styles.css`, `:root` / `.dark`). Nomenclature Material 3. Tous les ratios sont vérifiés programmatiquement (WCAG 2.1), pas estimés.
 
-**Dernière mise à jour** : 11 juillet 2026 — section badges d'accès F-12 corrigée pour matcher l'implémentation réelle (voir plus bas). Reste sinon : dark mode conforme AA + système de filtres, badges d'accès et alertes.
+**Dernière mise à jour** : 12 juillet 2026 — ajout des sections "États d'erreur de formulaire" et "Badge de statut avec suffixe" (voir plus bas). Avant ça, 11 juillet : section badges d'accès F-12 corrigée pour matcher l'implémentation réelle. Reste sinon : dark mode conforme AA + système de filtres, badges d'accès et alertes.
 **Fond dark de référence officiel** : `#0E1513` (remplace `#050507`, obsolète).
 **Fond light de référence** : `#F9FBFA`.
 
@@ -265,6 +265,27 @@ Chips distinctes des tags déjà sélectionnés (`TagPicker`) — jamais fusionn
 - Texte `text-primary`, préfixe `+` littéral (pas d'icône Lucide séparée)
 - Hover : `bg-primary-container/10`
 - Disparaît de la liste dès qu'ajoutée (clic → migre dans le `TagPicker` correspondant, dédoublonnée si déjà présente)
+
+---
+
+## 🚫 États d'erreur de formulaire (validation, ProjectDrawer)
+
+Introduit le 12/07 en remplaçant le pattern "bouton de soumission désactivé" (impossible pour l'utilisateur de savoir quel champ bloque) par un pattern "erreur trouvable" :
+
+- **Contour du champ** : `border-error` (au lieu de `border-white/5`/`outline` par défaut) + `focus-visible:ring-error` (au lieu de `ring-primary`) tant que le champ a une erreur. Appliqué via `cn()`/`tailwind-merge` pour résoudre proprement le conflit avec la bordure de base.
+- **Message d'erreur** : `text-error`, `text-xs`, précédé d'une icône Lucide `AlertCircle` (13px, `shrink-0`), alignés en `flex items-center gap-1`.
+- **Formulation** : champ obligatoire vide → `"Le champ [Nom du champ] est obligatoire."` (libellé humain, pas le nom technique du champ). Dépassement de longueur → `"X/Y caractères max."` (message dédié, inchangé).
+- **Pas de bouton désactivé** : le CTA principal ("Enregistrer et publier") reste cliquable même formulaire invalide — au clic, focus + scroll automatique vers le **premier champ en erreur selon sa position visuelle réelle** dans le formulaire (pas l'ordre de la fonction de validation, qui ne correspond pas à l'ordre des sections).
+- S'applique à tout type de champ (texte, textarea, select, zone de dépôt d'image) — la zone de dépôt reçoit un `id`/`tabIndex={-1}` dédiés pour être focusable/scrollable comme un input classique.
+
+---
+
+## 🏷️ Badge de statut avec suffixe (dashboard admin uniquement)
+
+`StatusBadge` accepte un prop optionnel `suffix?: string`, rendu en `normal-case` juste après le label (le label lui-même reste `uppercase`) : ex. `"CONFIDENTIEL • Sensible"`.
+
+- **Usage unique** : la liste "Mon catalogue Projets" du dashboard admin (`AdminPage.tsx`), pour afficher le niveau de sensibilité (`Sensible`/`Très sensible`) des projets confidentiels non supprimés.
+- **Ne pas généraliser** : les autres usages de `StatusBadge` (catalogue public via `ProjectCard.tsx`, onglets Accès/Messages) n'utilisent pas ce prop — le catalogue public affiche déjà l'info de sensibilité via son propre badge dédié ("Confidentiel • {sensibilité}", voir section F-12 ci-dessus), pas de doublon à créer.
 
 ---
 

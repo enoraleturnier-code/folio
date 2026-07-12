@@ -1,5 +1,15 @@
 # Folio+ — Notes pour Claude Code
 
+## Mise en place du versioning SemVer + releases GitHub (12/07) — terminée
+
+Le projet n'avait jamais eu de tag/release/champ `version` (raison : usage perso/portfolio, jamais déployé en prod jusqu'ici). Demande explicite de l'utilisatrice : pouvoir prouver à un jury une pratique de release rigoureuse — mise en place rétroactive + adoption du principe pour la suite.
+
+- **8 tags annotés créés rétroactivement** (`v0.1.0` → `v0.8.0`) sur les commits historiques correspondant aux jalons significatifs de `main` (en excluant le bruit des commits auto-générés du prototypage initial type "Fast Visual Edit") : prototype initial, migration schéma DB v4.3, dark mode WCAG AA, migration React Router, flux d'accès confidentiel F-11/F-12, webhooks Resend, CRUD projets + IA, rendu Markdown + fixes. Détail complet dans les releases GitHub correspondantes.
+- **Reste en `0.x`** (règle SemVer pré-1.0 : bump MINOR pour toute nouveauté/breaking, `1.0.0` sera un choix délibéré plus tard, pas atteint par accumulation).
+- **`package.json` a désormais un champ `"version"`** (absent avant), synchronisé avec le dernier tag (`0.8.0`).
+- **Règle à appliquer désormais** (cf. skill `github-expert`, section Versioning) : toute fusion sur `main` qui livre un changement utilisateur significatif doit être suivie d'un tag + release GitHub — `fix:` → PATCH, `feat:` → MINOR (MAJOR seulement après un `1.0.0` délibéré et une vraie breaking change). Ne pas laisser retomber dans l'ancien silence (aucune release entre la création du repo et le 12/07).
+- Tags et releases poussés sur `origin` (dépôt privé `enoraleturnier-code/folio`) — visibles seulement par les personnes avec accès.
+
 ## Passe de polish ProjectDrawer.tsx : placeholder, icônes tags, erreurs de validation (12/07) — terminée
 
 - **Placeholder du champ "Description du projet"** (`ProjectDrawer.tsx`, `pd-long-desc`) changé de "Décris le projet, l'étude de cas, les mots-clés comme ils te viennent à l'esprit..." à "Décris le brief du projet, son contexte, le cadrage, l'approche globale…".
