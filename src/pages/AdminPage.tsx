@@ -1210,7 +1210,9 @@ function TabHeader({
         <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">{eyebrow}</p>
         <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-5xl">
           {titleWithSpacer(title)}
-          <span className="font-display-accent italic text-primary">{capitalize(emphasis)}</span>
+          <span className="font-display-accent text-5xl italic text-primary md:text-6xl">
+            {capitalize(emphasis)}
+          </span>
         </h1>
         <p className="mt-3 max-w-xl text-sm text-on-surface-variant">{subtitle}</p>
       </div>
