@@ -2,7 +2,7 @@
 
 Document de référence **unique** pour l'implémentation des tokens couleur dans Claude Code (Tailwind v4, `src/styles.css`, `:root` / `.dark`). Nomenclature Material 3. Tous les ratios sont vérifiés programmatiquement (WCAG 2.1), pas estimés.
 
-**Dernière mise à jour** : 12 juillet 2026 — passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin. Voir les sections dédiées plus bas. Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.
+**Dernière mise à jour** : 12 juillet 2026 — passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin, accent italique du dashboard admin agrandi au-delà du titre (retouche demandée après coup), puis deux passes successives de renforcement du fond aurora (alphas remontés à plusieurs reprises, 4ᵉ couleur indigo ajoutée à la composition principale, variant modal avec ses propres alphas plus marqués). Voir les sections dédiées plus bas. Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.
 **Fond dark de référence officiel** : `#0E1513` (remplace `#050507`, obsolète).
 **Fond light de référence** : `#F9FBFA`.
 
@@ -333,9 +333,10 @@ Grep `font-display-accent` : 8 occurrences (`AdminPage.tsx` ×2, `CataloguePage.
 - L'accent italique commence toujours par une majuscule ("Clair", "Structurants", "Mesuré", "Introuvable", "Bord", "Accès", "Reçus", "Paramètres" — plusieurs corrigés, étaient en minuscule).
 - Aucun point final sur ces titres, où qu'ils apparaissent (plusieurs `.` retirés après le `</span>`).
 - Espace explicite entre le texte blanc et l'accent : `AdminPage.tsx` (`TabHeader` partagé par Dashboard/Demandes/Contacts/Paramètres) construisait `{title}<span>` sans espace garanti — deux appelants (`title="Messages"`, `title="Vos"`) produisaient bien un collage ("Messagesreçus", "Vosparamètres"). Fix générique : helper `titleWithSpacer()` qui ajoute un espace sauf si `title` se termine déjà par une élision (`'`), pour ne pas casser "Demandes d'accès".
-- Taille de l'accent : ne dépasse jamais le texte principal (contrainte dure). Là où l'accent avait déjà sa propre classe de taille plus petite que le titre (`CataloguePage.tsx`), remonté d'un cran pour se rapprocher du titre sans le dépasser. Là où l'accent héritait déjà de la même taille que le titre (`ProjectDetailPage.tsx`, `ProfilePage.tsx`, `NotFoundPage.tsx`, `AdminPage.tsx`), déjà au plafond — pas de changement possible sans violer la contrainte.
+- Taille de l'accent sur les pages visiteur (`ProjectDetailPage.tsx`, `ProfilePage.tsx`, `NotFoundPage.tsx`) : ne dépasse jamais le texte principal (contrainte dure) — héritait déjà de la même taille que le titre, donc déjà au plafond, aucun changement possible sans violer la contrainte. Là où l'accent avait sa propre classe de taille plus petite que le titre (`CataloguePage.tsx`), remonté d'un cran pour se rapprocher du titre sans le dépasser.
+- **Exception dashboard admin (`AdminPage.tsx`, `TabHeader`)** : sur demande explicite, l'accent y **dépasse** volontairement le titre principal — `text-5xl md:text-6xl` (48/60px) contre `text-4xl md:text-5xl` (36/48px) pour le texte Outfit. La contrainte "n'excède jamais le titre" ne s'applique donc qu'aux pages visiteur ; le dashboard admin, déjà exempté de l'harmonisation de taille ci-dessous, a sa propre règle : l'accent y est le plus grand élément du titre.
 
-**Harmonisation de taille** (visiteur uniquement — dashboard admin explicitement exempté) : `ProfilePage`/`CataloguePage`/`ProjectDetailPage` alignés sur un même palier desktop `md:text-6xl` pour le titre principal (`CataloguePage` était `md:text-7xl`, redescendu). Les tailles mobile (`text-4xl`/`text-5xl` selon la page) restent volontairement différenciées — cf. `headline-lg` (40px desktop / 32px mobile) qui autorise déjà cet écart mobile dans ce document. `AdminPage` (dashboard admin) garde sa propre échelle (`text-4xl md:text-5xl`), non touchée par cette harmonisation.
+**Harmonisation de taille** (visiteur uniquement — dashboard admin explicitement exempté) : `ProfilePage`/`CataloguePage`/`ProjectDetailPage` alignés sur un même palier desktop `md:text-6xl` pour le titre principal (`CataloguePage` était `md:text-7xl`, redescendu). Les tailles mobile (`text-4xl`/`text-5xl` selon la page) restent volontairement différenciées — cf. `headline-lg` (40px desktop / 32px mobile) qui autorise déjà cet écart mobile dans ce document. `AdminPage` (dashboard admin) garde sa propre échelle pour le titre (`text-4xl md:text-5xl`), non touchée par cette harmonisation — mais voir ci-dessus pour l'accent, agrandi au-delà de cette échelle.
 
 ---
 
@@ -353,22 +354,38 @@ Pattern déjà en place sur `AccessRequestModal` (`FieldHint`, icône `CircleAle
 
 ## 🌌 Aurora (fond décoratif)
 
-| Token | Light | Dark (opacités +2%) |
+**Tokens de base (pages profil/catalogue)** :
+
+| Token | Dark | Light |
 |---|---|---|
-| `aurora-teal` | `rgba(10,122,106,0.10)` | ~12% |
-| `aurora-purple` | `rgba(124,58,237,0.08)` | ~10% |
-| `aurora-cyan` | `rgba(4,111,129,0.06)` | ~8% |
-| `aurora-indigo` | `rgba(129,140,248,0.16)` | ~12% |
+| `aurora-teal` | `rgba(45,212,191,0.36)` | `rgba(45,212,191,0.3)` |
+| `aurora-purple` | `rgba(124,58,237,0.32)` | `rgba(124,58,237,0.26)` |
+| `aurora-cyan` | `rgba(6,182,212,0.28)` | `rgba(6,182,212,0.24)` |
+| `aurora-indigo` | `rgba(129,140,248,0.3)` | `rgba(129,140,248,0.28)` |
 
-CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `aurora-indigo` ajouté le 12/07 (même valeur hex que `tag-keywords`, cf. section Tags) pour la 4ᵉ teinte du dashboard admin — aucune nouvelle couleur, seulement une variante translucide d'un token déjà existant.
+**Variant `modal`** — mêmes 4 teintes, alphas propres et plus élevés (+20 à +36 % relatif selon la couleur), redéfinis localement sur `.aurora-bg--modal` (les 4 custom properties sont simplement réassignées dans ce scope, aucune règle dupliquée sur chaque pseudo-élément) :
 
-**Variantes (`AuroraBackground` prop `variant`, 12/07)** — même famille de couleurs partout, seule la répartition change :
+| Token | Dark (modal) | Light (modal) |
+|---|---|---|
+| `aurora-teal` | `rgba(45,212,191,0.46)` | `rgba(45,212,191,0.4)` |
+| `aurora-purple` | `rgba(124,58,237,0.42)` | `rgba(124,58,237,0.36)` |
+| `aurora-cyan` | `rgba(6,182,212,0.38)` | `rgba(6,182,212,0.34)` |
+| `aurora-indigo` | `rgba(129,140,248,0.4)` | `rgba(129,140,248,0.38)` |
+
+CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `aurora-indigo` a d'abord existé uniquement pour la 4ᵉ teinte du dashboard admin (`SectionAurora`) ; il rejoint désormais aussi la composition principale `.aurora-bg` (4ᵉ tache, `.aurora-blob-indigo`) — toujours aucune nouvelle couleur, seulement une variante translucide d'un token déjà existant (même hex que `tag-keywords`).
+
+**Historique des correctifs de visibilité (12/07)** — le fond était correctement câblé dès le départ (composant monté, tokens définis, empilement correct — vérifié en direct à chaque étape), seule l'intensité posait problème :
+1. *Première passe* : un `opacity: 0.9` non documenté sur `.aurora-bg::before`/`::after` rabotait l'alpha déjà faible des tokens — retiré. Alphas dark de teal/purple/cyan doublés (`0.12→0.24`, `0.10→0.20`, `0.08→0.16`).
+2. *Deuxième passe* (celle-ci) : encore jugé trop discret. Alphas remontés une nouvelle fois vers les valeurs ci-dessus (base) et `aurora-indigo` rejoint pour la première fois la composition principale à 4 couleurs. Le variant `modal` gagne son propre jeu d'alphas (plus marqués que les pages) au lieu de l'ancien multiplicateur `opacity: 0.6` qui l'atténuait — inversion volontaire : une modale doit se détacher davantage, pas moins. Le flou (`blur(140-160px)`) n'a été touché à aucune des deux passes, choix esthétique séparé.
+3. Vérifié visuellement sur les 3 surfaces (profil, catalogue, modale `ProjectDrawer`) en dark et en light après cette 2ᵉ passe — les 4 couleurs sont nettement plus présentes, y compris dans leurs zones de recouvrement (teinte mixte, attendu pour un effet aurora). Aucun texte n'est directement posé sur `.aurora-bg` sans fond intermédiaire (`glass-card`, carte, panneau de modale) sauf le titre `h1` de `CataloguePage.tsx` — vérifié par calcul de contraste WCAG au pire cas (recouvrement au centre d'une tache) : ≥6:1 en dark, ≥13:1 en light, largement au-dessus du seuil AA (le texte est à l'extrémité de luminance opposée au fond dans les deux thèmes, donc insensible à la teinte de l'aurora en dessous).
+
+**Variantes (`AuroraBackground` prop `variant`, 12/07)** — même famille de 4 couleurs partout, seule la répartition change :
 
 | Variant | Usage | Composition |
 |---|---|---|
-| `profile` (défaut) | Page profil public | 3 taches : teal en haut-gauche, purple en bas-droite, cyan centrée — composition d'origine |
-| `catalogue` | Catalogue de projets | Mêmes 3 couleurs, réparties différemment (teal en haut-**droite** et plus petit, purple en bas-**gauche** et plus petit, cyan décalée à 30%/65% et plus large) — pour que les deux pages restent reconnaissables l'une de l'autre sans changer de palette |
-| `modal` | Derrière chaque modale ouverte (`AccessRequestModal`, `ProjectDrawer`, confirmations `AdminPage`) | Même composition que `profile`, opacité des 3 taches réduite à 60 % — combinée à l'overlay `bg-background/80-90` + `backdrop-blur-sm` déjà en place, qui apporte le flou |
+| `profile` (défaut) | Page profil public | 4 taches : teal en haut-gauche, purple en bas-droite, cyan centrée, indigo en bas-gauche — composition d'origine |
+| `catalogue` | Catalogue de projets | Mêmes 4 couleurs, réparties différemment (teal en haut-**droite** et plus petit, purple en bas-**gauche** et plus petit, cyan décalée à 30%/65% et plus large, indigo en haut-**gauche**) — pour que les deux pages restent reconnaissables l'une de l'autre sans changer de palette |
+| `modal` | Derrière chaque modale ouverte (`AccessRequestModal`, `ProjectDrawer`, confirmations `AdminPage`) | Même géométrie que `profile`, alphas propres et plus marqués (table ci-dessus) — combinée à l'overlay `bg-background/80-90` + `backdrop-blur-sm` déjà en place, qui apporte le flou |
 
 **Dashboard admin — un halo par section (`SectionAurora`, `AdminPage.tsx`, 12/07)** : une seule tache douce (`.aurora-section`, `position: absolute` dans le conteneur de la section — pas `position: fixed` plein écran comme `.aurora-bg`), couleur dominante différente par onglet, réutilise les 4 teintes déjà existantes :
 
