@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import { designer } from "@/data/designer";
 
 export function Footer() {
@@ -27,6 +29,14 @@ export function Footer() {
               {designer.email}
             </a>
           </div>
+        </div>
+        <div className="mt-6 flex flex-wrap items-center gap-6 border-t border-white/5 pt-6 text-xs text-on-surface-variant/70">
+          <Link to="/politique-de-confidentialite" className="hover:text-primary transition-colors">
+            Politique de confidentialité
+          </Link>
+          <Link to="/mentions-legales" className="hover:text-primary transition-colors">
+            Mentions légales
+          </Link>
         </div>
       </div>
     </footer>

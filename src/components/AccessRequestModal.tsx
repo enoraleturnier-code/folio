@@ -570,9 +570,14 @@ export function AccessRequestModal({
                   <label htmlFor="ar-gdpr" className="text-sm leading-relaxed text-on-surface-variant">
                     J'accepte que Folio+ traite mes données pour gérer ma demande d'accès
                     conformément à la{" "}
-                    <a href="#" className={textLinkClass("default")}>
+                    <Link
+                      to="/politique-de-confidentialite"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={textLinkClass("default")}
+                    >
                       politique de confidentialité
-                    </a>
+                    </Link>
                     .
                   </label>
                 </div>
