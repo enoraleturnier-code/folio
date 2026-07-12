@@ -50,6 +50,7 @@
   --color-aurora-teal: var(--aurora-teal);
   --color-aurora-purple: var(--aurora-purple);
   --color-aurora-cyan: var(--aurora-cyan);
+  --color-aurora-indigo: var(--aurora-indigo);
   --color-border-glass: var(--border-glass);
 
   /* shadcn aliases for existing UI primitives */
@@ -113,6 +114,7 @@
   --aurora-teal: rgba(45, 212, 191, 0.12);
   --aurora-purple: rgba(124, 58, 237, 0.1);
   --aurora-cyan: rgba(6, 182, 212, 0.08);
+  --aurora-indigo: rgba(129, 140, 248, 0.12);
   --border-glass: rgba(186, 202, 197, 0.1);
   --radius: 1rem;
 }
@@ -135,6 +137,7 @@
   --aurora-teal: rgba(45, 212, 191, 0.18);
   --aurora-purple: rgba(124, 58, 237, 0.14);
   --aurora-cyan: rgba(6, 182, 212, 0.12);
+  --aurora-indigo: rgba(129, 140, 248, 0.16);
 }
 
 @layer base {
@@ -198,7 +201,61 @@
   border-radius: 9999px;
   filter: blur(160px);
   background: radial-gradient(circle, var(--aurora-cyan), transparent 70%);
-  
+
+}
+
+/* Variante "catalogue" — même famille de 3 couleurs que le profil, mais
+   répartition/tailles différentes pour que les deux espaces restent
+   reconnaissables l'un de l'autre (cf. DESIGN.md, section Aurora). */
+.aurora-bg--catalogue::before {
+  width: 45%;
+  height: 45%;
+  top: -12%;
+  left: auto;
+  right: -8%;
+}
+.aurora-bg--catalogue::after {
+  width: 40%;
+  height: 40%;
+  bottom: -5%;
+  left: -12%;
+  right: auto;
+}
+.aurora-bg--catalogue > .aurora-blob {
+  top: 65%;
+  left: 30%;
+  width: 70%;
+  height: 70%;
+}
+
+/* Variante "modal" — même composition que le profil, en plus discret :
+   sert de fond derrière les fenêtres modales (overlay flouté par-dessus). */
+.aurora-bg--modal::before,
+.aurora-bg--modal::after,
+.aurora-bg--modal > .aurora-blob {
+  opacity: 0.6;
+}
+
+/* Fond boréal léger, un seul halo, utilisé derrière une section du
+   dashboard admin (pas plein écran comme .aurora-bg — contenu dans le
+   conteneur relatif de la section). Couleur choisie via --aurora-section-color. */
+.aurora-section {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora-section::before {
+  content: "";
+  position: absolute;
+  top: -15%;
+  right: -10%;
+  width: 32rem;
+  height: 32rem;
+  border-radius: 9999px;
+  filter: blur(120px);
+  background: radial-gradient(circle, var(--aurora-section-color), transparent 70%);
 }
 
 @keyframes aurora-float-a {

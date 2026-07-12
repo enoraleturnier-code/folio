@@ -99,14 +99,14 @@ export function CataloguePage() {
 
   return (
     <>
-      <AuroraBackground />
+      <AuroraBackground variant="catalogue" />
       <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
         <header className="mb-16 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
               Projets
             </p>
-            <h1 className="text-5xl font-medium text-on-surface md:text-7xl">
+            <h1 className="text-5xl font-medium text-on-surface md:text-6xl">
               {designer.fullName}
               <br />
               <span className="font-display-accent text-5xl italic font-normal text-primary md:text-6xl">
