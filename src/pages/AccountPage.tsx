@@ -64,10 +64,10 @@ export function AccountPage() {
       <Header />
       <main className="mx-auto max-w-2xl px-5 pb-24 pt-32 md:px-16">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
-          Mon compte
+          Information du profil
         </p>
         <h1 className="mb-10 text-4xl font-medium text-on-surface md:text-5xl">
-          Vos informations.
+          Mon compte
         </h1>
 
         <div className="space-y-6 rounded-2xl border border-white/5 bg-surface-container-low p-6">
