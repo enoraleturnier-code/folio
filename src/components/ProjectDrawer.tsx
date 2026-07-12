@@ -1,4 +1,12 @@
-import { Calendar as CalendarIcon, Check, ChevronDown, CloudUpload, Sparkles, X } from "lucide-react";
+import {
+  AlertCircle,
+  Calendar as CalendarIcon,
+  Check,
+  ChevronDown,
+  CloudUpload,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
@@ -63,6 +71,73 @@ function estimateRows(max: number): number {
   return Math.min(30, Math.max(2, Math.ceil(max / 90)));
 }
 
+/** id DOM de l'input correspondant à chaque champ validable -- sert à retrouver et focus le premier champ en erreur. */
+const FIELD_INPUT_IDS: Record<ValidationError["field"], string> = {
+  title: "pd-title",
+  thumbnail_url: "pd-thumbnail-drop",
+  long_desc: "pd-long-desc",
+  short_desc: "pd-subtitle",
+  probleme: "pd-problem",
+  decisions: "pd-decisions",
+  resultat: "pd-result",
+  secteur_activite: "pd-secteur",
+  company_name: "pd-company",
+  client_name: "pd-client",
+  role: "pd-role",
+  team: "pd-team",
+  start_date: "pd-start",
+  end_date: "pd-end",
+};
+
+/**
+ * Au lieu de désactiver "Enregistrer et publier" tant que le formulaire n'est
+ * pas valide (l'admin ne pouvait alors pas savoir QUEL champ manquait), on
+ * laisse le bouton actif et on amène l'admin directement au premier champ en
+ * erreur -- au sens de sa position visuelle dans le formulaire, pas de
+ * l'ordre de `validateProject()` (qui ne correspond pas à l'ordre des
+ * sections du drawer).
+ */
+function focusFirstError(errs: ValidationError[]) {
+  if (errs.length === 0) return;
+  const fields = new Set(errs.map((e) => e.field));
+  let target: HTMLElement | null = null;
+  let targetTop = Infinity;
+  for (const field of fields) {
+    const el = document.getElementById(FIELD_INPUT_IDS[field]);
+    if (!el) continue;
+    const top = el.getBoundingClientRect().top;
+    if (top < targetTop) {
+      targetTop = top;
+      target = el;
+    }
+  }
+  target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  target?.focus({ preventScroll: true });
+}
+
+/**
+ * Garde-fou defensif cote client : l'Edge Function tronque deja proprement
+ * (derniere phrase complete) avant de repondre, donc ce cas ne devrait
+ * jamais se produire en pratique -- mais un draft IA plus long que la limite
+ * du champ ne doit jamais depasser silencieusement le maxLength du textarea
+ * (React ignore maxLength pour une valeur assignee par programme, seule la
+ * saisie clavier/collage est bornee par cet attribut HTML).
+ */
+function clampToMax(value: string, max: number): string {
+  return value.length > max ? value.slice(0, max) : value;
+}
+
+/**
+ * "public" et non "draft" -- en creation, "Brouillon" est deliberement
+ * absent des options du <select> Statut (l'option separee "Enregistrer
+ * comme brouillon" couvre ce cas), donc un draft initialise a "draft" n'a
+ * aucune <option value="draft"> correspondante : le <select> affiche
+ * visuellement la premiere option ("Public") alors que l'etat React reel
+ * reste "draft" tant que l'admin n'a pas explicitement touche le menu. Bug
+ * corrige : cliquer "Enregistrer et publier" sans toucher au select
+ * envoyait alors silencieusement "draft" (aucune confirmation, projet
+ * publie... en brouillon) malgre un statut visuellement different a l'ecran.
+ */
 function emptyProject(): Project {
   const now = new Date().toISOString();
   return {
@@ -72,7 +147,7 @@ function emptyProject(): Project {
     long_desc: "",
     ai_structured_desc: { probleme: "", decisions: "", resultat: "" },
     thumbnail_url: null,
-    status: "draft",
+    status: "public",
     sensitivity_level: "sensible",
     secteur_activite: null,
     client_name: "",
@@ -100,6 +175,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const [pendingSave, setPendingSave] = useState<{
     status: ProjectStatus;
     action: "draft" | "publish";
+    /** Non-null si le niveau de sensibilité change sur un projet déjà confidentiel -- affiché en plus dans la modale de confirmation. */
+    sensitivityChange: { from: SensitivityLevel; to: SensitivityLevel } | null;
   } | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -196,6 +273,10 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
 
   const errorFor = (field: ValidationError["field"]) => errors.find((e) => e.field === field);
 
+  /** Contour rouge sur le champ tant qu'il a une erreur -- ajouté à la classe de base via `cn()` (résout le conflit `border-*`). */
+  const errorRingCls = (field: ValidationError["field"], base: string) =>
+    cn(base, errorFor(field) && "border-error focus-visible:ring-error");
+
   function counter(field: keyof typeof MAX_LENGTHS, value: string | null | undefined) {
     const max = MAX_LENGTHS[field];
     const len = (value ?? "").length;
@@ -211,7 +292,12 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   function fieldError(field: ValidationError["field"]) {
     const err = errorFor(field);
     if (!err) return null;
-    return <p className="mt-1 text-xs text-error">{err.message}</p>;
+    return (
+      <p className="flex items-center gap-1 text-xs text-error">
+        <AlertCircle aria-hidden="true" size={13} className="shrink-0" />
+        {err.message}
+      </p>
+    );
   }
 
   const onFileSelected = (file: File) => {
@@ -269,15 +355,40 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   };
 
   // Chemin commun aux deux boutons de sauvegarde (brouillon / publier) : la
-  // confirmation de changement de statut (F-05) ne se déclenche que si le
-  // projet existe déjà ET que le statut cible diffère de son statut actuel --
-  // une création n'a pas de statut antérieur auquel se comparer.
+  // confirmation de changement de statut (F-05) se declenche (1) en edition,
+  // si le statut cible differe du statut actuel du projet, ou (2) en
+  // creation, des que le statut cible n'est pas "draft" -- publier un projet
+  // tout neuf en Public/Confidentiel le rend immediatement visible, ca merite
+  // la meme confirmation qu'un changement de statut en edition (bug corrige :
+  // avant ce fix, une creation directe en Public/Confidentiel via
+  // "Enregistrer et publier" sautait systematiquement la confirmation, cf.
+  // le rendu de la modale plus bas qui exigeait aussi `project` truthy).
+  //
+  // Confirmation additionnelle si le niveau de sensibilite change sur un
+  // projet deja confidentiel (edition uniquement -- passer un projet de
+  // Public/Brouillon a Confidentiel est deja couvert par statusNeedsConfirm,
+  // pas besoin de doublonner l'info de sensibilite dans ce cas).
   const submitWithStatus = async (targetStatus: ProjectStatus, action: "draft" | "publish") => {
     const errs = runValidation();
-    if (errs.length > 0) return;
+    if (errs.length > 0) {
+      focusFirstError(errs);
+      return;
+    }
 
-    if (project && targetStatus !== project.status) {
-      setPendingSave({ status: targetStatus, action });
+    const statusNeedsConfirm = project ? targetStatus !== project.status : targetStatus !== "draft";
+    const sensitivityChanged =
+      project !== null &&
+      project.status === "confidential" &&
+      draft.sensitivity_level !== project.sensitivity_level;
+
+    if (statusNeedsConfirm || sensitivityChanged) {
+      setPendingSave({
+        status: targetStatus,
+        action,
+        sensitivityChange: sensitivityChanged
+          ? { from: project!.sensitivity_level, to: draft.sensitivity_level }
+          : null,
+      });
       return;
     }
     await persist(targetStatus, action);
@@ -301,12 +412,21 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
 
       setDraft((d) => ({
         ...d,
-        short_desc: data.short_desc ?? d.short_desc ?? "",
+        short_desc: clampToMax(data.short_desc ?? d.short_desc ?? "", MAX_LENGTHS.short_desc),
         ai_structured_desc: {
           ...d.ai_structured_desc,
-          probleme: data.probleme ?? d.ai_structured_desc?.probleme ?? "",
-          decisions: data.decisions ?? d.ai_structured_desc?.decisions ?? "",
-          resultat: data.resultat ?? d.ai_structured_desc?.resultat ?? "",
+          probleme: clampToMax(
+            data.probleme ?? d.ai_structured_desc?.probleme ?? "",
+            MAX_LENGTHS.probleme,
+          ),
+          decisions: clampToMax(
+            data.decisions ?? d.ai_structured_desc?.decisions ?? "",
+            MAX_LENGTHS.decisions,
+          ),
+          resultat: clampToMax(
+            data.resultat ?? d.ai_structured_desc?.resultat ?? "",
+            MAX_LENGTHS.resultat,
+          ),
         },
       }));
       setAiHighlighted(true);
@@ -368,18 +488,43 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
 
   // Suggestions IA proposées à côté de chaque TagPicker : un clic les ajoute
   // aux tags sélectionnés, jamais fusionnées automatiquement à la génération.
+  // Pendant la génération (aiLoading), un skeleton de pastilles occupe la
+  // place le temps que l'IA réponde -- même logique visuelle que
+  // aiFieldSkeleton() pour les textarea, appliquée ici à des pilules courtes.
   function suggestionChips(category: keyof AiSuggestions) {
+    if (aiLoading) {
+      return (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1 text-[10px] text-primary/70">
+            <Sparkles aria-hidden="true" size={12} className="animate-pulse" />
+            Génération des suggestions…
+          </span>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="h-6 w-20 animate-pulse rounded-full bg-white/5"
+              style={{ animationDelay: `${i * 150}ms` }}
+            />
+          ))}
+        </div>
+      );
+    }
+
     const items = aiSuggestions[category];
     if (items.length === 0) return null;
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] text-on-surface-variant/60">Suggestions IA :</span>
-        {items.map((name) => (
+        <span className="flex items-center gap-1 text-[10px] text-primary/80">
+          <Sparkles aria-hidden="true" size={12} />
+          Suggestions IA :
+        </span>
+        {items.map((name, i) => (
           <button
             key={name}
             type="button"
             onClick={() => addSuggestion(category, name)}
-            className="rounded-full border border-dashed border-primary/40 px-3 py-1 text-[11px] font-medium text-primary hover:bg-primary-container/10"
+            style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
+            className="animate-in fade-in zoom-in-95 rounded-full border border-dashed border-primary/40 px-3 py-1 text-[11px] font-medium text-primary duration-300 hover:bg-primary-container/10"
           >
             + {name}
           </button>
@@ -396,14 +541,6 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const rows = estimateRows(max);
     return <Skeleton className="mt-2 w-full rounded-xl" style={{ height: rows * 24 + 24 }} />;
   }
-
-  // Live check (pas seulement à la soumission) pour désactiver "Enregistrer"
-  // tant que le formulaire n'est pas valide -- même filtre thumbnail_url que
-  // runValidation() (un fichier sélectionné mais pas encore uploadé ne doit
-  // pas être compté comme une image manquante).
-  const isValid =
-    validateProject(draft).filter((e) => !(e.field === "thumbnail_url" && pendingFile)).length ===
-    0;
 
   const statusOptions = (Object.entries(STATUS_LABELS) as [ProjectStatus, string][]).filter(
     ([v]) => project || v !== "draft",
@@ -473,7 +610,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   id="pd-title"
                   value={draft.title}
                   onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-                  className={inputCls + " mt-2"}
+                  className={errorRingCls("title", inputCls + " mt-2")}
                 />
                 <div className="mt-1 flex items-center">
                   {fieldError("title")}
@@ -484,6 +621,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               <div>
                 <p className={labelCls}>Image</p>
                 <label
+                  id="pd-thumbnail-drop"
+                  tabIndex={-1}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDraggingOver(true);
@@ -497,7 +636,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   }}
                   className={cn(
                     "mt-2 flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed bg-surface-container text-center hover:bg-white/5",
-                    isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
+                    isDraggingOver
+                      ? "border-primary bg-primary/5"
+                      : errorFor("thumbnail_url")
+                        ? "border-error"
+                        : "border-white/15",
                   )}
                 >
                   {pendingPreview || draft.thumbnail_url ? (
@@ -599,10 +742,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 <textarea
                   id="pd-long-desc"
                   rows={estimateRows(MAX_LENGTHS.long_desc)}
+                  maxLength={MAX_LENGTHS.long_desc}
                   value={draft.long_desc ?? ""}
                   onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
-                  className={inputCls + " mt-2 resize-y"}
-                  placeholder="Décris le projet, l'étude de cas, les mots-clés comme ils te viennent à l'esprit..."
+                  className={errorRingCls("long_desc", inputCls + " mt-2 resize-y")}
+                  placeholder="Décris le brief du projet, son contexte, le cadrage, l'approche globale…"
                 />
                 <div className="mt-1 flex items-center">
                   {fieldError("long_desc")}
@@ -642,7 +786,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     rows={estimateRows(MAX_LENGTHS.short_desc)}
                     value={draft.short_desc ?? ""}
                     onChange={(e) => setShortDesc(e.target.value)}
-                    className={inputCls + " mt-2 resize-y"}
+                    className={errorRingCls("short_desc", inputCls + " mt-2 resize-y")}
                   />
                 )}
                 <div className="mt-1 flex items-center">
@@ -662,9 +806,10 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   <textarea
                     id="pd-problem"
                     rows={estimateRows(MAX_LENGTHS.probleme)}
+                    maxLength={MAX_LENGTHS.probleme}
                     value={draft.ai_structured_desc?.probleme ?? ""}
                     onChange={(e) => setAiStructuredField("probleme", e.target.value)}
-                    className={inputCls + " mt-2 resize-y"}
+                    className={errorRingCls("probleme", inputCls + " mt-2 resize-y")}
                   />
                 )}
                 <div className="mt-1 flex items-center">
@@ -684,9 +829,10 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   <textarea
                     id="pd-decisions"
                     rows={estimateRows(MAX_LENGTHS.decisions)}
+                    maxLength={MAX_LENGTHS.decisions}
                     value={draft.ai_structured_desc?.decisions ?? ""}
                     onChange={(e) => setAiStructuredField("decisions", e.target.value)}
-                    className={inputCls + " mt-2 resize-y"}
+                    className={errorRingCls("decisions", inputCls + " mt-2 resize-y")}
                   />
                 )}
                 <div className="mt-1 flex items-center">
@@ -706,9 +852,10 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   <textarea
                     id="pd-result"
                     rows={estimateRows(MAX_LENGTHS.resultat)}
+                    maxLength={MAX_LENGTHS.resultat}
                     value={draft.ai_structured_desc?.resultat ?? ""}
                     onChange={(e) => setAiStructuredField("resultat", e.target.value)}
-                    className={inputCls + " mt-2 resize-y"}
+                    className={errorRingCls("resultat", inputCls + " mt-2 resize-y")}
                   />
                 )}
                 <div className="mt-1 flex items-center">
@@ -773,7 +920,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                           secteur_activite: (e.target.value || null) as Project["secteur_activite"],
                         })
                       }
-                      className={selectCls}
+                      className={errorRingCls("secteur_activite", selectCls)}
                     >
                       <option value="">Sélectionner un secteur</option>
                       {Object.entries(SECTEUR_LABELS).map(([v, l]) => (
@@ -794,7 +941,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-company"
                     value={draft.company_name ?? ""}
                     onChange={(e) => setDraft({ ...draft, company_name: e.target.value })}
-                    className={inputCls + " mt-2"}
+                    className={errorRingCls("company_name", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
                     {fieldError("company_name")}
@@ -809,7 +956,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-client"
                     value={draft.client_name ?? ""}
                     onChange={(e) => setDraft({ ...draft, client_name: e.target.value })}
-                    className={inputCls + " mt-2"}
+                    className={errorRingCls("client_name", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
                     {fieldError("client_name")}
@@ -824,7 +971,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-role"
                     value={draft.role ?? ""}
                     onChange={(e) => setDraft({ ...draft, role: e.target.value })}
-                    className={inputCls + " mt-2"}
+                    className={errorRingCls("role", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
                     {fieldError("role")}
@@ -839,7 +986,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-team"
                     value={draft.team ?? ""}
                     onChange={(e) => setDraft({ ...draft, team: e.target.value })}
-                    className={inputCls + " mt-2"}
+                    className={errorRingCls("team", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
                     {fieldError("team")}
@@ -856,10 +1003,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                       type="date"
                       value={draft.start_date ?? ""}
                       onChange={(e) => setDraft({ ...draft, start_date: e.target.value || null })}
-                      className={
+                      className={errorRingCls(
+                        "start_date",
                         inputCls +
-                        " pr-10 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
-                      }
+                          " pr-10 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0",
+                      )}
                     />
                     <CalendarIcon
                       aria-hidden="true"
@@ -879,10 +1027,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                       type="date"
                       value={draft.end_date ?? ""}
                       onChange={(e) => setDraft({ ...draft, end_date: e.target.value || null })}
-                      className={
+                      className={errorRingCls(
+                        "end_date",
                         inputCls +
-                        " pr-10 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
-                      }
+                          " pr-10 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0",
+                      )}
                     />
                     <CalendarIcon
                       aria-hidden="true"
@@ -913,7 +1062,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <button
               type="button"
               onClick={() => submitWithStatus(draft.status, "publish")}
-              disabled={savingAction !== null || !isValid}
+              disabled={savingAction !== null}
               className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
             >
               {savingAction === "publish" ? (
@@ -929,7 +1078,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
         </div>
       </aside>
 
-      {pendingSave && project && (
+      {pendingSave && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
@@ -937,13 +1086,42 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             aria-hidden="true"
           />
           <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
-            <h3 className="text-lg font-medium text-on-surface">
-              Confirmer le changement de statut ?
-            </h3>
-            <p className="mt-2 text-sm text-on-surface-variant">
-              {STATUS_LABELS[project.status]} → {STATUS_LABELS[pendingSave.status]}. Effet immédiat
-              sur le catalogue une fois confirmé.
-            </p>
+            {(() => {
+              const statusChanged = Boolean(project && pendingSave.status !== project.status);
+              const sensitivityChanged = Boolean(pendingSave.sensitivityChange);
+              const title = !project
+                ? "Confirmer la publication ?"
+                : statusChanged && sensitivityChanged
+                  ? "Confirmer les modifications ?"
+                  : statusChanged
+                    ? "Confirmer le changement de statut ?"
+                    : "Confirmer le changement de sensibilité ?";
+              return (
+                <>
+                  <h3 className="text-lg font-medium text-on-surface">{title}</h3>
+                  <p className="mt-2 text-sm text-on-surface-variant">
+                    {!project && (
+                      <>
+                        Ce projet sera créé avec le statut « {STATUS_LABELS[pendingSave.status]} »
+                        et immédiatement visible sur le catalogue une fois confirmé.{" "}
+                      </>
+                    )}
+                    {project && statusChanged && (
+                      <>
+                        Statut : {STATUS_LABELS[project.status]} → {STATUS_LABELS[pendingSave.status]}.{" "}
+                      </>
+                    )}
+                    {pendingSave.sensitivityChange && (
+                      <>
+                        Sensibilité : {SENSITIVITY_LABELS[pendingSave.sensitivityChange.from]} →{" "}
+                        {SENSITIVITY_LABELS[pendingSave.sensitivityChange.to]}.{" "}
+                      </>
+                    )}
+                    Effet immédiat sur le catalogue une fois confirmé.
+                  </p>
+                </>
+              );
+            })()}
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 type="button"

@@ -3,7 +3,7 @@ import type { Project } from "@/types/project";
 export const MAX_LENGTHS = {
   title: 80,
   short_desc: 160,
-  long_desc: 1500,
+  long_desc: 2500,
   probleme: 1000,
   decisions: 1000,
   resultat: 1000,
@@ -21,13 +21,35 @@ export interface ValidationError {
   message: string;
 }
 
+/** Libellé humain de chaque champ, pour le message "Le champ [nom] est obligatoire." */
+export const FIELD_LABELS: Record<ValidationField, string> = {
+  title: "Titre du projet",
+  short_desc: "Description courte du projet",
+  long_desc: "Description du projet",
+  probleme: "Problème",
+  decisions: "Décisions",
+  resultat: "Résultat",
+  client_name: "Client",
+  company_name: "Entreprise",
+  role: "Rôle",
+  team: "Équipe",
+  thumbnail_url: "Image",
+  secteur_activite: "Secteur d'activité",
+  start_date: "Date de début",
+  end_date: "Date de fin",
+};
+
+function requiredError(field: ValidationField): ValidationError {
+  return { field, message: `Le champ ${FIELD_LABELS[field]} est obligatoire.` };
+}
+
 function checkText(
   field: ValidationField,
   value: string | null | undefined,
   max: number,
 ): ValidationError | null {
   const trimmed = (value ?? "").trim();
-  if (!trimmed) return { field, message: "Ce champ est requis." };
+  if (!trimmed) return requiredError(field);
   if (trimmed.length > max) return { field, message: `${trimmed.length}/${max} caractères max.` };
   return null;
 }
@@ -69,12 +91,10 @@ export function validateProject(draft: Project): ValidationError[] {
   push(checkOptionalText("decisions", draft.ai_structured_desc?.decisions, MAX_LENGTHS.decisions));
   push(checkOptionalText("resultat", draft.ai_structured_desc?.resultat, MAX_LENGTHS.resultat));
 
-  if (!draft.thumbnail_url)
-    errors.push({ field: "thumbnail_url", message: "Une image est requise." });
-  if (!draft.secteur_activite)
-    errors.push({ field: "secteur_activite", message: "Ce champ est requis." });
-  if (!draft.start_date) errors.push({ field: "start_date", message: "Ce champ est requis." });
-  if (!draft.end_date) errors.push({ field: "end_date", message: "Ce champ est requis." });
+  if (!draft.thumbnail_url) errors.push(requiredError("thumbnail_url"));
+  if (!draft.secteur_activite) errors.push(requiredError("secteur_activite"));
+  if (!draft.start_date) errors.push(requiredError("start_date"));
+  if (!draft.end_date) errors.push(requiredError("end_date"));
 
   return errors;
 }
