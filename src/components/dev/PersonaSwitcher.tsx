@@ -76,7 +76,7 @@ export function PersonaSwitcher() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999]" ref={ref}>
+    <div className="fixed bottom-4 right-4 z-40" ref={ref}>
       {open && (
         <div className="absolute bottom-full right-0 mb-2 w-56 rounded-2xl border border-white/10 bg-black/40 p-3 text-xs shadow-2xl backdrop-blur-sm">
           <div className="mb-3 flex items-center justify-between">

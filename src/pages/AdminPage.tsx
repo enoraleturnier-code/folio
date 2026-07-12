@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   Mail,
   Pencil,
+  Plus,
   Settings,
   Trash2,
   type LucideIcon,
@@ -28,7 +29,15 @@ import { ProjectDrawer } from "@/components/ProjectDrawer";
 import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
 import { contactMessages as seedContacts } from "@/data/contacts";
-import { getProjects, restoreProject, softDeleteProject } from "@/data/projects";
+import {
+  createProject,
+  getProjectById,
+  getProjects,
+  restoreProject,
+  softDeleteProject,
+  updateProject,
+  type ProjectInput,
+} from "@/data/projects";
 import {
   approveAccessRequest,
   getAllAccessRequests,
@@ -348,7 +357,7 @@ function DashboardTab({
         eyebrow="00 — Vue d'ensemble"
         title="Tableau de "
         emphasis="bord"
-        subtitle="Récapitulatif de vos projets, demandes d'accès et messages en un coup d'œil."
+        subtitle="Récapitulatif de tes projets, demandes d'accès et messages en un coup d'œil."
       />
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -477,23 +486,29 @@ function ProjetsTab({
     setEditing(null);
     setDrawerOpen(true);
   };
-  const openEdit = (p: Project) => {
-    setEditing(p);
-    setDrawerOpen(true);
+  // getProjects() alimente la liste via projects_catalog_view, qui n'expose
+  // pas long_desc/ai_structured_desc/team (cf. commentaires du type Project) --
+  // ouvrir le drawer directement avec cette ligne laisserait ces champs
+  // obligatoires vides et bloquerait toute sauvegarde sur un projet existant.
+  // On récupère donc la fiche complète avant d'ouvrir le formulaire d'édition.
+  const openEdit = async (p: Project) => {
+    setBusyId(p.id);
+    try {
+      const full = await getProjectById(p.id, { includeDeleted: true });
+      setEditing(full ?? p);
+      setDrawerOpen(true);
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  // TODO: no createProject()/updateProject() yet (only updateProjectStatus,
-  // softDeleteProject, restoreProject were built), and ProjectDrawer itself
-  // isn't migrated yet — creating a project or editing its fields here only
-  // updates local state, it does not persist to Supabase. Only soft-delete
-  // and restore below are real writes.
-  const save = (p: Project) => {
+  const save = async (id: string, input: ProjectInput, isNew: boolean) => {
+    const saved = isNew ? await createProject(id, input) : await updateProject(id, input);
     onProjectsChange(
-      projects.some((x) => x.id === p.id)
-        ? projects.map((x) => (x.id === p.id ? p : x))
-        : [...projects, p],
+      projects.some((x) => x.id === saved.id)
+        ? projects.map((x) => (x.id === saved.id ? saved : x))
+        : [saved, ...projects],
     );
-    setDrawerOpen(false);
   };
 
   const softDelete = async (id: string) => {
@@ -527,9 +542,10 @@ function ProjetsTab({
         <button
           type="button"
           onClick={openNew}
-          className="rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
         >
-          + Créer un nouveau projet
+          <Plus aria-hidden="true" size={18} />
+          Créer un nouveau projet
         </button>
       </header>
 
@@ -603,8 +619,9 @@ function ProjetsTab({
                       <button
                         type="button"
                         onClick={() => openEdit(p)}
+                        disabled={busyId === p.id}
                         aria-label={`Éditer ${p.title}`}
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
                       >
                         <Pencil aria-hidden="true" size={18} />
                       </button>

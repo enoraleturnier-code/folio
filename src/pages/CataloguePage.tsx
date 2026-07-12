@@ -139,6 +139,7 @@ export function CataloguePage() {
                   accessState={accessState}
                   rejectionReason={rejectionReason}
                   onRequestAccess={openRequest}
+                  isAdmin={role === "admin"}
                 />
               );
             })}
