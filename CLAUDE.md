@@ -1,5 +1,14 @@
 # Folio+ — Notes pour Claude Code
 
+## Polish suppression RGPD (AccountPage.tsx) + renommage de branche (13/07) — terminée
+
+Passe de polish sur le bloc F-24 (`AccountPage.tsx`) demandée après coup, sur le point d'accès `/account` : plus discret, mieux intégré au reste de la page.
+
+- **Bloc RGPD déplacé dans la card d'informations du profil**, à la place du champ "Rôle actuel" (retiré) — au lieu d'un encart séparé en dessous.
+- **Alerte passée de `error` à `info`** (`Alert.tsx`, teal/tertiary) : plus de bandeau rouge "Zone sensible" ni de titre `h2` séparé — le titre de l'`Alert` porte désormais directement le message ("Supprimer mes données personnelles et mon compte").
+- **Bouton renommé** "Supprimer mes données" → **"Supprimer mon compte"**, style `error` (contour rouge) → **`primary`** plein (`bg-primary-container`, même pattern que les CTA principaux de l'app), **aligné à droite** de la card. La modale de confirmation (F-24, action irréversible) est inchangée.
+- **Branche renommée** `docs/pages-legales-rgpd` → **`feat/pages-legales-rgpd-anonymisation`** (rien n'était encore poussé au moment du renommage, donc pas de ré-écriture d'historique nécessaire) — reflète que la branche porte à la fois les pages légales publiques et le F-24 self-service, pas seulement de la doc. Poussée sur `origin`.
+
 ## F-24 RGPD — droit à l'effacement, self-service (12/07) — terminée
 
 Feature Must du PRD avec critère d'acceptation explicite, implémentée avant mise en ligne (vendredi). Suite directe de la session précédente : le placeholder "bouton Supprimer mes données" retiré de la politique de confidentialité (fonctionnalité inexistante à l'époque) est maintenant réellement implémenté.
