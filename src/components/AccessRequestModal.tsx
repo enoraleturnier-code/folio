@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Check,
   CircleAlert,
   CircleCheckBig,
   Eye,
@@ -292,18 +293,18 @@ export function AccessRequestModal({
       aria-label="Demander l'accès aux projets confidentiels"
       className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
     >
-      <AuroraBackground />
+      <AuroraBackground variant="modal" />
       <div
-        className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/90 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="glass-card relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden !border-primary/10 rounded-2xl shadow-2xl">
+      <div className="glass-card relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden !border-primary/10 rounded-2xl shadow-2xl shadow-black/40">
         <button
           type="button"
           onClick={onClose}
           aria-label="Fermer le formulaire"
-          className="absolute right-6 top-6 z-20 rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="absolute right-5 top-5 z-20 rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <X aria-hidden="true" size={24} />
         </button>
@@ -321,7 +322,7 @@ export function AccessRequestModal({
             <button
               type="button"
               onClick={goToProjects}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-8 py-3 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               Retour aux projets
               <ArrowRight aria-hidden="true" size={18} />
@@ -329,28 +330,21 @@ export function AccessRequestModal({
           </div>
         ) : (
           <>
-            <div className="shrink-0 p-6 pb-0 md:p-10 md:pb-0">
-              <div className="mb-6">
-                <span className="mb-3 block text-xs font-medium uppercase tracking-widest text-primary">
-                  Demande d'accès exclusif
-                </span>
-                <h2 className="mb-2 text-2xl font-medium text-on-surface md:text-3xl">
-                  Demander l'accès
-                </h2>
+            <div className="shrink-0 border-b border-white/10 px-6 py-5 md:px-10 md:py-6">
+              <h2 className="text-2xl font-medium text-on-surface md:text-3xl">
+                Demander l'accès
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6 md:p-10">
                 <p className="max-w-md text-sm text-on-surface-variant">
                   Accédez aux études de cas confidentielles et aux détails de projets sous accord
                   de divulgation restreinte.
                 </p>
-              </div>
-              {submitError && (
-                <div className="mb-6">
+                {submitError && (
                   <Alert type="error" title="Impossible d'envoyer la demande" description={submitError} />
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
-              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6 pt-6 md:p-10 md:pt-6">
+                )}
                 {!isAuthenticated && (
                   <>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -517,7 +511,12 @@ export function AccessRequestModal({
                           key={p.id}
                           className="group flex cursor-pointer items-start gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-white/5"
                         >
-                          <Checkbox checked={checked} onChange={() => toggleProject(p.id)} className="mt-0.5" />
+                          <Checkbox
+                            checked={checked}
+                            onChange={() => toggleProject(p.id)}
+                            size="sm"
+                            className="mt-0.5"
+                          />
                           <span className="flex flex-col">
                             <span className="text-sm text-on-surface transition-colors group-hover:text-primary">
                               {p.title}
@@ -584,8 +583,8 @@ export function AccessRequestModal({
                 )}
               </div>
 
-              <div className="shrink-0 border-t border-white/5 p-6 md:p-10">
-                <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+              <div className="shrink-0 border-t border-white/10 px-6 py-4 md:px-10 md:py-5">
+                <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                   {isAuthenticated ? (
                     <span />
                   ) : (
@@ -597,14 +596,24 @@ export function AccessRequestModal({
                       <span className={textLinkClass("default")}>Se connecter</span>
                     </Link>
                   )}
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex w-full items-center justify-center gap-3 rounded-full bg-primary-container px-10 py-4 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
-                  >
-                    {submitting ? "Envoi..." : "Envoyer ma demande"}
-                    <ArrowRight aria-hidden="true" size={20} />
-                  </button>
+                  <div className="flex w-full items-center justify-end gap-3 md:w-auto">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2.5 text-sm font-medium text-on-surface hover:border-white/30"
+                    >
+                      <X aria-hidden="true" size={16} />
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {submitting ? "Envoi..." : "Envoyer ma demande"}
+                      <Check aria-hidden="true" size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
