@@ -1,4 +1,4 @@
-import { Calendar as CalendarIcon, ChevronDown, CloudUpload, Sparkles, X } from "lucide-react";
+import { Calendar as CalendarIcon, Check, ChevronDown, CloudUpload, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
@@ -175,6 +175,18 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     };
   }, [pendingPreview]);
 
+  // Un seul scroll actif pendant que le drawer est ouvert : celui de son
+  // propre corps, jamais celui de la page derrière (même pattern que
+  // AccessRequestModal.tsx).
+  useEffect(() => {
+    if (!open) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const inputCls =
@@ -188,7 +200,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const max = MAX_LENGTHS[field];
     const len = (value ?? "").length;
     return (
-      <span className={"text-[10px] " + (len > max ? "text-error" : "text-on-surface-variant/60")}>
+      <span
+        className={"ml-auto text-[10px] " + (len > max ? "text-error" : "text-on-surface-variant/60")}
+      >
         {len}/{max}
       </span>
     );
@@ -396,7 +410,12 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   );
   const showSensitivity = draft.status === "confidential";
 
-  const selectCls = inputCls + " mt-2 appearance-none pr-10";
+  // Pas de "mt-2" ici : contrairement aux <input> simples, chaque <select>
+  // est enveloppé dans un <div className="relative mt-2"> (pour positionner
+  // le ChevronDown) qui porte déjà cet espacement -- l'ajouter aussi sur le
+  // select créait une double marge qui décalait le select vers le bas dans
+  // son wrapper, désalignant le chevron (centré sur le wrapper) du texte.
+  const selectCls = inputCls + " appearance-none pr-10";
   const chevronCls =
     "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant";
   const tertiaryBtnCls =
@@ -413,7 +432,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           seuls les boutons explicites (Fermer, Annuler, Enregistrer) peuvent
           fermer la modale. */}
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" aria-hidden="true" />
-      <aside className="absolute right-0 top-0 flex h-screen w-[70vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
         <div className="border-b border-white/5 px-10 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -446,131 +465,119 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <div className="space-y-5">
               <p className={sectionHeadingCls}>Informations générales</p>
 
-              <div className="grid gap-8 sm:grid-cols-2">
-                <div className="space-y-5">
-                  <div>
-                    <label htmlFor="pd-title" className={labelCls}>
-                      Titre du projet
-                    </label>
-                    <input
-                      id="pd-title"
-                      value={draft.title}
-                      onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-                      className={inputCls + " mt-2"}
-                    />
-                    <div className="mt-1 flex items-center justify-between">
-                      {fieldError("title")}
-                      {counter("title", draft.title)}
-                    </div>
-                  </div>
+              <div>
+                <label htmlFor="pd-title" className={labelCls}>
+                  Titre du projet
+                </label>
+                <input
+                  id="pd-title"
+                  value={draft.title}
+                  onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                  className={inputCls + " mt-2"}
+                />
+                <div className="mt-1 flex items-center">
+                  {fieldError("title")}
+                  {counter("title", draft.title)}
+                </div>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className={showSensitivity ? "" : "col-span-2"}>
-                      <label htmlFor="pd-status" className={labelCls}>
-                        Statut
-                      </label>
-                      <div className="relative mt-2">
-                        <select
-                          id="pd-status"
-                          value={draft.status}
-                          onChange={(e) =>
-                            setDraft({ ...draft, status: e.target.value as ProjectStatus })
-                          }
-                          className={selectCls}
-                        >
-                          {statusOptions.map(([v, l]) => (
+              <div>
+                <p className={labelCls}>Image</p>
+                <label
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingOver(true);
+                  }}
+                  onDragLeave={() => setIsDraggingOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingOver(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) onFileSelected(file);
+                  }}
+                  className={cn(
+                    "mt-2 flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed bg-surface-container text-center hover:bg-white/5",
+                    isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
+                  )}
+                >
+                  {pendingPreview || draft.thumbnail_url ? (
+                    <img
+                      src={pendingPreview ?? draft.thumbnail_url ?? ""}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
+                      <p className="text-sm text-on-surface-variant">
+                        Glissez-déposez ou <span className="text-primary">parcourir</span>
+                      </p>
+                      <p className="text-xs text-on-surface-variant/70">
+                        JPG, PNG ou WebP (max 5 Mo)
+                      </p>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
+                  />
+                </label>
+                {uploading && <p className="mt-1 text-xs text-on-surface-variant">Envoi en cours…</p>}
+                {fieldError("thumbnail_url")}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className={showSensitivity ? "" : "col-span-2"}>
+                  <label htmlFor="pd-status" className={labelCls}>
+                    Statut
+                  </label>
+                  <div className="relative mt-2">
+                    <select
+                      id="pd-status"
+                      value={draft.status}
+                      onChange={(e) => setDraft({ ...draft, status: e.target.value as ProjectStatus })}
+                      className={selectCls}
+                    >
+                      {statusOptions.map(([v, l]) => (
+                        <option key={v} value={v}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown aria-hidden="true" size={18} className={chevronCls} />
+                  </div>
+                </div>
+                {showSensitivity && (
+                  <div>
+                    <label htmlFor="pd-sensitivity" className={labelCls}>
+                      Niveau de sensibilité
+                    </label>
+                    <div className="relative mt-2">
+                      <select
+                        id="pd-sensitivity"
+                        value={draft.sensitivity_level}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            sensitivity_level: e.target.value as SensitivityLevel,
+                          })
+                        }
+                        className={selectCls}
+                      >
+                        {(Object.entries(SENSITIVITY_LABELS) as [SensitivityLevel, string][]).map(
+                          ([v, l]) => (
                             <option key={v} value={v}>
                               {l}
                             </option>
-                          ))}
-                        </select>
-                        <ChevronDown aria-hidden="true" size={18} className={chevronCls} />
-                      </div>
+                          ),
+                        )}
+                      </select>
+                      <ChevronDown aria-hidden="true" size={18} className={chevronCls} />
                     </div>
-                    {showSensitivity && (
-                      <div>
-                        <label htmlFor="pd-sensitivity" className={labelCls}>
-                          Niveau de sensibilité
-                        </label>
-                        <div className="relative mt-2">
-                          <select
-                            id="pd-sensitivity"
-                            value={draft.sensitivity_level}
-                            onChange={(e) =>
-                              setDraft({
-                                ...draft,
-                                sensitivity_level: e.target.value as SensitivityLevel,
-                              })
-                            }
-                            className={selectCls}
-                          >
-                            {(Object.entries(SENSITIVITY_LABELS) as [SensitivityLevel, string][]).map(
-                              ([v, l]) => (
-                                <option key={v} value={v}>
-                                  {l}
-                                </option>
-                              ),
-                            )}
-                          </select>
-                          <ChevronDown aria-hidden="true" size={18} className={chevronCls} />
-                        </div>
-                      </div>
-                    )}
                   </div>
-                </div>
-
-                <div>
-                  <p className={labelCls}>Image</p>
-                  <label
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDraggingOver(true);
-                    }}
-                    onDragLeave={() => setIsDraggingOver(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setIsDraggingOver(false);
-                      const file = e.dataTransfer.files?.[0];
-                      if (file) onFileSelected(file);
-                    }}
-                    className={cn(
-                      "mt-2 flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed bg-surface-container text-center hover:bg-white/5",
-                      isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
-                    )}
-                  >
-                    {pendingPreview || draft.thumbnail_url ? (
-                      <img
-                        src={pendingPreview ?? draft.thumbnail_url ?? ""}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <>
-                        <CloudUpload
-                          aria-hidden="true"
-                          className="text-on-surface-variant"
-                          size={30}
-                        />
-                        <p className="text-sm text-on-surface-variant">
-                          Glissez-déposez ou <span className="text-primary">parcourir</span>
-                        </p>
-                        <p className="text-xs text-on-surface-variant/70">
-                          JPG, PNG ou WebP (max 5 Mo)
-                        </p>
-                      </>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      className="hidden"
-                      onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
-                    />
-                  </label>
-                  {uploading && (
-                    <p className="mt-1 text-xs text-on-surface-variant">Envoi en cours…</p>
-                  )}
-                  {fieldError("thumbnail_url")}
-                </div>
+                )}
               </div>
             </div>
 
@@ -578,13 +585,12 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <div className="space-y-5 border-t border-white/5 pt-8">
               <p className={sectionHeadingCls}>Aide IA</p>
 
-              <div className="sm:w-1/2 sm:pr-4">
-                <Alert
-                  type="info"
-                  title="Structure et génère ton projet à l'aide de l'IA"
-                  description="Renseigne la description détaillée du projet ci-dessous puis lance « Structurer avec l'IA » pour générer automatiquement la description courte, le problème, les décisions, le résultat, et les suggestions de tags."
-                />
-              </div>
+              <Alert
+                type="success"
+                icon={Sparkles}
+                title="Structure et génère ton projet à l'aide de l'IA"
+                description="Renseigne la description détaillée du projet ci-dessous puis lance « Structurer avec l'IA » pour générer automatiquement la description courte, le problème, les décisions, le résultat, et les suggestions de tags."
+              />
 
               <div>
                 <label htmlFor="pd-long-desc" className={labelCls}>
@@ -596,44 +602,22 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   value={draft.long_desc ?? ""}
                   onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
                   className={inputCls + " mt-2 resize-y"}
-                  placeholder="Décris le projet, l'étude de cas, les mots-clés comme ça te vient à l'esprit..."
+                  placeholder="Décris le projet, l'étude de cas, les mots-clés comme ils te viennent à l'esprit..."
                 />
-                <div className="mt-1 flex items-center justify-between">
+                <div className="mt-1 flex items-center">
                   {fieldError("long_desc")}
                   {counter("long_desc", draft.long_desc)}
                 </div>
               </div>
 
-              {aiError && <Alert type="error" title={aiError} />}
-
-              <div className="grid items-end gap-8 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="pd-subtitle" className={aiLabelCls}>
-                    <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
-                    Description courte du projet
-                  </label>
-                  {aiLoading ? (
-                    aiFieldSkeleton(MAX_LENGTHS.short_desc)
-                  ) : (
-                    <textarea
-                      id="pd-subtitle"
-                      rows={estimateRows(MAX_LENGTHS.short_desc)}
-                      value={draft.short_desc ?? ""}
-                      onChange={(e) => setShortDesc(e.target.value)}
-                      className={inputCls + " mt-2 resize-y"}
-                    />
-                  )}
-                  <div className="mt-1 flex items-center justify-between">
-                    {fieldError("short_desc")}
-                    {counter("short_desc", draft.short_desc)}
-                  </div>
-                </div>
-                <div>
+              <div className="space-y-3 py-3">
+                {aiError && <Alert type="error" title={aiError} />}
+                <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={handleAiStructure}
                     disabled={!draft.long_desc?.trim() || aiLoading}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-6 py-4 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-6 py-3 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Sparkles
                       aria-hidden="true"
@@ -645,111 +629,127 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 </div>
               </div>
 
-              <div className="grid gap-8 sm:grid-cols-2">
-                <div className="space-y-5">
-                  <div>
-                    <label htmlFor="pd-problem" className={aiLabelCls}>
-                      <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
-                      Problème
-                    </label>
-                    {aiLoading ? (
-                      aiFieldSkeleton(MAX_LENGTHS.probleme)
-                    ) : (
-                      <textarea
-                        id="pd-problem"
-                        rows={estimateRows(MAX_LENGTHS.probleme)}
-                        value={draft.ai_structured_desc?.probleme ?? ""}
-                        onChange={(e) => setAiStructuredField("probleme", e.target.value)}
-                        className={inputCls + " mt-2 resize-y"}
-                      />
-                    )}
-                    <div className="mt-1 flex items-center justify-between">
-                      {fieldError("probleme")}
-                      {counter("probleme", draft.ai_structured_desc?.probleme)}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="pd-decisions" className={aiLabelCls}>
-                      <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
-                      Décisions
-                    </label>
-                    {aiLoading ? (
-                      aiFieldSkeleton(MAX_LENGTHS.decisions)
-                    ) : (
-                      <textarea
-                        id="pd-decisions"
-                        rows={estimateRows(MAX_LENGTHS.decisions)}
-                        value={draft.ai_structured_desc?.decisions ?? ""}
-                        onChange={(e) => setAiStructuredField("decisions", e.target.value)}
-                        className={inputCls + " mt-2 resize-y"}
-                      />
-                    )}
-                    <div className="mt-1 flex items-center justify-between">
-                      {fieldError("decisions")}
-                      {counter("decisions", draft.ai_structured_desc?.decisions)}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="pd-result" className={aiLabelCls}>
-                      <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
-                      Résultat
-                    </label>
-                    {aiLoading ? (
-                      aiFieldSkeleton(MAX_LENGTHS.resultat)
-                    ) : (
-                      <textarea
-                        id="pd-result"
-                        rows={estimateRows(MAX_LENGTHS.resultat)}
-                        value={draft.ai_structured_desc?.resultat ?? ""}
-                        onChange={(e) => setAiStructuredField("resultat", e.target.value)}
-                        className={inputCls + " mt-2 resize-y"}
-                      />
-                    )}
-                    <div className="mt-1 flex items-center justify-between">
-                      {fieldError("resultat")}
-                      {counter("resultat", draft.ai_structured_desc?.resultat)}
-                    </div>
-                  </div>
+              <div>
+                <label htmlFor="pd-subtitle" className={aiLabelCls}>
+                  <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
+                  Description courte du projet
+                </label>
+                {aiLoading ? (
+                  aiFieldSkeleton(MAX_LENGTHS.short_desc)
+                ) : (
+                  <textarea
+                    id="pd-subtitle"
+                    rows={estimateRows(MAX_LENGTHS.short_desc)}
+                    value={draft.short_desc ?? ""}
+                    onChange={(e) => setShortDesc(e.target.value)}
+                    className={inputCls + " mt-2 resize-y"}
+                  />
+                )}
+                <div className="mt-1 flex items-center">
+                  {fieldError("short_desc")}
+                  {counter("short_desc", draft.short_desc)}
                 </div>
+              </div>
 
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <TagPicker
-                      label="Types de design"
-                      category="designType"
-                      refTable="project_types_ref"
-                      fetchOptions={getTypesRef}
-                      selected={draft.tags.types}
-                      onChange={(types) => setDraft({ ...draft, tags: { ...draft.tags, types } })}
-                    />
-                    {suggestionChips("types")}
-                  </div>
-                  <div className="space-y-2">
-                    <TagPicker
-                      label="Outils"
-                      category="tools"
-                      refTable="tools_ref"
-                      fetchOptions={getToolsRef}
-                      selected={draft.tags.tools}
-                      onChange={(tools) => setDraft({ ...draft, tags: { ...draft.tags, tools } })}
-                    />
-                    {suggestionChips("tools")}
-                  </div>
-                  <div className="space-y-2">
-                    <TagPicker
-                      label="Mots-clés"
-                      category="keywords"
-                      refTable="keywords_ref"
-                      fetchOptions={getKeywordsRef}
-                      selected={draft.tags.keywords}
-                      onChange={(keywords) =>
-                        setDraft({ ...draft, tags: { ...draft.tags, keywords } })
-                      }
-                    />
-                    {suggestionChips("keywords")}
-                  </div>
+              <div>
+                <label htmlFor="pd-problem" className={aiLabelCls}>
+                  <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
+                  Problème
+                </label>
+                {aiLoading ? (
+                  aiFieldSkeleton(MAX_LENGTHS.probleme)
+                ) : (
+                  <textarea
+                    id="pd-problem"
+                    rows={estimateRows(MAX_LENGTHS.probleme)}
+                    value={draft.ai_structured_desc?.probleme ?? ""}
+                    onChange={(e) => setAiStructuredField("probleme", e.target.value)}
+                    className={inputCls + " mt-2 resize-y"}
+                  />
+                )}
+                <div className="mt-1 flex items-center">
+                  {fieldError("probleme")}
+                  {counter("probleme", draft.ai_structured_desc?.probleme)}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="pd-decisions" className={aiLabelCls}>
+                  <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
+                  Décisions
+                </label>
+                {aiLoading ? (
+                  aiFieldSkeleton(MAX_LENGTHS.decisions)
+                ) : (
+                  <textarea
+                    id="pd-decisions"
+                    rows={estimateRows(MAX_LENGTHS.decisions)}
+                    value={draft.ai_structured_desc?.decisions ?? ""}
+                    onChange={(e) => setAiStructuredField("decisions", e.target.value)}
+                    className={inputCls + " mt-2 resize-y"}
+                  />
+                )}
+                <div className="mt-1 flex items-center">
+                  {fieldError("decisions")}
+                  {counter("decisions", draft.ai_structured_desc?.decisions)}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="pd-result" className={aiLabelCls}>
+                  <Sparkles aria-hidden="true" size={14} className={aiIconCls} />
+                  Résultat
+                </label>
+                {aiLoading ? (
+                  aiFieldSkeleton(MAX_LENGTHS.resultat)
+                ) : (
+                  <textarea
+                    id="pd-result"
+                    rows={estimateRows(MAX_LENGTHS.resultat)}
+                    value={draft.ai_structured_desc?.resultat ?? ""}
+                    onChange={(e) => setAiStructuredField("resultat", e.target.value)}
+                    className={inputCls + " mt-2 resize-y"}
+                  />
+                )}
+                <div className="mt-1 flex items-center">
+                  {fieldError("resultat")}
+                  {counter("resultat", draft.ai_structured_desc?.resultat)}
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <TagPicker
+                    label="Types de design"
+                    category="designType"
+                    refTable="project_types_ref"
+                    fetchOptions={getTypesRef}
+                    selected={draft.tags.types}
+                    onChange={(types) => setDraft({ ...draft, tags: { ...draft.tags, types } })}
+                  />
+                  {suggestionChips("types")}
+                </div>
+                <div className="space-y-2">
+                  <TagPicker
+                    label="Outils"
+                    category="tools"
+                    refTable="tools_ref"
+                    fetchOptions={getToolsRef}
+                    selected={draft.tags.tools}
+                    onChange={(tools) => setDraft({ ...draft, tags: { ...draft.tags, tools } })}
+                  />
+                  {suggestionChips("tools")}
+                </div>
+                <div className="space-y-2">
+                  <TagPicker
+                    label="Mots-clés"
+                    category="keywords"
+                    refTable="keywords_ref"
+                    fetchOptions={getKeywordsRef}
+                    selected={draft.tags.keywords}
+                    onChange={(keywords) => setDraft({ ...draft, tags: { ...draft.tags, keywords } })}
+                  />
+                  {suggestionChips("keywords")}
                 </div>
               </div>
             </div>
@@ -758,7 +758,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <div className="space-y-5 border-t border-white/5 pt-8">
               <p className={sectionHeadingCls}>Contexte client</p>
 
-              <div className="grid gap-5 sm:grid-cols-4">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label htmlFor="pd-secteur" className={labelCls}>
                     Secteur d'activité
@@ -775,7 +775,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                       }
                       className={selectCls}
                     >
-                      <option value="">— Choisir —</option>
+                      <option value="">Sélectionner un secteur</option>
                       {Object.entries(SECTEUR_LABELS).map(([v, l]) => (
                         <option key={v} value={v}>
                           {l}
@@ -796,7 +796,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     onChange={(e) => setDraft({ ...draft, company_name: e.target.value })}
                     className={inputCls + " mt-2"}
                   />
-                  <div className="mt-1 flex items-center justify-between">
+                  <div className="mt-1 flex items-center">
                     {fieldError("company_name")}
                     {counter("company_name", draft.company_name)}
                   </div>
@@ -811,7 +811,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     onChange={(e) => setDraft({ ...draft, client_name: e.target.value })}
                     className={inputCls + " mt-2"}
                   />
-                  <div className="mt-1 flex items-center justify-between">
+                  <div className="mt-1 flex items-center">
                     {fieldError("client_name")}
                     {counter("client_name", draft.client_name)}
                   </div>
@@ -826,7 +826,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     onChange={(e) => setDraft({ ...draft, role: e.target.value })}
                     className={inputCls + " mt-2"}
                   />
-                  <div className="mt-1 flex items-center justify-between">
+                  <div className="mt-1 flex items-center">
                     {fieldError("role")}
                     {counter("role", draft.role)}
                   </div>
@@ -841,7 +841,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     onChange={(e) => setDraft({ ...draft, team: e.target.value })}
                     className={inputCls + " mt-2"}
                   />
-                  <div className="mt-1 flex items-center justify-between">
+                  <div className="mt-1 flex items-center">
                     {fieldError("team")}
                     {counter("team", draft.team)}
                   </div>
@@ -914,9 +914,16 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               type="button"
               onClick={() => submitWithStatus(draft.status, "publish")}
               disabled={savingAction !== null || !isValid}
-              className="rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
             >
-              {savingAction === "publish" ? "Enregistrement…" : "Enregistrer"}
+              {savingAction === "publish" ? (
+                "Enregistrement…"
+              ) : (
+                <>
+                  <Check aria-hidden="true" size={18} />
+                  Enregistrer et publier
+                </>
+              )}
             </button>
           </div>
         </div>

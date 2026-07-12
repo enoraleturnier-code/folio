@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   Mail,
   Pencil,
+  Plus,
   Settings,
   Trash2,
   type LucideIcon,
@@ -356,7 +357,7 @@ function DashboardTab({
         eyebrow="00 — Vue d'ensemble"
         title="Tableau de "
         emphasis="bord"
-        subtitle="Récapitulatif de vos projets, demandes d'accès et messages en un coup d'œil."
+        subtitle="Récapitulatif de tes projets, demandes d'accès et messages en un coup d'œil."
       />
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -541,9 +542,10 @@ function ProjetsTab({
         <button
           type="button"
           onClick={openNew}
-          className="rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
         >
-          + Créer un nouveau projet
+          <Plus aria-hidden="true" size={18} />
+          Créer un nouveau projet
         </button>
       </header>
 

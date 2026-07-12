@@ -11,6 +11,8 @@ interface AlertProps {
   description?: ReactNode;
   dismissible?: boolean;
   onClose?: () => void;
+  /** Remplace l'icône par défaut du type (ex. Sparkles pour un contexte IA). */
+  icon?: LucideIcon;
 }
 
 const icons: Record<AlertType, LucideIcon> = {
@@ -36,8 +38,8 @@ const roles: Record<AlertType, "alert" | "status"> = {
   error: "alert",
 };
 
-export function Alert({ type, title, description, dismissible, onClose }: AlertProps) {
-  const Icon = icons[type];
+export function Alert({ type, title, description, dismissible, onClose, icon }: AlertProps) {
+  const Icon = icon ?? icons[type];
   return (
     <div
       role={roles[type]}
