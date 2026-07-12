@@ -15,6 +15,7 @@ import {
   Plus,
   Settings,
   Trash2,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -23,6 +24,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Alert } from "@/components/Alert";
+import { AuroraBackground } from "@/components/AuroraBackground";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProjectDrawer } from "@/components/ProjectDrawer";
@@ -166,6 +168,15 @@ export function AdminPage() {
 
 /* ---------- Sidebar ---------- */
 
+/** Couleur active par section de nav — synchronisée avec SECTION_AURORA
+ * (même hue en fond de section et en surbrillance de nav, cf. DESIGN.md). */
+const NAV_ACTIVE_CLASSES = {
+  teal: { bg: "bg-primary-container/10", icon: "text-primary" },
+  violet: { bg: "bg-secondary/10", icon: "text-secondary" },
+  cyan: { bg: "bg-tag-sector/10", icon: "text-tag-sector" },
+  indigo: { bg: "bg-tag-keywords/10", icon: "text-tag-keywords" },
+} as const;
+
 function AdminSidebar({
   tab,
   setTab,
@@ -184,16 +195,20 @@ function AdminSidebar({
     icon: LucideIcon;
     label: string;
     badge?: number;
+    /** Couleur dominante de la section (cf. DESIGN.md) — reprise sur le fond
+     * boréal du dashboard et sur l'état actif de ce lien de nav. */
+    color: keyof typeof NAV_ACTIVE_CLASSES;
   }[] = [
-    { key: "projets", icon: Folder, label: "Catalogue projets" },
+    { key: "projets", icon: Folder, label: "Catalogue projets", color: "teal" },
     {
       key: "demandes",
       icon: KeyRound,
       label: "Accès",
       badge: pendingCount,
+      color: "violet",
     },
-    { key: "contacts", icon: Mail, label: "Messages" },
-    { key: "parametres", icon: Settings, label: "Paramètres " },
+    { key: "contacts", icon: Mail, label: "Messages", color: "cyan" },
+    { key: "parametres", icon: Settings, label: "Paramètres", color: "indigo" },
   ];
   return (
     <aside
@@ -287,6 +302,7 @@ function AdminSidebar({
         {items.map((it) => {
           const active = tab === it.key;
           const ItemIcon = it.icon;
+          const activeStyle = NAV_ACTIVE_CLASSES[it.color];
           return (
             <button
               key={it.key}
@@ -305,11 +321,11 @@ function AdminSidebar({
                   : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
                 " " +
                 (active
-                  ? "bg-primary-container/10 text-primary"
+                  ? activeStyle.bg + " font-medium text-on-surface"
                   : "text-on-surface-variant/65 hover:text-on-surface")
               }
             >
-              <ItemIcon aria-hidden="true" size={24} />
+              <ItemIcon aria-hidden="true" size={24} className={active ? activeStyle.icon : ""} />
               {!collapsed && (
                 <span className="hidden flex-1 text-left text-sm md:inline">{it.label}</span>
               )}
@@ -428,7 +444,7 @@ function DashboardTab({
                 <button
                   type="button"
                   onClick={() => setTab("demandes")}
-                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
                 >
                   Traiter
                 </button>
@@ -446,7 +462,7 @@ function DashboardTab({
                 <button
                   type="button"
                   onClick={() => setTab("contacts")}
-                  className="shrink-0 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
                 >
                   Lire
                 </button>
@@ -534,15 +550,16 @@ function ProjetsTab({
   };
 
   return (
-    <>
+    <div className="relative">
+      <SectionAurora color="teal" />
       <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
-        <h1 className="text-4xl font-bold text-on-surface md:text-[44px]">
+        <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
           Mon catalogue <span className="font-display-accent italic text-primary">Projets</span>
         </h1>
         <button
           type="button"
           onClick={openNew}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
         >
           <Plus aria-hidden="true" size={18} />
           Créer un nouveau projet
@@ -610,9 +627,9 @@ function ProjetsTab({
                       onClick={() => restore(p.id)}
                       disabled={busyId === p.id}
                       aria-label={`Restaurer le projet ${p.title}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
                     >
-                      <ArchiveRestore aria-hidden="true" size={18} />
+                      <ArchiveRestore aria-hidden="true" size={16} />
                     </button>
                   ) : (
                     <>
@@ -621,16 +638,16 @@ function ProjetsTab({
                         onClick={() => openEdit(p)}
                         disabled={busyId === p.id}
                         aria-label={`Éditer ${p.title}`}
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
                       >
-                        <Pencil aria-hidden="true" size={18} />
+                        <Pencil aria-hidden="true" size={16} />
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmDelete(p.id)}
                         disabled={busyId === p.id}
                         aria-label={`Supprimer ${p.title}`}
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50"
                       >
                         <Trash2 aria-hidden="true" size={18} />
                       </button>
@@ -652,12 +669,13 @@ function ProjetsTab({
 
       {confirmDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <AuroraBackground variant="modal" />
           <div
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             onClick={() => setConfirmDelete(null)}
             aria-hidden="true"
           />
-          <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
+          <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6 shadow-2xl shadow-black/40">
             <h3 className="text-lg font-medium text-on-surface">Supprimer ce projet ?</h3>
             <p className="mt-2 text-sm text-on-surface-variant">
               Le projet sera masqué du catalogue public. Vous pourrez le restaurer plus tard.
@@ -666,8 +684,9 @@ function ProjetsTab({
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
-                className="rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface"
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface"
               >
+                <X aria-hidden="true" size={16} />
                 Annuler
               </button>
               <button
@@ -677,15 +696,16 @@ function ProjetsTab({
                   setConfirmDelete(null);
                   softDelete(id);
                 }}
-                className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-6 py-2.5 text-sm font-bold text-[#F87171]"
+                className="inline-flex items-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171]"
               >
+                <Trash2 aria-hidden="true" size={16} />
                 Supprimer
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -744,7 +764,8 @@ function DemandesTab({
   const sorted = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
   return (
-    <>
+    <div className="relative">
+      <SectionAurora color="violet" />
       <TabHeader
         eyebrow="02 — Accès"
         title="Demandes d'"
@@ -827,15 +848,16 @@ function DemandesTab({
                             setRejecting(null);
                             setReason("");
                           }}
-                          className="rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface"
                         >
+                          <X aria-hidden="true" size={14} />
                           Annuler
                         </button>
                         <button
                           type="button"
                           onClick={() => reject(r.id)}
                           disabled={!reason.trim() || busyId === r.id}
-                          className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-2 text-xs font-bold text-[#F87171] disabled:opacity-50"
+                          className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50"
                         >
                           Confirmer le refus
                         </button>
@@ -847,7 +869,7 @@ function DemandesTab({
                         type="button"
                         onClick={() => setRejecting(r.id)}
                         disabled={busyId === r.id}
-                        className="rounded-full border border-[#F87171]/30 px-5 py-2 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50"
+                        className="rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50"
                       >
                         Refuser
                       </button>
@@ -855,7 +877,7 @@ function DemandesTab({
                         type="button"
                         onClick={() => approve(r.id)}
                         disabled={busyId === r.id}
-                        className="rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50"
+                        className="rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50"
                       >
                         Valider
                       </button>
@@ -874,7 +896,7 @@ function DemandesTab({
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -897,7 +919,8 @@ function ContactsTab() {
     );
 
   return (
-    <>
+    <div className="relative">
+      <SectionAurora color="cyan" />
       <TabHeader
         eyebrow="03 — Contacts"
         title="Messages"
@@ -948,16 +971,16 @@ function ContactsTab() {
                   type="button"
                   onClick={() => cycle(m.id)}
                   aria-label={`Changer le statut du message de ${m.fullName}`}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary"
                 >
-                  <ArrowLeftRight aria-hidden="true" size={18} />
+                  <ArrowLeftRight aria-hidden="true" size={16} />
                 </button>
               </div>
             </li>
           ))}
         </ul>
       )}
-    </>
+    </div>
   );
 }
 
@@ -995,7 +1018,8 @@ function ParametresTab() {
   const labelCls = "block text-sm font-medium text-on-surface-variant";
 
   return (
-    <>
+    <div className="relative">
+      <SectionAurora color="indigo" />
       <TabHeader
         eyebrow="04 — Profil"
         title="Vos"
@@ -1103,7 +1127,7 @@ function ParametresTab() {
               type="button"
               onClick={copy}
               aria-label="Copier le lien du profil"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
             >
               {copied ? (
                 <Check aria-hidden="true" size={18} />
@@ -1124,17 +1148,48 @@ function ParametresTab() {
           {saved && <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>}
           <button
             type="submit"
-            className="ml-auto rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+            className="ml-auto inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
           >
+            <Check aria-hidden="true" size={18} />
             Enregistrer les modifications
           </button>
         </div>
       </form>
-    </>
+    </div>
   );
 }
 
 /* ---------- Shared ---------- */
+
+/** Ajoute un espace avant l'accent italique, sauf si le titre se termine déjà
+ * par une élision ("d'") où un espace romprait la liaison grammaticale. */
+function titleWithSpacer(title: string): string {
+  const trimmed = title.replace(/\s+$/, "");
+  return /['’]$/.test(trimmed) ? trimmed : trimmed + " ";
+}
+
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/** Couleur dominante par section du dashboard admin (cf. DESIGN.md) — un
+ * seul halo discret, réutilise les teintes aurora déjà existantes. */
+const SECTION_AURORA: Record<"teal" | "violet" | "cyan" | "indigo", string> = {
+  teal: "var(--aurora-teal)",
+  violet: "var(--aurora-purple)",
+  cyan: "var(--aurora-cyan)",
+  indigo: "var(--aurora-indigo)",
+};
+
+function SectionAurora({ color }: { color: keyof typeof SECTION_AURORA }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="aurora-section"
+      style={{ ["--aurora-section-color" as string]: SECTION_AURORA[color] }}
+    />
+  );
+}
 
 function TabHeader({
   eyebrow,
@@ -1154,8 +1209,8 @@ function TabHeader({
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">{eyebrow}</p>
         <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-5xl">
-          {title}
-          <span className="font-display-accent italic text-primary">{emphasis}</span>.
+          {titleWithSpacer(title)}
+          <span className="font-display-accent italic text-primary">{capitalize(emphasis)}</span>
         </h1>
         <p className="mt-3 max-w-xl text-sm text-on-surface-variant">{subtitle}</p>
       </div>
