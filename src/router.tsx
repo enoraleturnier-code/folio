@@ -6,7 +6,9 @@ import { AccountPage } from "@/pages/AccountPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { AuthPage } from "@/pages/AuthPage";
 import { CataloguePage, catalogueLoader } from "@/pages/CataloguePage";
+import { LegalNoticePage } from "@/pages/LegalNoticePage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { PrivacyPolicyPage } from "@/pages/PrivacyPolicyPage";
 import { ProfilePage, profileLoader } from "@/pages/ProfilePage";
 import { ProjectDetailPage, projectDetailLoader } from "@/pages/ProjectDetailPage";
 import { RootLayout } from "@/pages/RootLayout";
@@ -36,6 +38,8 @@ export const router = createBrowserRouter([
       { path: "/admin", element: <AdminPage /> },
       { path: "/auth", element: <AuthPage /> },
       { path: "/account", element: <AccountPage /> },
+      { path: "/politique-de-confidentialite", element: <PrivacyPolicyPage /> },
+      { path: "/mentions-legales", element: <LegalNoticePage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

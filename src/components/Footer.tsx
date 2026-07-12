@@ -1,4 +1,4 @@
-import { designer } from "@/data/designer";
+import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
@@ -9,23 +9,17 @@ export function Footer() {
             <p className="text-xl font-medium text-on-surface">
               Folio<span className="text-primary">+</span>
             </p>
-            <p className="mt-2 text-sm text-on-surface-variant">
+            <p className="mt-2 text-xs text-on-surface-variant">
               © 2026 Folio+. Midnight gallery edition.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-6 text-sm text-on-surface-variant">
-            <a href={designer.linkedin} className="hover:text-primary transition-colors">
-              LinkedIn
-            </a>
-            <a href={designer.twitter} className="hover:text-primary transition-colors">
-              Twitter
-            </a>
-            <a href={designer.website} className="hover:text-primary transition-colors">
-              Site
-            </a>
-            <a href={`mailto:${designer.email}`} className="hover:text-primary transition-colors">
-              {designer.email}
-            </a>
+            <Link to="/politique-de-confidentialite" className="hover:text-primary transition-colors">
+              Politique de confidentialité
+            </Link>
+            <Link to="/mentions-legales" className="hover:text-primary transition-colors">
+              Mentions légales
+            </Link>
           </div>
         </div>
       </div>
