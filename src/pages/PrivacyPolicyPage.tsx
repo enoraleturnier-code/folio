@@ -45,11 +45,11 @@ Conformément au RGPD, vous disposez des droits suivants :
 
 - **Droit d'accès** : connaître les données que nous détenons sur vous
 - **Droit de rectification** : corriger une donnée inexacte
-- **Droit à l'effacement** : demander la suppression définitive de votre compte et de vos données
+- **Droit à l'effacement** : supprimer définitivement votre compte et vos données via le bouton **"Supprimer mes données"** disponible dans votre espace compte — une confirmation vous sera demandée avant toute suppression, qui est ensuite immédiate et irréversible
 - **Droit à la portabilité** : recevoir vos données dans un format structuré
 - **Droit d'opposition** : vous opposer à un traitement
 
-Pour exercer l'un de ces droits, contactez enoraleturnier@gmail.com.
+Pour exercer les droits d'accès, de rectification, de portabilité ou d'opposition, ou en cas de difficulté avec la suppression en libre-service, contactez enoraleturnier@gmail.com.
 
 ## 7. Sécurité
 
