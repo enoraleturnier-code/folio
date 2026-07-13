@@ -299,6 +299,8 @@ Introduit le 12/07 en remplaçant le pattern "bouton de soumission désactivé" 
 
 CSS-only, pages profil public et catalogue uniquement.
 
+**Exception (13/07)** : `bg-aurora-cyan` réutilisé en tint plat (pas l'effet `.aurora-bg` animé multi-blob) sur le conteneur de contenu de l'onglet admin "Veille Design" (`AdminPage.tsx`) — seul onglet admin avec une teinte de section, distinct de teal/primary (état actif nav) et violet/secondary (couleur du badge de notification).
+
 ---
 
 ## ✍️ Typographie (identique dark/light — seule la couleur change)

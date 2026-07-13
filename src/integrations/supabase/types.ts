@@ -154,6 +154,51 @@ export type Database = {
           },
         ]
       }
+      design_watch_entries: {
+        Row: {
+          contenu: string | null
+          created_at: string
+          id: string
+          nb_sources: number | null
+          notion_page_id: string
+          notion_url: string | null
+          periode_debut: string | null
+          periode_fin: string | null
+          statut: string
+          synced_at: string
+          tags: string[]
+          titre: string
+        }
+        Insert: {
+          contenu?: string | null
+          created_at?: string
+          id?: string
+          nb_sources?: number | null
+          notion_page_id: string
+          notion_url?: string | null
+          periode_debut?: string | null
+          periode_fin?: string | null
+          statut: string
+          synced_at?: string
+          tags?: string[]
+          titre: string
+        }
+        Update: {
+          contenu?: string | null
+          created_at?: string
+          id?: string
+          nb_sources?: number | null
+          notion_page_id?: string
+          notion_url?: string | null
+          periode_debut?: string | null
+          periode_fin?: string | null
+          statut?: string
+          synced_at?: string
+          tags?: string[]
+          titre?: string
+        }
+        Relationships: []
+      }
       designer_profiles: {
         Row: {
           bio: string | null
