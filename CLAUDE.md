@@ -1,5 +1,31 @@
 # Folio+ — Notes pour Claude Code
 
+## Sidebar admin + règles globales curseur/icônes (13/07, branche `style/ux-ui-ameliorations`) — terminée
+
+Passe UX/UI ciblée sur `AdminSidebar` (`src/pages/AdminPage.tsx`), suivie de deux règles globales demandées après coup. Skill `ux-ui-designer` utilisé pour la passe sidebar (audit avant proposition, cf. plan).
+
+- **"Dashboard" fusionné dans le tableau `items[]` de la nav** — codé à la main jusque-là (`<Link to="/admin">`, markup dupliqué), donc jamais passé par `setTab()` comme les autres onglets. Corrige au passage un bug déjà repéré en session précédente (cliquer "Dashboard" depuis un autre onglet ne changeait rien) : `"dashboard"` est un `TabKey` valide (`ALLOWED_TABS[0]`), le faire passer par le même chemin que les onglets déjà fonctionnels élimine la duplication et le bug en même temps.
+- **Tooltip custom au survol des icônes** (mode replié, ou toujours en mobile où le label est masqué) — remplace un `title` natif ajouté puis retiré (peu fiable, délai variable, non stylé). Implémenté en CSS pur (`group`/`group-hover:opacity-100`), visible à toutes les largeurs si `collapsed`, seulement sous `md` sinon (le label texte étant déjà visible au-dessus de `md`).
+- **Survol des items inactifs** : `hover:bg-white/5` ajouté (avant : seul le texte changeait de teinte).
+- **Badge de notification** : `text-[8px]` → `text-[10px]` (sous la plus petite taille de label documentée) — conteneur `h-5 w-5` inchangé (exemption déjà documentée dans `DESIGN.md`).
+- **État replié/déplié persisté** en `localStorage` (`folio-admin-sidebar-collapsed`), même pattern que `ThemeToggle.tsx` (clé plate, guard SSR, try/catch) — revenait systématiquement à "déplié" au rechargement avant.
+- **`aria-label="Navigation du dashboard"`** ajouté sur le `<nav>` (absent jusque-là).
+- **Essai puis retrait, sur demande explicite** : une barre d'accent verticale colorée sur l'item actif (pattern Linear/Vercel) avait été ajoutée pour renforcer le signal en mode icône-seule, puis retirée à la demande de l'utilisatrice — `NAV_ACTIVE_CLASSES` nettoyé du champ `bar` devenu inutile. Un remplissage des icônes actives (`fill-current`) a aussi été essayé puis annulé de la même façon — ne pas les réintroduire sans nouvelle demande explicite.
+- **Deux règles globales ajoutées dans `styles.css` (`@layer base`)**, sur demande explicite distincte :
+  - `cursor: pointer` systématique sur `button:not(:disabled)`/`[role="button"]`/`a[href]`/`select`/`label[for]`/checkbox/radio — corrige entre autres les cartes catalogue confidentielles (`ProjectCard.tsx`, mode `"modal"`, un `<div role="button">` qui n'avait jamais de curseur pointer explicite).
+  - `.lucide { stroke-width: 1.5 }` — uniformise toutes les icônes Lucide de l'app à 1.5px (avant : 2px par défaut, sauf où explicitement surchargé au cas par cas). **Remplace la règle `DESIGN.md` précédente ("1.5px · 2px sous 16px")** : c'est désormais 1.5px uniforme, sans exception de taille.
+- Vérifié en conditions réelles (dev server, persona Léa) : navigation Paramètres → Dashboard fonctionne, tooltip visible au survol en mode replié, curseur pointer confirmé sur un `[role="button"]` de test, `stroke-width` confirmé à 1.5px via `getComputedStyle` sur le dashboard admin et le profil public. `tsc --noEmit` propre à chaque étape, aucune erreur console.
+
+## Tutoiement dashboard + champs profil + retraits (13/07, branche `style/ux-ui-ameliorations`) — terminée
+
+- **Eyebrow retiré** ("00 — Vue d'ensemble", "02 — Accès", etc.) : prop `eyebrow` supprimée du composant `TabHeader` et de ses 5 appels dans `AdminPage.tsx`.
+- **Tutoiement appliqué à tout le Dashboard** (`AdminPage.tsx` + `ProjectDrawer.tsx`, ce dernier ouvert uniquement depuis l'admin) : sous-titres ("Valide ou refuse…", "Traite, archive, reviens-y…"), messages d'erreur ("Réessaie."), modale "Quitter sans enregistrer" ("Es-tu sûr…", "Tes données…") — cohérent avec le "tes projets" déjà en place sur le sous-titre Dashboard depuis une session antérieure.
+- **Paramètres** : "Avatar" → "Image de profil", "Glissez-déposez" → "Glisse-dépose", nouveaux champs **Prénom/Nom/Profession/Adjectif qui te définis** sous l'image de profil. **Décision explicite avec l'utilisatrice** : ces champs restent sur le pattern mock déjà en place (`useState` initialisé depuis `src/data/designer.ts`, `onSubmit` ne fait que `setSaved(true)`) — le formulaire Paramètres ne persiste toujours rien de réel en base, malgré l'existence de vraies tables `designer_profiles`/`admin_settings` (RLS activée, jamais câblées au code). À reprendre dans une session dédiée si la persistance réelle devient nécessaire.
+- **`designer.ts`/`types.ts`** : nouveaux champs `firstName`/`lastName`/`profession`/`adjective` (defaults "Léa"/"Martin"/"Designeuse produit"/"Visionnaire") ; `fullName` dérivé de `firstName`+`lastName` à la définition, aucun usage existant cassé. `ProfilePage.tsx` lit désormais `designer.profession`/`designer.adjective` au lieu des chaînes en dur "Designeuse produit"/"Précise" — le profil public affiche maintenant "Visionnaire".
+- **Veille Design Hebdo** : le sous-titre du bouton de synchro et le paragraphe "Dernière synchro" (doublon) fusionnés en une seule phrase ("Synchronisation automatique hebdomadaire — dernière synchronisation : il y a environ X"), bouton renommé "Synchroniser à nouveau".
+- **`ContactForm.tsx`** : icône `Check` → `Send` sur "Envoyer le message" — exception ponctuelle au mapping "Envoyer→`Check`" documenté dans `DESIGN.md` (les autres boutons "Envoyer", ex. `AccessRequestModal`, restent en `Check`).
+- Vérifié en conditions réelles à chaque étape (dev server + persona admin), `tsc --noEmit` propre, aucune erreur console.
+
 ## Fix tags catalogue + suppression F-11 + renommage "Critique" (13/07) — terminée
 
 Trois correctifs sur le catalogue et les demandes d'accès confidentiel, affinés en plusieurs allers-retours (branche `fix/tags-acces-sensibilite`).

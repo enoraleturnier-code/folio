@@ -144,6 +144,20 @@
   * {
     border-color: var(--outline-variant);
   }
+  button:not(:disabled),
+  [role="button"],
+  a[href],
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: pointer;
+  }
+  /* Toutes les icônes Lucide portent la classe .lucide — surcharge globale
+   * de l'attribut stroke-width (2 par défaut) sans toucher chaque usage. */
+  .lucide {
+    stroke-width: 1.5;
+  }
   html,
   body {
     background-color: var(--background);

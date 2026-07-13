@@ -2,7 +2,7 @@
 
 Document de référence **unique** pour l'implémentation des tokens couleur dans Claude Code (Tailwind v4, `src/styles.css`, `:root` / `.dark`). Nomenclature Material 3. Tous les ratios sont vérifiés programmatiquement (WCAG 2.1), pas estimés.
 
-**Dernière mise à jour** : 12 juillet 2026 — passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin, accent italique du dashboard admin agrandi au-delà du titre (retouche demandée après coup), puis deux passes successives de renforcement du fond aurora (alphas remontés à plusieurs reprises, 4ᵉ couleur indigo ajoutée à la composition principale, variant modal avec ses propres alphas plus marqués) ; en parallèle sur `main` : ajout des sections "États d'erreur de formulaire" et "Badge de statut avec suffixe". Voir les sections dédiées plus bas. Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.
+**Dernière mise à jour** : 13 juillet 2026 — amélioration du sidebar admin (fusion "Dashboard" dans la nav, tooltip custom en mode icône-seule, survol avec fond, badge `text-[10px]`, état replié persisté) + deux règles globales `styles.css` (`cursor: pointer` systématique, icônes Lucide uniformisées à `stroke-width: 1.5`, plus d'exception 2px sous 16px). Voir les sections dédiées plus bas. Avant ça, 12 juillet : passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin, accent italique du dashboard admin agrandi au-delà du titre (retouche demandée après coup), puis deux passes successives de renforcement du fond aurora (alphas remontés à plusieurs reprises, 4ᵉ couleur indigo ajoutée à la composition principale, variant modal avec ses propres alphas plus marqués) ; en parallèle sur `main` : ajout des sections "États d'erreur de formulaire" et "Badge de statut avec suffixe". Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.
 **Fond dark de référence officiel** : `#0E1513` (remplace `#050507`, obsolète).
 **Fond light de référence** : `#F9FBFA`.
 
@@ -456,7 +456,7 @@ Import : `fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&fa
 
 | Critère | Valeur |
 |---|---|
-| Épaisseur | 1.5px · 2px sous 16px |
+| Épaisseur | 1.5px, uniforme toutes tailles (`.lucide { stroke-width: 1.5 }`, `styles.css`, surcharge globale — plus d'exception 2px sous 16px) |
 | Tailles | 14-16px (inline/filtres) · 18-20px (UI, alertes) · 24px (nav/titres) · 32px+ (états vides) |
 | Couleur neutre | `on-surface` / `on-surface-variant` |
 | Couleur active/marque | `primary` sur fond `surface` — jamais sur `primary-container` |
@@ -470,6 +470,7 @@ Import : `fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&fa
 Une passe d'audit RGAA complète sur toute l'application est prévue séparément. Ces points sont déjà appliqués car quasi gratuits à intégrer dès l'écriture d'un composant — ne pas les reporter :
 
 - `focus-visible` (ring clavier) sur tout élément interactif (pills, boutons, liens)
+- `cursor: pointer` systématique (`styles.css`, `@layer base` — `button`/`[role="button"]`/`a[href]`/`select`/`label[for]`/checkbox/radio) : règle globale, jamais à poser au cas par cas sur un composant
 - Unités `rem`/classes Tailwind, jamais de `px` en dur pour le texte
 - Ne jamais coder une information uniquement par la couleur (toujours doubler avec forme, icône ou texte)
 - Labels de formulaire : jamais `uppercase`, toujours Sentence case

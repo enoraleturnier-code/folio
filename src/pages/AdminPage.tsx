@@ -92,12 +92,23 @@ function readVeilleLastViewed(): string {
   }
 }
 
+const SIDEBAR_COLLAPSED_KEY = "folio-admin-sidebar-collapsed";
+
+function readStoredSidebarCollapsed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function AdminPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { session, loading, role, roleLoading } = useAuth();
   const tab: TabKey = parseTab(searchParams.get("tab"));
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(readStoredSidebarCollapsed);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [accessRequests, setAccessRequests] = useState<AdminAccessRequest[]>([]);
@@ -213,7 +224,17 @@ export function AdminPage() {
         tab={tab}
         setTab={setTab}
         collapsed={collapsed}
-        onToggleCollapsed={() => setCollapsed((v) => !v)}
+        onToggleCollapsed={() =>
+          setCollapsed((v) => {
+            const next = !v;
+            try {
+              localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+            } catch {
+              /* ignore */
+            }
+            return next;
+          })
+        }
         pendingCount={pendingCount}
         veilleCount={veilleNewCount}
       />
@@ -302,6 +323,7 @@ function AdminSidebar({
      * boréal du dashboard et sur l'état actif de ce lien de nav. */
     color: keyof typeof NAV_ACTIVE_CLASSES;
   }[] = [
+    { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", color: "teal" },
     { key: "projets", icon: Folder, label: "Catalogue projets", color: "teal" },
     {
       key: "demandes",
@@ -388,29 +410,12 @@ function AdminSidebar({
       </div>
 
       <nav
+        aria-label="Navigation du dashboard"
         className={
           "mt-8 flex flex-col gap-2 " +
           (collapsed ? "items-center" : "items-center md:items-stretch")
         }
       >
-        <Link
-          to="/admin"
-          aria-label="Dashboard"
-          aria-current={tab === "dashboard" ? "page" : undefined}
-          className={
-            "relative flex h-12 items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
-            (collapsed
-              ? "w-12 justify-center"
-              : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
-            " " +
-            (tab === "dashboard"
-              ? "bg-primary-container/10 text-primary"
-              : "text-on-surface-variant/65 hover:text-on-surface")
-          }
-        >
-          <LayoutDashboard aria-hidden="true" size={24} />
-          {!collapsed && <span className="hidden text-sm md:inline">Dashboard</span>}
-        </Link>
         {items.map((it) => {
           const active = tab === it.key;
           const ItemIcon = it.icon;
@@ -427,27 +432,36 @@ function AdminSidebar({
               }
               aria-current={active ? "page" : undefined}
               className={
-                "relative flex h-12 items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
+                "group relative flex h-12 items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
                 (collapsed
                   ? "w-12 justify-center"
                   : "w-12 justify-center md:w-full md:justify-start md:px-3 md:gap-3") +
                 " " +
                 (active
                   ? activeStyle.bg + " font-medium text-on-surface"
-                  : "text-on-surface-variant/65 hover:text-on-surface")
+                  : "text-on-surface-variant/65 hover:bg-white/5 hover:text-on-surface")
               }
             >
               <ItemIcon aria-hidden="true" size={24} className={active ? activeStyle.icon : ""} />
               {!collapsed && (
                 <span className="hidden flex-1 text-left text-sm md:inline">{it.label}</span>
               )}
+              <span
+                aria-hidden="true"
+                className={
+                  "pointer-events-none absolute left-full top-1/2 z-10 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-white/10 bg-surface-container-lowest px-2.5 py-1.5 text-xs font-medium text-on-surface opacity-0 shadow-xl shadow-black/40 transition-opacity delay-150 group-hover:opacity-100 " +
+                  (collapsed ? "" : "md:hidden")
+                }
+              >
+                {it.label}
+              </span>
               {it.badge && it.badge > 0 ? (
                 <span
                   aria-hidden="true"
                   className={
                     collapsed
-                      ? "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-on-surface"
-                      : "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-on-surface md:static md:ml-auto md:h-5 md:w-5"
+                      ? "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-on-surface"
+                      : "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-on-surface md:static md:ml-auto md:h-5 md:w-5"
                   }
                 >
                   {it.badge}
