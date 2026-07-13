@@ -1,5 +1,8 @@
 import { Check, CircleAlert, MailCheck } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import { textLinkClass } from "@/lib/linkStyles";
 
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -137,8 +140,16 @@ export function ContactForm() {
           className="mt-0.5 h-4 w-4 rounded border border-outline bg-surface-container text-primary focus:ring-primary"
         />
         <span>
-          J'accepte que mes données soient utilisées pour traiter ma demande, conformément à la
-          politique de confidentialité.
+          J'accepte que mes données soient utilisées pour traiter ma demande, conformément à la{" "}
+          <Link
+            to="/politique-de-confidentialite"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={textLinkClass("default")}
+          >
+            politique de confidentialité
+          </Link>
+          .
         </span>
       </label>
       {rgpdInvalid && (

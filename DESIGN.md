@@ -2,7 +2,7 @@
 
 Document de référence **unique** pour l'implémentation des tokens couleur dans Claude Code (Tailwind v4, `src/styles.css`, `:root` / `.dark`). Nomenclature Material 3. Tous les ratios sont vérifiés programmatiquement (WCAG 2.1), pas estimés.
 
-**Dernière mise à jour** : 12 juillet 2026 — passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin, accent italique du dashboard admin agrandi au-delà du titre (retouche demandée après coup), puis deux passes successives de renforcement du fond aurora (alphas remontés à plusieurs reprises, 4ᵉ couleur indigo ajoutée à la composition principale, variant modal avec ses propres alphas plus marqués). Voir les sections dédiées plus bas. Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.
+**Dernière mise à jour** : 12 juillet 2026 — passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin, accent italique du dashboard admin agrandi au-delà du titre (retouche demandée après coup), puis deux passes successives de renforcement du fond aurora (alphas remontés à plusieurs reprises, 4ᵉ couleur indigo ajoutée à la composition principale, variant modal avec ses propres alphas plus marqués) ; en parallèle sur `main` : ajout des sections "États d'erreur de formulaire" et "Badge de statut avec suffixe". Voir les sections dédiées plus bas. Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.
 **Fond dark de référence officiel** : `#0E1513` (remplace `#050507`, obsolète).
 **Fond light de référence** : `#F9FBFA`.
 
@@ -340,6 +340,18 @@ Grep `font-display-accent` : 8 occurrences (`AdminPage.tsx` ×2, `CataloguePage.
 
 ---
 
+## 🚫 États d'erreur de formulaire (validation, ProjectDrawer)
+
+Introduit le 12/07 en remplaçant le pattern "bouton de soumission désactivé" (impossible pour l'utilisateur de savoir quel champ bloque) par un pattern "erreur trouvable" :
+
+- **Contour du champ** : `border-error` (au lieu de `border-white/5`/`outline` par défaut) + `focus-visible:ring-error` (au lieu de `ring-primary`) tant que le champ a une erreur. Appliqué via `cn()`/`tailwind-merge` pour résoudre proprement le conflit avec la bordure de base.
+- **Message d'erreur** : `text-error`, `text-xs`, précédé d'une icône Lucide `AlertCircle` (13px, `shrink-0`), alignés en `flex items-center gap-1`.
+- **Formulation** : champ obligatoire vide → `"Le champ [Nom du champ] est obligatoire."` (libellé humain, pas le nom technique du champ). Dépassement de longueur → `"X/Y caractères max."` (message dédié, inchangé).
+- **Pas de bouton désactivé** : le CTA principal ("Enregistrer et publier") reste cliquable même formulaire invalide — au clic, focus + scroll automatique vers le **premier champ en erreur selon sa position visuelle réelle** dans le formulaire (pas l'ordre de la fonction de validation, qui ne correspond pas à l'ordre des sections).
+- S'applique à tout type de champ (texte, textarea, select, zone de dépôt d'image) — la zone de dépôt reçoit un `id`/`tabIndex={-1}` dédiés pour être focusable/scrollable comme un input classique.
+
+---
+
 ## ⚠️ Formulaires — icône d'erreur sur les champs (12/07)
 
 Pattern déjà en place sur `AccessRequestModal` (`FieldHint`, icône `CircleAlert` + texte `text-error` sous le champ) répliqué partout où un champ peut être en erreur :
@@ -349,6 +361,15 @@ Pattern déjà en place sur `AccessRequestModal` (`FieldHint`, icône `CircleAle
 - `ContactForm.tsx` — idem, formulaire n'avait aucune validation autre que `required` HTML natif ; ajout d'un suivi `touched` par champ + icône `CircleAlert`.
 
 **Non concerné, volontairement** : `AdminPage` → `ParametresTab` (aucun champ n'y est requis, rien à signaler) et le textarea "Motif du refus" de `DemandesTab` (déjà gaté par un bouton disabled, pas de pattern touched/error à dupliquer pour un unique champ) — pas de validation fabriquée artificiellement là où le formulaire n'en avait pas besoin.
+
+---
+
+## 🏷️ Badge de statut avec suffixe (dashboard admin uniquement)
+
+`StatusBadge` accepte un prop optionnel `suffix?: string`, rendu en `normal-case` juste après le label (le label lui-même reste `uppercase`) : ex. `"CONFIDENTIEL • Sensible"`.
+
+- **Usage unique** : la liste "Mon catalogue Projets" du dashboard admin (`AdminPage.tsx`), pour afficher le niveau de sensibilité (`Sensible`/`Très sensible`) des projets confidentiels non supprimés.
+- **Ne pas généraliser** : les autres usages de `StatusBadge` (catalogue public via `ProjectCard.tsx`, onglets Accès/Messages) n'utilisent pas ce prop — le catalogue public affiche déjà l'info de sensibilité via son propre badge dédié ("Confidentiel • {sensibilité}", voir section F-12 ci-dessus), pas de doublon à créer.
 
 ---
 
@@ -398,6 +419,8 @@ CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `auro
 | Vue d'ensemble (Dashboard) | — | aucun | `text-primary` (lien séparé, non concerné par le mapping par section) |
 
 Pour chaque item de nav actif : fond `bg-{teinte}/10` + icône `text-{teinte}`, mais le **libellé reste `text-on-surface`** (jamais coloré) — `secondary` (#7C3AED) mesuré à ~3.25:1 sur le fond `background` de la sidebar, sous le seuil AA texte (4.5:1) bien qu'au-dessus du seuil UI/icône (3:1). Plutôt que de traiter Demandes différemment des 3 autres sections, la même règle (icône colorée / libellé neutre) s'applique uniformément aux 4 — cohérence visuelle et zéro risque de contraste, y compris pour cyan/indigo dont le texte aurait pourtant été safe seul.
+
+**Exception (13/07)** : `bg-aurora-cyan` réutilisé en tint plat (pas l'effet `.aurora-bg` animé multi-blob) sur le conteneur de contenu de l'onglet admin "Veille Design" (`AdminPage.tsx`) — seul onglet admin avec une teinte de section, distinct de teal/primary (état actif nav) et violet/secondary (couleur du badge de notification).
 
 ---
 

@@ -16,7 +16,6 @@ import { Alert } from "@/components/Alert";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { Checkbox } from "@/components/Checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getMyAccessRequests } from "@/data/accessRequests";
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 import { useAuth } from "@/hooks/useAuth";
@@ -247,27 +246,15 @@ export function AccessRequestModal({
         if (profileError) throw profileError;
       }
 
-      const existingApproved = (await getMyAccessRequests()).filter((r) => r.status === "approved");
       const requestSessionId = crypto.randomUUID();
       const consentGivenAt = form.consentGivenAt ?? new Date().toISOString();
-      const nowIso = new Date().toISOString();
-      const rows = form.projectIds.map((projectId) => {
-        const project = confidentialProjects.find((p) => p.id === projectId);
-        // F-11 : auto-validation par projet, jamais de rôle global — un visiteur déjà
-        // approuvé sur un autre projet "sensible" saute la revue admin pour un nouveau
-        // projet "sensible". Les projets "tres_sensible" passent toujours en revue.
-        const autoApprove =
-          project?.sensitivity_level === "sensible" &&
-          existingApproved.some((r) => r.project_id !== projectId);
-        return {
-          user_id: userId,
-          project_id: projectId,
-          request_session_id: requestSessionId,
-          consent_given_at: consentGivenAt,
-          message: form.message || null,
-          ...(autoApprove ? { status: "approved" as const, validated_at: nowIso } : {}),
-        };
-      });
+      const rows = form.projectIds.map((projectId) => ({
+        user_id: userId,
+        project_id: projectId,
+        request_session_id: requestSessionId,
+        consent_given_at: consentGivenAt,
+        message: form.message || null,
+      }));
       const { error: insertError } = await supabase.from("access_requests").insert(rows);
       if (insertError) throw insertError;
 
@@ -569,9 +556,14 @@ export function AccessRequestModal({
                   <label htmlFor="ar-gdpr" className="text-sm leading-relaxed text-on-surface-variant">
                     J'accepte que Folio+ traite mes données pour gérer ma demande d'accès
                     conformément à la{" "}
-                    <a href="#" className={textLinkClass("default")}>
+                    <Link
+                      to="/politique-de-confidentialite"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={textLinkClass("default")}
+                    >
                       politique de confidentialité
-                    </a>
+                    </Link>
                     .
                   </label>
                 </div>

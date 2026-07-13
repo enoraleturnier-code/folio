@@ -216,14 +216,17 @@ export function ProjectCard({
         )}
 
         <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
-          {project.tags.types.slice(0, 1).map((l) => (
+          {project.tags.types.slice(0, 2).map((l) => (
             <TagBadge key={l} category="designType" label={l} />
           ))}
           {project.secteur_activite && (
             <TagBadge category="sector" label={formatSecteur(project.secteur_activite)} />
           )}
-          {project.tags.tools.slice(0, 1).map((l) => (
+          {project.tags.tools.slice(0, 2).map((l) => (
             <TagBadge key={l} category="tools" label={l} />
+          ))}
+          {project.tags.keywords.slice(0, 2).map((l) => (
+            <TagBadge key={l} category="keywords" label={l} />
           ))}
         </div>
       </div>
