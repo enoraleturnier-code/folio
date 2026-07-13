@@ -1,11 +1,10 @@
 import {
   ArchiveRestore,
   ArrowLeftRight,
+  ArrowRight,
   Check,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
   CloudUpload,
   Copy,
   Folder,
@@ -19,10 +18,11 @@ import {
   Settings,
   Newspaper,
   Trash2,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { Session } from "@supabase/supabase-js";
@@ -1392,15 +1392,9 @@ function VeilleDesignTab({
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   // Deep-link depuis le tableau "Veille Design Hebdo" du Dashboard (?entry=<notion_page_id>) --
-  // ouvre directement le contenu de l'entrée visée au lieu de rester replié.
-  const [expandedId, setExpandedId] = useState<string | null>(() => searchParams.get("entry"));
-  const entryRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  useEffect(() => {
-    if (!expandedId) return;
-    entryRefs.current[expandedId]?.scrollIntoView({ behavior: "smooth", block: "start" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ouvre directement le drawer de contenu de l'entrée visée.
+  const [openEntryId, setOpenEntryId] = useState<string | null>(() => searchParams.get("entry"));
+  const openEntry = entries.find((e) => e.notion_page_id === openEntryId) ?? null;
 
   const statutOptions = useMemo(
     () => Array.from(new Set(entries.map((e) => e.statut))).sort(),
@@ -1547,81 +1541,123 @@ function VeilleDesignTab({
           </div>
         ) : (
           <div className="space-y-3">
-            {filtered.map((e) => {
-              const expanded = expandedId === e.notion_page_id;
-              return (
-                <div
-                  key={e.id}
-                  ref={(el) => {
-                    entryRefs.current[e.notion_page_id] = el;
-                  }}
-                  className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="text-base font-medium text-on-surface">{e.titre}</p>
-                      <p className="mt-1 text-xs text-on-surface-variant/70">
-                        {formatPeriode(e.periode_debut, e.periode_fin)}
-                        {typeof e.nb_sources === "number" && (
-                          <span>
-                            {" "}
-                            · {e.nb_sources} source{e.nb_sources > 1 ? "s" : ""}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <span
-                      className={
-                        "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest " +
-                        veilleStatutClass(e.statut)
-                      }
-                    >
-                      {e.statut}
-                    </span>
-                  </div>
-                  {e.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {e.tags.map((t) => (
-                        <span
-                          key={t}
-                          className="rounded-full border border-tag-keywords/30 bg-tag-keywords/10 px-3 py-1 text-[11px] font-medium text-tag-keywords"
-                        >
-                          {t}
+            {filtered.map((e) => (
+              <div
+                key={e.id}
+                className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-base font-medium text-on-surface">{e.titre}</p>
+                    <p className="mt-1 text-xs text-on-surface-variant/70">
+                      {formatPeriode(e.periode_debut, e.periode_fin)}
+                      {typeof e.nb_sources === "number" && (
+                        <span>
+                          {" "}
+                          · {e.nb_sources} source{e.nb_sources > 1 ? "s" : ""}
                         </span>
-                      ))}
-                    </div>
-                  )}
-                  {e.contenu ? (
-                    <button
-                      type="button"
-                      onClick={() => setExpandedId(expanded ? null : e.notion_page_id)}
-                      aria-expanded={expanded}
-                      className="inline-flex w-fit items-center gap-1 text-xs font-medium text-primary hover:underline"
-                    >
-                      {expanded ? "Masquer le contenu" : "Voir le contenu"}
-                      {expanded ? (
-                        <ChevronUp aria-hidden="true" size={12} />
-                      ) : (
-                        <ChevronDown aria-hidden="true" size={12} />
                       )}
-                    </button>
-                  ) : (
-                    <p className="text-xs text-on-surface-variant/70">
-                      Contenu indisponible — relancez une synchro.
                     </p>
-                  )}
-                  {expanded && e.contenu && (
-                    <div className="border-t border-white/10 pt-4">
-                      <MarkdownContent content={e.contenu} />
-                    </div>
-                  )}
+                  </div>
+                  <span
+                    className={
+                      "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest " +
+                      veilleStatutClass(e.statut)
+                    }
+                  >
+                    {e.statut}
+                  </span>
                 </div>
-              );
-            })}
+                {e.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {e.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-full border border-tag-keywords/30 bg-tag-keywords/10 px-3 py-1 text-[11px] font-medium text-tag-keywords"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {e.contenu ? (
+                  <button
+                    type="button"
+                    onClick={() => setOpenEntryId(e.notion_page_id)}
+                    className="inline-flex w-fit items-center gap-1.5 rounded-full border border-violet-text/40 px-4 py-1.5 text-xs font-bold text-violet-text transition-colors hover:bg-violet-text/10"
+                  >
+                    Voir le contenu
+                    <ArrowRight aria-hidden="true" size={14} />
+                  </button>
+                ) : (
+                  <p className="text-xs text-on-surface-variant/70">
+                    Contenu indisponible — relancez une synchro.
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {openEntry && <VeilleContentDrawer entry={openEntry} onClose={() => setOpenEntryId(null)} />}
     </>
+  );
+}
+
+function VeilleContentDrawer({
+  entry,
+  onClose,
+}: {
+  entry: DesignWatchEntry;
+  onClose: () => void;
+}) {
+  // Meme shell que ProjectDrawer.tsx (overlay + aside w-[54vw], scroll unique,
+  // fermeture Echap) -- ici en lecture seule, pas de confirmation de perte de
+  // saisie necessaire, donc le clic sur l'overlay ferme aussi le drawer.
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = original;
+      document.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={entry.titre}>
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+        <div className="border-b border-white/5 px-10 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-widest text-primary">
+                {formatPeriode(entry.periode_debut, entry.periode_fin)}
+              </p>
+              <h2 className="mt-1 text-xl font-medium text-on-surface">{entry.titre}</h2>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fermer"
+              className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
+            >
+              <X aria-hidden="true" size={24} />
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-10 py-6">
+          <MarkdownContent content={entry.contenu} />
+        </div>
+      </aside>
+    </div>
   );
 }
 
