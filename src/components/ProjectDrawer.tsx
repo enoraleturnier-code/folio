@@ -657,7 +657,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     <>
                       <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
                       <p className="text-sm text-on-surface-variant">
-                        Glissez-déposez ou <span className="text-primary">parcourir</span>
+                        Glisse-dépose ou <span className="text-primary">parcourir</span>
                       </p>
                       <p className="text-xs text-on-surface-variant/70">
                         JPG, PNG ou WebP (max 5 Mo)
@@ -1173,7 +1173,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             </div>
             <h3 className="text-lg font-medium text-on-surface">Quitter sans enregistrer ?</h3>
             <p className="mt-2 text-sm text-on-surface-variant">
-              Êtes-vous sûr de vouloir quitter sans enregistrer ? Vos données seront perdues.
+              Es-tu sûr de vouloir quitter sans enregistrer ? Tes données seront perdues.
             </p>
             <div className="mt-6 flex items-center justify-center gap-3">
               <button

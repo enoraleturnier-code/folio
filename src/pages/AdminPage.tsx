@@ -501,7 +501,6 @@ function DashboardTab({
   return (
     <>
       <TabHeader
-        eyebrow="00 — Vue d'ensemble"
         title="Tableau de "
         emphasis="bord"
         subtitle="Récapitulatif de tes projets, demandes d'accès et messages en un coup d'œil."
@@ -885,7 +884,7 @@ function ProjetsTab({
           <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6 shadow-2xl shadow-black/40">
             <h3 className="text-lg font-medium text-on-surface">Supprimer ce projet ?</h3>
             <p className="mt-2 text-sm text-on-surface-variant">
-              Le projet sera masqué du catalogue public. Vous pourrez le restaurer plus tard.
+              Le projet sera masqué du catalogue public. Tu pourras le restaurer plus tard.
             </p>
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
@@ -942,7 +941,7 @@ function DemandesTab({
       await approveAccessRequest(id);
       update(id, { status: "approved", validatedAt: new Date().toISOString() });
     } catch {
-      setError("Impossible de valider cette demande. Réessayez.");
+      setError("Impossible de valider cette demande. Réessaie.");
     } finally {
       setBusyId(null);
     }
@@ -962,7 +961,7 @@ function DemandesTab({
       setRejecting(null);
       setReason("");
     } catch {
-      setError("Impossible de refuser cette demande. Réessayez.");
+      setError("Impossible de refuser cette demande. Réessaie.");
     } finally {
       setBusyId(null);
     }
@@ -974,10 +973,9 @@ function DemandesTab({
     <div className="relative">
       <SectionAurora color="violet" />
       <TabHeader
-        eyebrow="02 — Accès"
         title="Demandes d'"
         emphasis="accès"
-        subtitle="Validez ou refusez l'accès aux projets confidentiels — chaque refus doit être motivé."
+        subtitle="Valide ou refuse l'accès aux projets confidentiels — chaque refus doit être motivé."
       />
       {error && (
         <div className="mt-6">
@@ -1046,7 +1044,7 @@ function DemandesTab({
                         rows={2}
                         required
                         className="mt-2 w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        placeholder="Expliquez brièvement le refus."
+                        placeholder="Explique brièvement le refus."
                       />
                       <div className="mt-3 flex items-center justify-end gap-2">
                         <button
@@ -1129,10 +1127,9 @@ function ContactsTab() {
     <div className="relative">
       <SectionAurora color="cyan" />
       <TabHeader
-        eyebrow="03 — Contacts"
         title="Messages"
         emphasis="reçus"
-        subtitle="Traitez, archivez, revenez-y. Le statut se met à jour d'un clic."
+        subtitle="Traite, archive, reviens-y. Le statut se met à jour d'un clic."
       />
       {items.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center gap-3">
@@ -1196,6 +1193,10 @@ function ContactsTab() {
 function ParametresTab() {
   const [form, setForm] = useState({
     avatar: designer.avatar,
+    firstName: designer.firstName,
+    lastName: designer.lastName,
+    profession: designer.profession,
+    adjective: designer.adjective,
     bio: designer.bio,
     linkedin: designer.linkedin,
     twitter: designer.twitter,
@@ -1228,10 +1229,9 @@ function ParametresTab() {
     <div className="relative">
       <SectionAurora color="indigo" />
       <TabHeader
-        eyebrow="04 — Profil"
-        title="Vos"
+        title="Mes"
         emphasis="paramètres"
-        subtitle="Mise à jour de votre profil public — visible à l'adresse ci-dessous."
+        subtitle="Mets à jour ton profil public ci-dessous."
       />
       <form
         onSubmit={(e) => {
@@ -1242,19 +1242,66 @@ function ParametresTab() {
         className="mt-10 space-y-6"
       >
         <div>
-          <p className={labelCls}>Avatar</p>
+          <p className={labelCls}>Image de profil</p>
           <div className="mt-2 flex items-center gap-4">
             <img
               src={form.avatar}
-              alt="Avatar"
+              alt="Image de profil"
               className="h-20 w-20 rounded-full border border-white/10 object-cover"
             />
             <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/15 bg-surface-container px-6 py-6 text-center">
               <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={24} />
               <p className="text-sm text-on-surface-variant">
-                Glissez-déposez une image ou <span className="text-primary">parcourir</span>
+                Glisse-dépose une image ou <span className="text-primary">parcourir</span>
               </p>
             </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="s-first-name" className={labelCls}>
+              Prénom
+            </label>
+            <input
+              id="s-first-name"
+              value={form.firstName}
+              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+              className={inputCls + " mt-2"}
+            />
+          </div>
+          <div>
+            <label htmlFor="s-last-name" className={labelCls}>
+              Nom
+            </label>
+            <input
+              id="s-last-name"
+              value={form.lastName}
+              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+              className={inputCls + " mt-2"}
+            />
+          </div>
+          <div>
+            <label htmlFor="s-profession" className={labelCls}>
+              Profession
+            </label>
+            <input
+              id="s-profession"
+              value={form.profession}
+              onChange={(e) => setForm({ ...form, profession: e.target.value })}
+              className={inputCls + " mt-2"}
+            />
+          </div>
+          <div>
+            <label htmlFor="s-adjective" className={labelCls}>
+              Adjectif qui te définis
+            </label>
+            <input
+              id="s-adjective"
+              value={form.adjective}
+              onChange={(e) => setForm({ ...form, adjective: e.target.value })}
+              className={inputCls + " mt-2"}
+            />
           </div>
         </div>
 
@@ -1450,7 +1497,7 @@ function VeilleDesignTab({
       await triggerNotionSync(session.access_token);
       await onSynced();
     } catch (err) {
-      setSyncError(err instanceof Error ? err.message : "La synchronisation a échoué. Réessayez.");
+      setSyncError(err instanceof Error ? err.message : "La synchronisation a échoué. Réessaie.");
     } finally {
       setSyncing(false);
     }
@@ -1459,7 +1506,6 @@ function VeilleDesignTab({
   return (
     <>
       <TabHeader
-        eyebrow="05 — Veille"
         title="Veille Design "
         emphasis="Hebdo"
         subtitle="Synthèses hebdomadaires Design/Art/IA agrégées automatiquement depuis Notion."
@@ -1472,22 +1518,18 @@ function VeilleDesignTab({
               className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
               <RefreshCw aria-hidden="true" size={16} className={syncing ? "animate-spin" : ""} />
-              {syncing ? "Synchronisation…" : "Forcer une synchro maintenant"}
+              {syncing ? "Synchronisation…" : "Synchroniser à nouveau"}
             </button>
             <p className="max-w-xs text-right text-xs text-on-surface-variant/70">
-              Synchronisation automatique hebdomadaire — ce bouton permet de forcer une mise à
-              jour immédiate.
+              Synchronisation automatique hebdomadaire — dernière synchronisation :{" "}
+              {lastSync
+                ? formatDistanceToNow(new Date(lastSync), { addSuffix: true, locale: fr })
+                : "jamais"}
+              .
             </p>
           </div>
         }
       />
-
-      <p className="mt-6 text-xs text-on-surface-variant/70">
-        Dernière synchro :{" "}
-        {lastSync
-          ? formatDistanceToNow(new Date(lastSync), { addSuffix: true, locale: fr })
-          : "jamais"}
-      </p>
 
       {syncError && (
         <div className="mt-4">
@@ -1616,7 +1658,7 @@ function VeilleDesignTab({
                   </button>
                 ) : (
                   <p className="text-xs text-on-surface-variant/70">
-                    Contenu indisponible — relancez une synchro.
+                    Contenu indisponible — relance une synchro.
                   </p>
                 )}
               </div>
@@ -1719,13 +1761,11 @@ function SectionAurora({ color }: { color: keyof typeof SECTION_AURORA }) {
 }
 
 function TabHeader({
-  eyebrow,
   title,
   emphasis,
   subtitle,
   cta,
 }: {
-  eyebrow: string;
   title: string;
   emphasis: string;
   subtitle: string;
@@ -1734,8 +1774,7 @@ function TabHeader({
   return (
     <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">{eyebrow}</p>
-        <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-5xl">
+        <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
           {titleWithSpacer(title)}
           <span className="font-display-accent text-5xl italic text-primary md:text-6xl">
             {capitalize(emphasis)}

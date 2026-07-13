@@ -1,8 +1,15 @@
 import type { Designer } from "./types";
 
+const firstName = "Léa";
+const lastName = "Martin";
+
 export const designer: Designer = {
   slug: "lea-martin",
-  fullName: "Léa Martin",
+  firstName,
+  lastName,
+  fullName: `${firstName} ${lastName}`,
+  profession: "Designeuse produit",
+  adjective: "Visionnaire",
   headline: "Designeuse produit — interfaces sobres, décisions nettes.",
   bio: "Je dessine des interfaces sobres pour des équipes qui prennent des décisions rapides. Dix ans à ciseler des produits SaaS, à cadrer des systèmes de design, et à défendre l'utilisateur là où ça compte : dans la salle où l'on tranche.",
   avatar:

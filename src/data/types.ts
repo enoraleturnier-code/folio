@@ -60,7 +60,12 @@ export interface ProjectSummary {
 
 export interface Designer {
   slug: string;
+  firstName: string;
+  lastName: string;
   fullName: string;
+  profession: string;
+  /** Adjectif mis en avant dans le titre du profil public (accent italique). */
+  adjective: string;
   headline: string;
   bio: string;
   avatar: string;

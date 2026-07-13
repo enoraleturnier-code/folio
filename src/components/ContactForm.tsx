@@ -1,4 +1,4 @@
-import { Check, CircleAlert, MailCheck } from "lucide-react";
+import { CircleAlert, MailCheck, Send } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -164,7 +164,7 @@ export function ContactForm() {
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         Envoyer le message
-        <Check aria-hidden="true" size={18} />
+        <Send aria-hidden="true" size={18} />
       </button>
     </form>
   );

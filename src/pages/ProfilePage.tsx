@@ -42,13 +42,13 @@ export function ProfilePage() {
 
           <div className="rounded-[32px] border border-white/10 bg-surface-container/30 p-8 backdrop-blur-sm md:col-span-7 md:p-12">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
-              Designeuse produit
+              {designer.profession}
             </p>
             <h1 className="text-5xl font-medium leading-[1.1] text-on-surface md:text-6xl">
               {designer.fullName}
             </h1>
             <p className="mt-2 font-display-accent text-5xl italic leading-tight text-primary md:text-6xl">
-              Précise
+              {designer.adjective}
             </p>
             <p className="mt-8 max-w-md text-base font-light leading-relaxed text-on-surface">
               {designer.bio}
