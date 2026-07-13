@@ -7,16 +7,10 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // pg_cron n'a aucune session utilisateur a fournir.
 //
 // Le chemin cron s'authentifie via un header `x-cron-secret` partage uniquement
-// avec le job pg_cron (valeur stockee cote DB dans Supabase Vault, jamais commitee
-// -- cf. migration du job cron). Ce secret est neanmoins hardcode ici en constante :
-// aucun outil disponible ne permet d'ecrire un secret Edge Function (Deno.env) sans
-// passer par le Dashboard, deja reserve a NOTION_API_KEY (credential externe reel).
-// Tradeoff assume, meme logique que l'anon key deja hardcodee dans dispatch_webhook()
-// (migration 20260711020351) : depot prive, et ce secret ne fait que declencher un
-// upsert idempotent sur des donnees non sensibles -- la vraie frontiere de securite
-// (RLS sur design_watch_entries + verification role=admin) reste intacte pour tout
-// appel qui ne presente pas ce header.
-const CRON_SYNC_SECRET = "11ec190c68608885e91b50e8773ecde2732c1ee25aadb2fc1ee33c575d2c86b8";
+// avec le job pg_cron -- stocke a la fois en Supabase Vault (cote DB, lu par la
+// migration du job cron) et en secret Edge Function (Deno.env, lu ici). Les deux
+// copies portent la meme valeur, jamais committee en clair dans le code source.
+const CRON_SYNC_SECRET = Deno.env.get("CRON_SYNC_SECRET");
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
