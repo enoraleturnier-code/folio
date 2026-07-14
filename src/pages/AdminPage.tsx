@@ -556,6 +556,21 @@ function AdminSidebar({
 }
 /* ---------- Dashboard Tab ---------- */
 
+const CONTACTS_UNIFIED_KIND_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "message", label: "Message" },
+  { value: "demande", label: "Demande d'accès" },
+];
+
+/** Libellés pour les deux vocabulaires de statut réunis dans "Mes contacts" (messages + demandes) -- pas de fusion forcée en un seul jeu de valeurs. */
+const UNIFIED_CONTACT_STATUS_LABELS: Record<string, string> = {
+  nouveau: "Nouveau",
+  traite: "Traité",
+  archive: "Archivé",
+  pending: "En attente",
+  approved: "Accordé",
+  rejected: "Refusé",
+};
+
 /** Une carte "accès rapide" du dashboard -- reprend la couleur nav de l'onglet ciblé (NAV_ACTIVE_CLASSES), pas une teinte unique partagée. */
 function QuickAccessCard({
   icon: Icon,
@@ -671,6 +686,51 @@ function DashboardTab({
     .filter(
       (r) => !visibilityFilters.person || r.grantees.some((g) => g.name === visibilityFilters.person),
     );
+
+  const [contactsUnifiedFilters, setContactsUnifiedFilters] = useState<Record<string, string>>({
+    kind: "",
+    status: "",
+  });
+
+  const unifiedContacts = useMemo(() => {
+    const fromMessages = contacts.map((c) => ({
+      id: `msg-${c.id}`,
+      name: c.name,
+      email: c.email,
+      company: c.company,
+      kind: "message" as const,
+      status: CONTACT_STATUS_KIND[c.status],
+      createdAt: c.createdAt,
+    }));
+    const fromRequests = accessRequests.map((r) => ({
+      id: `req-${r.id}`,
+      name: r.visitor?.fullName ?? "Visiteur",
+      email: r.visitor?.email ?? "—",
+      company: r.visitor?.company ?? null,
+      kind: "demande" as const,
+      status: r.status,
+      createdAt: r.createdAt,
+    }));
+    return [...fromMessages, ...fromRequests].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  }, [contacts, accessRequests]);
+
+  const contactsUnifiedStatusOptions = useMemo(
+    () =>
+      Array.from(new Set(unifiedContacts.map((r) => r.status))).map((s) => ({
+        value: s,
+        label: UNIFIED_CONTACT_STATUS_LABELS[s],
+      })),
+    [unifiedContacts],
+  );
+
+  const contactsUnifiedFilterGroups: AdminFilterGroup[] = [
+    { key: "kind", label: "Type", primary: true, options: CONTACTS_UNIFIED_KIND_OPTIONS },
+    { key: "status", label: "Statut", options: contactsUnifiedStatusOptions },
+  ];
+
+  const filteredUnifiedContacts = unifiedContacts
+    .filter((r) => !contactsUnifiedFilters.kind || r.kind === contactsUnifiedFilters.kind)
+    .filter((r) => !contactsUnifiedFilters.status || r.status === contactsUnifiedFilters.status);
 
   return (
     <>
@@ -898,6 +958,44 @@ function DashboardTab({
                     ))}
                   </ul>
                 )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-10">
+        <h2 className="text-xl font-bold text-on-surface">Mes contacts</h2>
+        <div className="mt-4">
+          <AdminFilterBar
+            groups={contactsUnifiedFilterGroups}
+            value={contactsUnifiedFilters}
+            onChange={setContactsUnifiedFilters}
+          />
+        </div>
+        {filteredUnifiedContacts.length === 0 ? (
+          <p className="mt-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
+            Aucun contact pour ce filtre.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {filteredUnifiedContacts.map((r) => (
+              <li
+                key={r.id}
+                className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-on-surface">{r.name}</p>
+                  <p className="text-sm text-on-surface-variant">
+                    {r.email} · {r.company ?? "—"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-on-surface-variant">
+                    {r.kind === "message" ? "Message" : "Demande d'accès"}
+                  </span>
+                  <StatusBadge kind={r.status} />
+                </div>
               </li>
             ))}
           </ul>
