@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
@@ -31,6 +31,14 @@ export function CataloguePage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [myRequests, setMyRequests] = useState<MyAccessRequest[]>([]);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Ne dépend d'aucun état React capturé en closure (ex. `session`) : un onSuccess
   // appelé depuis AccessRequestModal peut provenir d'un rendu antérieur à une
@@ -151,6 +159,17 @@ export function CataloguePage() {
           )}
         </div>
       </main>
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Retour en haut"
+          title="Retour en haut"
+          className="fixed bottom-8 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary-container text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 md:right-16"
+        >
+          <ChevronUp aria-hidden="true" size={22} />
+        </button>
+      )}
       <AccessRequestModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
