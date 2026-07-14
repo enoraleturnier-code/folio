@@ -1936,6 +1936,43 @@ function ParametresTab() {
             </label>
           </div>
 
+          <div className="grid gap-5 sm:grid-cols-3">
+            <div>
+              <label htmlFor="s-firstname" className={labelCls}>
+                Prénom
+              </label>
+              <input
+                id="s-firstname"
+                readOnly
+                value={designer.firstName}
+                className={inputCls + " mt-2 cursor-default text-on-surface-variant"}
+              />
+            </div>
+            <div>
+              <label htmlFor="s-lastname" className={labelCls}>
+                Nom
+              </label>
+              <input
+                id="s-lastname"
+                readOnly
+                value={designer.lastName}
+                className={inputCls + " mt-2 cursor-default text-on-surface-variant"}
+              />
+            </div>
+            <div>
+              <label htmlFor="s-email" className={labelCls}>
+                Email
+              </label>
+              <input
+                id="s-email"
+                type="email"
+                readOnly
+                value={designer.email}
+                className={inputCls + " mt-2 cursor-default text-on-surface-variant"}
+              />
+            </div>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="s-profession" className={labelCls}>
