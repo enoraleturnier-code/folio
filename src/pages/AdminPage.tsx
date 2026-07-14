@@ -431,7 +431,7 @@ function AdminSidebar({
       badgeLabel: "nouvelles entrées",
       color: "cyan",
     },
-    { key: "parametres", icon: Settings, label: "Paramètres", color: "indigo" },
+    { key: "parametres", icon: Settings, label: "Paramètres", color: "teal" },
   ];
   return (
     <aside
@@ -1617,7 +1617,7 @@ function ParametresTab() {
 
   return (
     <div className="relative">
-      <SectionAurora color="indigo" />
+      <SectionAurora color="teal" />
       <TabHeader
         title="Mes"
         emphasis="paramètres"
