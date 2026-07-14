@@ -3,6 +3,7 @@ import { Outlet, ScrollRestoration } from "react-router-dom";
 import { useState } from "react";
 
 import { PersonaSwitcher } from "@/components/dev/PersonaSwitcher";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function RootLayout() {
@@ -13,6 +14,7 @@ export function RootLayout() {
       <TooltipProvider delayDuration={300}>
         <ScrollRestoration />
         <Outlet />
+        <ScrollToTopButton />
         {import.meta.env.DEV && <PersonaSwitcher />}
       </TooltipProvider>
     </QueryClientProvider>
