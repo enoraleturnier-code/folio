@@ -35,6 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Alert } from "@/components/Alert";
 import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { IconTooltip } from "@/components/IconTooltip";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -2020,9 +2021,12 @@ function ParametresTab() {
               {fieldError("website")}
             </div>
             <div>
-              <label htmlFor="s-cal" className={labelCls}>
-                Nom d'utilisateur Cal.com
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="s-cal" className={labelCls}>
+                  Nom d'utilisateur Cal.com
+                </label>
+                <ComingSoonBadge />
+              </div>
               <input
                 id="s-cal"
                 disabled={!editing}
