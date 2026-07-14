@@ -289,13 +289,51 @@ export function AdminPage() {
 
 /* ---------- Sidebar ---------- */
 
-/** Couleur active par section de nav — synchronisée avec SECTION_AURORA
- * (même hue en fond de section et en surbrillance de nav, cf. DESIGN.md). */
+/** Couleur active par section de nav (cf. DESIGN.md). `badgeBg`/`badgeText`
+ * sont la paire "conteneur solide" utilisée par le badge de notification de
+ * cette même catégorie — jamais un dérivé de `bg`/`icon` (souvent une teinte
+ * translucide, pas assez de contraste pour porter un chiffre en petit texte).
+ * ⚠️ Depuis la redéfinition du 13/07, ces couleurs ne correspondent plus
+ * forcément à celle du halo `SectionAurora` de la même section (ex. Contacts :
+ * nav en tertiary-container, halo toujours cyan) — décision explicite,
+ * périmètres volontairement dissociés. */
 const NAV_ACTIVE_CLASSES = {
-  teal: { bg: "bg-primary-container/10", icon: "text-primary" },
-  violet: { bg: "bg-secondary/10", icon: "text-secondary" },
-  cyan: { bg: "bg-tag-sector/10", icon: "text-tag-sector" },
-  indigo: { bg: "bg-tag-keywords/10", icon: "text-tag-keywords" },
+  teal: {
+    bg: "bg-primary-container/10",
+    icon: "text-primary",
+    badgeBg: "bg-primary-container",
+    badgeText: "text-on-primary-container",
+  },
+  fuchsia: {
+    bg: "bg-tag-design-type/15",
+    icon: "text-tag-design-type",
+    badgeBg: "bg-tag-design-type",
+    badgeText: "text-background",
+  },
+  violet: {
+    bg: "bg-secondary/10",
+    icon: "text-secondary",
+    badgeBg: "bg-secondary-container",
+    badgeText: "text-on-secondary-container",
+  },
+  cyan: {
+    bg: "bg-tag-sector/10",
+    icon: "text-tag-sector",
+    badgeBg: "bg-tag-sector",
+    badgeText: "text-on-primary",
+  },
+  nouveau: {
+    bg: "bg-indigo-500/10",
+    icon: "text-tag-keywords",
+    badgeBg: "bg-indigo-500",
+    badgeText: "text-black",
+  },
+  indigo: {
+    bg: "bg-tag-keywords/10",
+    icon: "text-tag-keywords",
+    badgeBg: "bg-tag-keywords",
+    badgeText: "text-on-primary",
+  },
 } as const;
 
 function AdminSidebar({
@@ -324,7 +362,7 @@ function AdminSidebar({
     color: keyof typeof NAV_ACTIVE_CLASSES;
   }[] = [
     { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", color: "teal" },
-    { key: "projets", icon: Folder, label: "Catalogue projets", color: "teal" },
+    { key: "projets", icon: Folder, label: "Catalogue projets", color: "fuchsia" },
     {
       key: "demandes",
       icon: KeyRound,
@@ -333,11 +371,11 @@ function AdminSidebar({
       badgeLabel: "demandes en attente",
       color: "violet",
     },
-    { key: "contacts", icon: Mail, label: "Messages", color: "cyan" },
+    { key: "contacts", icon: Mail, label: "Messages", color: "nouveau" },
     {
       key: "veille",
       icon: Newspaper,
-      label: "Veille Design Hebdo",
+      label: "Veille Hebdo",
       badge: veilleCount,
       badgeLabel: "nouvelles entrées",
       color: "cyan",
@@ -378,36 +416,24 @@ function AdminSidebar({
         )}
       </Link>
 
+      {/* `aside` est déjà `fixed` (positioned), donc contexte suffisant pour cet
+       * `absolute` — pas besoin d'un wrapper `relative` supplémentaire. Ancré sur
+       * la bordure droite du panneau (`right-0 translate-x-1/2`, à cheval sur le
+       * `border-r` de l'aside), indépendant de la largeur collapsed/expanded. */}
       <button
         type="button"
         onClick={onToggleCollapsed}
         aria-label={
           collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"
         }
-        className={
-          "mt-8 flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-on-surface-variant/65 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
-          (collapsed ? "" : "md:self-end")
-        }
+        className="absolute right-0 top-10 flex h-[30px] w-[30px] -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         {collapsed ? (
-          <ChevronRight aria-hidden="true" size={18} />
+          <ChevronRight aria-hidden="true" size={16} />
         ) : (
-          <ChevronLeft aria-hidden="true" size={18} />
+          <ChevronLeft aria-hidden="true" size={16} />
         )}
       </button>
-
-      <div
-        className={
-          "mt-6 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary " +
-          (collapsed ? "" : "md:self-center")
-        }
-      >
-        {designer.fullName
-          .split(" ")
-          .map((w) => w[0])
-          .slice(0, 2)
-          .join("")}
-      </div>
 
       <nav
         aria-label="Navigation du dashboard"
@@ -459,9 +485,11 @@ function AdminSidebar({
                 <span
                   aria-hidden="true"
                   className={
-                    collapsed
-                      ? "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-on-surface"
-                      : "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-on-surface md:static md:ml-auto md:h-5 md:w-5"
+                    "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold " +
+                    activeStyle.badgeBg +
+                    " " +
+                    activeStyle.badgeText +
+                    (collapsed ? "" : " md:static md:ml-auto md:h-5 md:w-5")
                   }
                 >
                   {it.badge}
@@ -619,7 +647,7 @@ function DashboardTab({
       {publishedVeille.length > 0 && (
         <div className="mt-10">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-on-surface">Veille Design Hebdo</h2>
+            <h2 className="text-xl font-bold text-on-surface">Veille Hebdo</h2>
             {veilleMonthOptions.length > 1 && (
               <select
                 value={veilleMonthFilter}
@@ -1477,7 +1505,7 @@ function VeilleDesignTab({
   const [tagFilter, setTagFilter] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-  // Deep-link depuis le tableau "Veille Design Hebdo" du Dashboard (?entry=<notion_page_id>) --
+  // Deep-link depuis le tableau "Veille Hebdo" du Dashboard (?entry=<notion_page_id>) --
   // ouvre directement le drawer de contenu de l'entrée visée.
   const [openEntryId, setOpenEntryId] = useState<string | null>(() => searchParams.get("entry"));
   const openEntry = entries.find((e) => e.notion_page_id === openEntryId) ?? null;
@@ -1520,7 +1548,7 @@ function VeilleDesignTab({
   return (
     <>
       <TabHeader
-        title="Veille Design "
+        title="Veille "
         emphasis="Hebdo"
         subtitle="Synthèses hebdomadaires Design/Art/IA agrégées automatiquement depuis Notion."
         cta={
