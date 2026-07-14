@@ -1,6 +1,8 @@
 import { Check, Contrast, Moon, Sun, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { IconTooltip } from "@/components/IconTooltip";
+
 type ThemeMode = "dark" | "light" | "system";
 
 function applyTheme(mode: ThemeMode) {
@@ -76,16 +78,18 @@ export function ThemeToggle() {
 
   return (
     <div className="relative" ref={ref}>
-      <button
-        type="button"
-        aria-haspopup="true"
-        aria-expanded={open}
-        aria-label="Choisir le thème d'affichage"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        <TriggerIcon aria-hidden="true" size={24} />
-      </button>
+      <IconTooltip label="Choisir le thème d'affichage">
+        <button
+          type="button"
+          aria-haspopup="true"
+          aria-expanded={open}
+          aria-label="Choisir le thème d'affichage"
+          onClick={() => setOpen((v) => !v)}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <TriggerIcon aria-hidden="true" size={24} />
+        </button>
+      </IconTooltip>
 
       {open && (
         <div className="absolute right-0 z-[80] mt-2 w-44 overflow-hidden rounded-2xl border border-white/10 bg-surface-container-low shadow-2xl">

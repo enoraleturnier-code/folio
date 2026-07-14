@@ -5,6 +5,7 @@ import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
+import { IconTooltip } from "@/components/IconTooltip";
 import { ProjectCard, type AccessState } from "@/components/ProjectCard";
 import { getMyAccessRequests, type MyAccessRequest } from "@/data/accessRequests";
 import { designer } from "@/data/designer";
@@ -160,15 +161,16 @@ export function CataloguePage() {
         </div>
       </main>
       {showScrollTop && (
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          aria-label="Retour en haut"
-          title="Retour en haut"
-          className="fixed bottom-8 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary-container text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 md:right-16"
-        >
-          <ChevronUp aria-hidden="true" size={22} />
-        </button>
+        <IconTooltip label="Retour en haut">
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            aria-label="Retour en haut"
+            className="fixed bottom-8 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary-container text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 md:right-16"
+          >
+            <ChevronUp aria-hidden="true" size={22} />
+          </button>
+        </IconTooltip>
       )}
       <AccessRequestModal
         open={modalOpen}

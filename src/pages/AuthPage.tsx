@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/Alert";
+import { IconTooltip } from "@/components/IconTooltip";
 import { designer } from "@/data/designer";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -112,18 +113,20 @@ export function AuthPage() {
                 }
                 placeholder="••••••••"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {showPassword ? (
-                  <EyeOff aria-hidden="true" size={18} />
-                ) : (
-                  <Eye aria-hidden="true" size={18} />
-                )}
-              </button>
+              <IconTooltip label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  {showPassword ? (
+                    <EyeOff aria-hidden="true" size={18} />
+                  ) : (
+                    <Eye aria-hidden="true" size={18} />
+                  )}
+                </button>
+              </IconTooltip>
             </div>
             {passwordInvalid && (
               <p id="auth-password-hint" className="flex items-center gap-1 text-xs text-error" role="alert">

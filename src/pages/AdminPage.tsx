@@ -35,6 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Alert } from "@/components/Alert";
 import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { IconTooltip } from "@/components/IconTooltip";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
@@ -472,20 +473,22 @@ function AdminSidebar({
        * `absolute` — pas besoin d'un wrapper `relative` supplémentaire. Ancré sur
        * la bordure droite du panneau (`right-0 translate-x-1/2`, à cheval sur le
        * `border-r` de l'aside), indépendant de la largeur collapsed/expanded. */}
-      <button
-        type="button"
-        onClick={onToggleCollapsed}
-        aria-label={
-          collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"
-        }
-        className="absolute right-0 top-10 flex h-[30px] w-[30px] -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        {collapsed ? (
-          <ChevronRight aria-hidden="true" size={16} />
-        ) : (
-          <ChevronLeft aria-hidden="true" size={16} />
-        )}
-      </button>
+      <IconTooltip label={collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"}>
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          aria-label={
+            collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"
+          }
+          className="absolute right-0 top-10 flex h-[30px] w-[30px] -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {collapsed ? (
+            <ChevronRight aria-hidden="true" size={16} />
+          ) : (
+            <ChevronLeft aria-hidden="true" size={16} />
+          )}
+        </button>
+      </IconTooltip>
 
       <nav
         aria-label="Navigation du dashboard"
@@ -1199,26 +1202,31 @@ function ProjetsTab({
 
                 <div className="flex shrink-0 items-center gap-2">
                   {deleted ? (
-                    <button
-                      type="button"
-                      onClick={() => restore(p.id)}
-                      disabled={busyId === p.id}
-                      aria-label={`Restaurer le projet ${p.title}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
-                    >
-                      <ArchiveRestore aria-hidden="true" size={16} />
-                    </button>
-                  ) : (
-                    <>
+                    <IconTooltip label={`Restaurer le projet ${p.title}`}>
                       <button
                         type="button"
-                        onClick={() => openEdit(p)}
+                        onClick={() => restore(p.id)}
                         disabled={busyId === p.id}
-                        aria-label={`Éditer ${p.title}`}
+                        aria-label={`Restaurer le projet ${p.title}`}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
                       >
-                        <Pencil aria-hidden="true" size={16} />
+                        <ArchiveRestore aria-hidden="true" size={16} />
                       </button>
+                    </IconTooltip>
+                  ) : (
+                    <>
+                      <IconTooltip label={`Éditer ${p.title}`}>
+                        <button
+                          type="button"
+                          onClick={() => openEdit(p)}
+                          disabled={busyId === p.id}
+                          aria-label={`Éditer ${p.title}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
+                        >
+                          <Pencil aria-hidden="true" size={16} />
+                        </button>
+                      </IconTooltip>
+                      <IconTooltip label={`Supprimer ${p.title}`}>
                       <button
                         type="button"
                         onClick={() => setConfirmDelete(p.id)}
@@ -1228,6 +1236,7 @@ function ProjetsTab({
                       >
                         <Trash2 aria-hidden="true" size={18} />
                       </button>
+                      </IconTooltip>
                     </>
                   )}
                 </div>
@@ -1644,15 +1653,17 @@ function ContactsTab({
                 <div className="flex shrink-0 items-center gap-3" aria-live="polite">
                   <StatusBadge kind={CONTACT_STATUS_KIND[m.status]} />
                   {next && (
-                    <button
-                      type="button"
-                      onClick={() => cycle(m)}
-                      disabled={busyId === m.id}
-                      aria-label={`Changer le statut du message de ${m.name}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50"
-                    >
-                      <ArrowLeftRight aria-hidden="true" size={16} />
-                    </button>
+                    <IconTooltip label={`Changer le statut du message de ${m.name}`}>
+                      <button
+                        type="button"
+                        onClick={() => cycle(m)}
+                        disabled={busyId === m.id}
+                        aria-label={`Changer le statut du message de ${m.name}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50"
+                      >
+                        <ArrowLeftRight aria-hidden="true" size={16} />
+                      </button>
+                    </IconTooltip>
                   )}
                 </div>
               </li>
@@ -2042,18 +2053,20 @@ function ParametresTab() {
                 value={publicUrl}
                 className={inputCls + " cursor-default text-on-surface-variant"}
               />
-              <button
-                type="button"
-                onClick={copy}
-                aria-label="Copier le lien du profil"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                {copied ? (
-                  <Check aria-hidden="true" size={18} />
-                ) : (
-                  <Copy aria-hidden="true" size={18} />
-                )}
-              </button>
+              <IconTooltip label="Copier le lien du profil">
+                <button
+                  type="button"
+                  onClick={copy}
+                  aria-label="Copier le lien du profil"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  {copied ? (
+                    <Check aria-hidden="true" size={18} />
+                  ) : (
+                    <Copy aria-hidden="true" size={18} />
+                  )}
+                </button>
+              </IconTooltip>
             </div>
             <p className="mt-2 text-xs text-on-surface-variant/70">
               Le slug est en lecture seule pour cette version.{" "}
@@ -2367,14 +2380,16 @@ function VeilleContentDrawer({
               </p>
               <h2 className="mt-1 text-xl font-medium text-on-surface">{entry.titre}</h2>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer"
-              className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
-            >
-              <X aria-hidden="true" size={24} />
-            </button>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer"
+                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-10 py-6">

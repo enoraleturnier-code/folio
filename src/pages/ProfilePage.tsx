@@ -6,6 +6,7 @@ import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { ContactForm } from "@/components/ContactForm";
+import { IconTooltip } from "@/components/IconTooltip";
 import { designer, getDesignerProfile } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 
@@ -66,37 +67,43 @@ export function ProfilePage() {
               </Link>
               <div className="flex gap-3">
                 {designer.linkedin && (
-                  <a
-                    href={designer.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Ouvrir le profil LinkedIn"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                  >
-                    <FaLinkedin aria-hidden="true" size={18} />
-                  </a>
+                  <IconTooltip label="Ouvrir le profil LinkedIn">
+                    <a
+                      href={designer.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Ouvrir le profil LinkedIn"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                    >
+                      <FaLinkedin aria-hidden="true" size={18} />
+                    </a>
+                  </IconTooltip>
                 )}
                 {designer.twitter && (
-                  <a
-                    href={designer.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Ouvrir le profil X"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                  >
-                    <FaXTwitter aria-hidden="true" size={18} />
-                  </a>
+                  <IconTooltip label="Ouvrir le profil X">
+                    <a
+                      href={designer.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Ouvrir le profil X"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                    >
+                      <FaXTwitter aria-hidden="true" size={18} />
+                    </a>
+                  </IconTooltip>
                 )}
                 {designer.website && (
-                  <a
-                    href={designer.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Visiter le site web de ${designer.fullName}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                  >
-                    <Globe aria-hidden="true" size={18} />
-                  </a>
+                  <IconTooltip label={`Visiter le site web de ${designer.fullName}`}>
+                    <a
+                      href={designer.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Visiter le site web de ${designer.fullName}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                    >
+                      <Globe aria-hidden="true" size={18} />
+                    </a>
+                  </IconTooltip>
                 )}
               </div>
             </div>

@@ -2,6 +2,7 @@ import { Plus, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { tagBadgeStyles, type TagCategory } from "@/components/TagBadge";
+import { IconTooltip } from "@/components/IconTooltip";
 import { ensureRefValue, type RefRow, type RefTable } from "@/data/projectRefs";
 import { cn } from "@/lib/utils";
 
@@ -88,26 +89,30 @@ export function TagPicker({
             )}
           >
             {name}
-            <button
-              type="button"
-              onClick={() => remove(name)}
-              aria-label={`Retirer ${name}`}
-              className="rounded-full p-0.5 hover:bg-white/10"
-            >
-              <X aria-hidden="true" size={11} />
-            </button>
+            <IconTooltip label={`Retirer ${name}`}>
+              <button
+                type="button"
+                onClick={() => remove(name)}
+                aria-label={`Retirer ${name}`}
+                className="rounded-full p-0.5 hover:bg-white/10"
+              >
+                <X aria-hidden="true" size={11} />
+              </button>
+            </IconTooltip>
           </span>
         ))}
 
         <div className="relative" ref={ref}>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={`Ajouter ${label.toLowerCase()}`}
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10"
-          >
-            <Plus aria-hidden="true" size={14} />
-          </button>
+          <IconTooltip label={`Ajouter ${label.toLowerCase()}`}>
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={`Ajouter ${label.toLowerCase()}`}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10"
+            >
+              <Plus aria-hidden="true" size={14} />
+            </button>
+          </IconTooltip>
 
           {open && (
             <div className="absolute left-0 top-8 z-20 w-56 rounded-xl border border-white/10 bg-surface-container-lowest p-3 shadow-2xl">
@@ -133,15 +138,17 @@ export function TagPicker({
                   placeholder="Nouveau tag..."
                   className="min-w-0 flex-1 rounded-lg border border-white/5 bg-surface-container px-2 py-1.5 text-xs text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 />
-                <button
-                  type="button"
-                  onClick={addNew}
-                  disabled={!input.trim() || busy}
-                  aria-label="Créer ce tag"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50"
-                >
-                  <Plus aria-hidden="true" size={14} />
-                </button>
+                <IconTooltip label="Créer ce tag">
+                  <button
+                    type="button"
+                    onClick={addNew}
+                    disabled={!input.trim() || busy}
+                    aria-label="Créer ce tag"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50"
+                  >
+                    <Plus aria-hidden="true" size={14} />
+                  </button>
+                </IconTooltip>
               </div>
             </div>
           )}

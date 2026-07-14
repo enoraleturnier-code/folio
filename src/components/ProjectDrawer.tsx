@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { IconTooltip } from "@/components/IconTooltip";
 import { TagPicker } from "@/components/TagPicker";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -584,14 +585,16 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 {draft.title || "Sans titre"}
               </h2>
             </div>
-            <button
-              type="button"
-              onClick={requestClose}
-              aria-label="Fermer"
-              className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
-            >
-              <X aria-hidden="true" size={24} />
-            </button>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={requestClose}
+                aria-label="Fermer"
+                className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
           </div>
           <p className="mt-2 text-xs text-on-surface-variant/70">Tous les champs sont obligatoires.</p>
         </div>

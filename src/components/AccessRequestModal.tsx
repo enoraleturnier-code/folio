@@ -14,6 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { Alert } from "@/components/Alert";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { IconTooltip } from "@/components/IconTooltip";
 import { Checkbox } from "@/components/Checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
@@ -287,14 +288,16 @@ export function AccessRequestModal({
         aria-hidden="true"
       />
       <div className="glass-card relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden !border-primary/10 rounded-2xl shadow-2xl shadow-black/40">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fermer le formulaire"
-          className="absolute right-5 top-5 z-20 rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          <X aria-hidden="true" size={24} />
-        </button>
+        <IconTooltip label="Fermer le formulaire">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer le formulaire"
+            className="absolute right-5 top-5 z-20 rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <X aria-hidden="true" size={24} />
+          </button>
+        </IconTooltip>
 
         {submitted ? (
           <div className="overflow-y-auto p-6 text-center md:p-10">
@@ -417,18 +420,20 @@ export function AccessRequestModal({
                             aria-describedby={fieldState("password") ? "ar-password-hint" : undefined}
                             className={inputCls + " pr-12 " + borderClassFor(fieldState("password"))}
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword((v) => !v)}
-                            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          >
-                            {showPassword ? (
-                              <EyeOff aria-hidden="true" size={18} />
-                            ) : (
-                              <Eye aria-hidden="true" size={18} />
-                            )}
-                          </button>
+                          <IconTooltip label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword((v) => !v)}
+                              aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              {showPassword ? (
+                                <EyeOff aria-hidden="true" size={18} />
+                              ) : (
+                                <Eye aria-hidden="true" size={18} />
+                              )}
+                            </button>
+                          </IconTooltip>
                         </div>
                         {fieldState("password") && (
                           <span id="ar-password-hint">
@@ -455,20 +460,26 @@ export function AccessRequestModal({
                             }
                             className={inputCls + " pr-12 " + borderClassFor(fieldState("confirmPassword"))}
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword((v) => !v)}
-                            aria-label={
+                          <IconTooltip
+                            label={
                               showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
                             }
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
-                            {showConfirmPassword ? (
-                              <EyeOff aria-hidden="true" size={18} />
-                            ) : (
-                              <Eye aria-hidden="true" size={18} />
-                            )}
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword((v) => !v)}
+                              aria-label={
+                                showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                              }
+                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff aria-hidden="true" size={18} />
+                              ) : (
+                                <Eye aria-hidden="true" size={18} />
+                              )}
+                            </button>
+                          </IconTooltip>
                         </div>
                         {fieldState("confirmPassword") && (
                           <span id="ar-confirm-password-hint">
