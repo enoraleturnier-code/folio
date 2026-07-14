@@ -627,6 +627,51 @@ function DashboardTab({
     .filter((e) => !veilleMonthFilter || e.periode_fin?.slice(0, 7) === veilleMonthFilter)
     .sort((a, b) => ((a.periode_fin ?? "") < (b.periode_fin ?? "") ? 1 : -1));
 
+  const [visibilityFilters, setVisibilityFilters] = useState<Record<string, string>>({
+    niveau: "",
+    person: "",
+  });
+
+  const visibilityRows = useMemo(
+    () =>
+      publishedProjects.map((p) => {
+        const niveau: "public" | "confidentiel_sensible" | "confidentiel_critique" =
+          p.status === "public"
+            ? "public"
+            : p.sensitivity_level === "tres_sensible"
+              ? "confidentiel_critique"
+              : "confidentiel_sensible";
+        const grantees = accessRequests
+          .filter((r) => r.project?.id === p.id && r.status === "approved")
+          .map((r) => ({
+            name: r.visitor?.fullName ?? r.visitor?.email ?? "Visiteur",
+            requestedAt: r.createdAt,
+            validatedAt: r.validatedAt,
+          }));
+        return { project: p, niveau, grantees };
+      }),
+    [publishedProjects, accessRequests],
+  );
+
+  const visibilityPersonOptions = useMemo(
+    () =>
+      Array.from(new Set(visibilityRows.flatMap((r) => r.grantees.map((g) => g.name))))
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [visibilityRows],
+  );
+
+  const visibilityFilterGroups: AdminFilterGroup[] = [
+    { key: "niveau", label: "Niveau", primary: true, options: PROJETS_NIVEAU_OPTIONS },
+    { key: "person", label: "Personne", options: visibilityPersonOptions },
+  ];
+
+  const filteredVisibilityRows = visibilityRows
+    .filter((r) => !visibilityFilters.niveau || r.niveau === visibilityFilters.niveau)
+    .filter(
+      (r) => !visibilityFilters.person || r.grantees.some((g) => g.name === visibilityFilters.person),
+    );
+
   return (
     <>
       <TabHeader
@@ -800,6 +845,64 @@ function DashboardTab({
           </div>
         </div>
       )}
+
+      <div className="mt-10">
+        <h2 className="text-xl font-bold text-on-surface">
+          Suivi visibilité — projets confidentiels
+        </h2>
+        <div className="mt-4">
+          <AdminFilterBar
+            groups={visibilityFilterGroups}
+            value={visibilityFilters}
+            onChange={setVisibilityFilters}
+          />
+        </div>
+        {filteredVisibilityRows.length === 0 ? (
+          <p className="mt-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
+            Aucun projet pour ce filtre.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {filteredVisibilityRows.map(({ project: p, niveau, grantees }) => (
+              <li
+                key={p.id}
+                className="rounded-2xl border border-white/5 bg-surface-container-low p-5"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="font-medium text-on-surface">{p.title}</p>
+                  <div className="flex items-center gap-3">
+                    <StatusBadge
+                      kind={p.status === "public" ? "public" : "confidential"}
+                      suffix={niveau !== "public" ? SENSITIVITY_LABELS[p.sensitivity_level] : undefined}
+                    />
+                    <span className="text-xs text-on-surface-variant">
+                      {grantees.length} accès accordé{grantees.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+                {grantees.length > 0 && (
+                  <ul className="mt-3 space-y-1.5 border-t border-white/5 pt-3">
+                    {grantees.map((g, i) => (
+                      <li
+                        key={i}
+                        className="flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant"
+                      >
+                        <span className="font-medium text-on-surface">{g.name}</span>
+                        <span>
+                          Demandé le{" "}
+                          {new Date(g.requestedAt).toLocaleDateString("fr-FR")}
+                          {g.validatedAt &&
+                            ` · Validé le ${new Date(g.validatedAt).toLocaleDateString("fr-FR")}`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </>
   );
 }
