@@ -1,15 +1,18 @@
 import {
-  AlertCircle,
+  ArrowRight,
   Calendar as CalendarIcon,
   Check,
   ChevronDown,
+  CircleAlert,
   CloudUpload,
   Sparkles,
+  TriangleAlert,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
+import { AuroraBackground } from "@/components/AuroraBackground";
 import { TagPicker } from "@/components/TagPicker";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -293,8 +296,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const err = errorFor(field);
     if (!err) return null;
     return (
-      <p className="flex items-center gap-1 text-xs text-error">
-        <AlertCircle aria-hidden="true" size={13} className="shrink-0" />
+      <p className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+        <CircleAlert aria-hidden="true" size={14} />
         {err.message}
       </p>
     );
@@ -556,7 +559,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const chevronCls =
     "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant";
   const tertiaryBtnCls =
-    "rounded-full border border-transparent px-6 py-2.5 text-sm font-medium text-on-surface hover:border-white/30";
+    "inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30";
 
   return (
     <div
@@ -565,11 +568,12 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
       aria-modal="true"
       aria-label="Éditer le projet"
     >
+      <AuroraBackground variant="modal" />
       {/* Clic extérieur volontairement sans effet (aria-hidden, pas de onClick) :
           seuls les boutons explicites (Fermer, Annuler, Enregistrer) peuvent
           fermer la modale. */}
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" aria-hidden="true" />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest shadow-2xl shadow-black/40">
         <div className="border-b border-white/5 px-10 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -653,7 +657,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     <>
                       <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
                       <p className="text-sm text-on-surface-variant">
-                        Glissez-déposez ou <span className="text-primary">parcourir</span>
+                        Glisse-dépose ou <span className="text-primary">parcourir</span>
                       </p>
                       <p className="text-xs text-on-surface-variant/70">
                         JPG, PNG ou WebP (max 5 Mo)
@@ -761,7 +765,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     type="button"
                     onClick={handleAiStructure}
                     disabled={!draft.long_desc?.trim() || aiLoading}
-                    className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-6 py-3 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Sparkles
                       aria-hidden="true"
@@ -1047,6 +1051,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
 
           <div className="flex items-center justify-end gap-3 border-t border-white/5 px-10 py-4">
             <button type="button" onClick={requestClose} className={tertiaryBtnCls}>
+              <X aria-hidden="true" size={16} />
               Annuler
             </button>
             {!project && (
@@ -1054,16 +1059,23 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 type="button"
                 onClick={() => submitWithStatus("draft", "draft")}
                 disabled={savingAction !== null}
-                className="rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {savingAction === "draft" ? "Enregistrement…" : "Enregistrer comme brouillon"}
+                {savingAction === "draft" ? (
+                  "Enregistrement…"
+                ) : (
+                  <>
+                    <Check aria-hidden="true" size={16} />
+                    Enregistrer comme brouillon
+                  </>
+                )}
               </button>
             )}
             <button
               type="button"
               onClick={() => submitWithStatus(draft.status, "publish")}
               disabled={savingAction !== null}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
             >
               {savingAction === "publish" ? (
                 "Enregistrement…"
@@ -1085,7 +1097,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             onClick={() => setPendingSave(null)}
             aria-hidden="true"
           />
-          <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
+          <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6 shadow-2xl shadow-black/40">
             {(() => {
               const statusChanged = Boolean(project && pendingSave.status !== project.status);
               const sensitivityChanged = Boolean(pendingSave.sensitivityChange);
@@ -1126,8 +1138,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               <button
                 type="button"
                 onClick={() => setPendingSave(null)}
-                className="rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface"
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface"
               >
+                <X aria-hidden="true" size={16} />
                 Annuler
               </button>
               <button
@@ -1137,8 +1150,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   setPendingSave(null);
                   persist(status, action);
                 }}
-                className="rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
               >
+                <Check aria-hidden="true" size={16} />
                 Confirmer
               </button>
             </div>
@@ -1153,29 +1167,32 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             onClick={() => setConfirmClose(false)}
             aria-hidden="true"
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6">
-            <Alert
-              type="warning"
-              title="Quitter sans enregistrer ?"
-              description="Êtes-vous sûr de vouloir quitter sans enregistrer ? Vos données seront perdues."
-            />
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmClose(false)}
-                className="rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface"
-              >
-                Annuler / Revenir au formulaire
-              </button>
+          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-white/10 bg-surface-container-lowest p-6 text-center shadow-2xl shadow-black/40">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning/15">
+              <TriangleAlert aria-hidden="true" className="text-warning" size={32} />
+            </div>
+            <h3 className="text-lg font-medium text-on-surface">Quitter sans enregistrer ?</h3>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Es-tu sûr de vouloir quitter sans enregistrer ? Tes données seront perdues.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setConfirmClose(false);
                   onClose();
                 }}
-                className="rounded-full bg-error px-6 py-2.5 text-sm font-bold text-on-error shadow-lg transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                className="whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-sm font-medium text-on-surface hover:bg-white/5"
               >
-                Continuer sans enregistrer
+                Quitter sans enregistrer
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmClose(false)}
+                className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98]"
+              >
+                Revenir au formulaire
+                <ArrowRight aria-hidden="true" size={18} />
               </button>
             </div>
           </div>

@@ -83,7 +83,7 @@ export function TagPicker({
           <span
             key={name}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border py-1 pl-3 pr-1.5 text-[11px] font-medium tracking-wide",
+              "inline-flex items-center gap-1.5 rounded-full border py-0.5 pl-2.5 pr-1 text-[10px] font-normal tracking-wide",
               tagBadgeStyles[category],
             )}
           >

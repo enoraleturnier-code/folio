@@ -104,12 +104,12 @@ export function ProjectCard({
         {isConfidential && (
           <div className="absolute right-4 top-4">
             {isAdmin ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white">
+              <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-3 py-1 text-[10px] font-normal uppercase tracking-widest text-white">
                 <LockOpen aria-hidden="true" size={14} />
                 Confidentiel • {SENSITIVITY_LABELS[project.sensitivity_level]}
               </span>
             ) : accessState === "granted" ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white">
+              <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-secondary/80 px-3 py-1 text-[10px] font-normal uppercase tracking-widest text-white">
                 <LockOpen aria-hidden="true" size={14} />
                 Confidentiel · Accès validé
               </span>
@@ -133,7 +133,7 @@ export function ProjectCard({
         <div className="flex items-start justify-between gap-3">
           <h3
             className={
-              "text-xl font-medium text-on-surface" +
+              "line-clamp-2 min-h-[3.5rem] text-xl font-medium leading-tight text-on-surface" +
               (isInteractive ? " transition-colors group-hover:text-primary" : "")
             }
           >
@@ -145,7 +145,9 @@ export function ProjectCard({
             </span>
           )}
         </div>
-        <p className="text-sm text-on-surface-variant">{project.short_desc}</p>
+        <p className="line-clamp-2 min-h-[2.5rem] text-sm text-on-surface-variant">
+          {project.short_desc}
+        </p>
         {(project.company_name || project.role) && (
           <div className="space-y-2 border-t border-white/5 pt-3">
             {project.company_name && (
@@ -170,7 +172,7 @@ export function ProjectCard({
         {mode === "modal" && (
           <div className="mt-auto pt-2">
             <span
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-container py-3
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-container py-2.5
                 text-[11px] font-bold tracking-[0.1em] text-on-primary-container transition-all duration-300
                 group-hover:scale-[1.02] group-hover:brightness-110 group-focus-visible:scale-[1.02]
                 group-focus-visible:brightness-110 group-active:scale-95"

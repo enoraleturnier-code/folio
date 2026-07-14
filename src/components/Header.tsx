@@ -1,4 +1,4 @@
-import { ChevronDown, LayoutDashboard, LogOut, Settings, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Settings, User } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -33,7 +33,7 @@ export function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-3 md:gap-6">
+        <div className="flex items-center gap-4 md:gap-8">
           <nav className="hidden items-center gap-6 md:flex">
             <VisitorLink to={`/${designer.slug}`} label="Profil" end />
             <VisitorLink to={`/${designer.slug}/projects`} label="Projets" />
@@ -45,7 +45,7 @@ export function Header() {
             <Link
               to="/auth"
               aria-label="Se connecter"
-              className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-on-surface transition-colors hover:border-primary"
+              className="rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary"
             >
               Se connecter
             </Link>
@@ -118,20 +118,12 @@ function AccountMenu({
         aria-expanded={open}
         aria-label="Mon compte"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex items-center gap-2 rounded-full text-sm font-light text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <span
-          className={
-            "flex items-center justify-center rounded-full font-bold text-primary " +
-            (isAdmin
-              ? "h-6 w-6 border border-primary/30 bg-on-primary/20 text-[10px]"
-              : "h-8 w-8 bg-on-primary/10 text-xs")
-          }
-        >
+        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-colors hover:bg-primary-container/20">
           {fullName ? initials(fullName) : "?"}
         </span>
         {fullName ?? "Mon compte"}
-        <ChevronDown aria-hidden="true" size={14} />
       </button>
 
       {open && (

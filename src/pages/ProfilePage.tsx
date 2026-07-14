@@ -31,7 +31,7 @@ export function ProfilePage() {
 
   return (
     <>
-      <AuroraBackground />
+      <AuroraBackground variant="profile" />
       <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
         {/* HERO — 01 */}
         <section className="mb-32 grid grid-cols-1 items-center gap-6 md:grid-cols-12">
@@ -42,13 +42,13 @@ export function ProfilePage() {
 
           <div className="rounded-[32px] border border-white/10 bg-surface-container/30 p-8 backdrop-blur-sm md:col-span-7 md:p-12">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
-              Designeuse produit
+              {designer.profession}
             </p>
             <h1 className="text-5xl font-medium leading-[1.1] text-on-surface md:text-6xl">
               {designer.fullName}
             </h1>
             <p className="mt-2 font-display-accent text-5xl italic leading-tight text-primary md:text-6xl">
-              Précise
+              {designer.adjective}
             </p>
             <p className="mt-8 max-w-md text-base font-light leading-relaxed text-on-surface">
               {designer.bio}
@@ -67,23 +67,23 @@ export function ProfilePage() {
                 <a
                   href={designer.website}
                   aria-label={`Visiter le site web de ${designer.fullName}`}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <Globe aria-hidden="true" size={22} />
+                  <Globe aria-hidden="true" size={18} />
                 </a>
                 <a
                   href={`mailto:${designer.email}`}
                   aria-label="M'envoyer un e-mail"
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <AtSign aria-hidden="true" size={22} />
+                  <AtSign aria-hidden="true" size={18} />
                 </a>
                 <a
                   href={designer.linkedin}
                   aria-label="Ouvrir le profil LinkedIn"
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
                 >
-                  <Link2 aria-hidden="true" size={22} />
+                  <Link2 aria-hidden="true" size={18} />
                 </a>
               </div>
             </div>
@@ -93,7 +93,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-3 rounded-full border border-primary px-6 py-3 text-primary transition-colors hover:bg-primary-container/10"
+                  className="inline-flex items-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10"
                 >
                   <Lock aria-hidden="true" size={18} />
                   <span className="text-sm font-bold tracking-wider">
