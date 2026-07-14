@@ -1887,70 +1887,53 @@ function ParametresTab() {
         <p className="mt-10 text-sm text-on-surface-variant">Chargement de ton profil…</p>
       ) : (
         <form onSubmit={handleSave} className="mt-10 space-y-6">
-          <div className="flex flex-col gap-6 sm:flex-row">
-            <div>
-              <label htmlFor="s-photo-input" className={labelCls}>
-                Photo de profil
-              </label>
-              <label
-                onDragOver={(e) => {
-                  if (!editing) return;
-                  e.preventDefault();
-                  setIsDraggingOver(true);
-                }}
-                onDragLeave={() => setIsDraggingOver(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDraggingOver(false);
-                  if (!editing) return;
-                  const file = e.dataTransfer.files?.[0];
-                  if (file) onFileSelected(file);
-                }}
-                className={cn(
-                  "mt-2 flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed bg-surface-container text-center",
-                  editing ? "cursor-pointer hover:bg-white/5" : "cursor-default opacity-70",
-                  isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
-                )}
-              >
-                {pendingPreview || form.photoUrl ? (
-                  <img
-                    src={pendingPreview ?? form.photoUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <>
-                    <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
-                    <p className="text-sm text-on-surface-variant">
-                      Glisse-dépose ou <span className="text-primary">parcourir</span>
-                    </p>
-                  </>
-                )}
-                <input
-                  id="s-photo-input"
-                  type="file"
-                  disabled={!editing}
-                  accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
+          <div>
+            <label htmlFor="s-photo-input" className={labelCls}>
+              Photo de profil
+            </label>
+            <label
+              onDragOver={(e) => {
+                if (!editing) return;
+                e.preventDefault();
+                setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingOver(false);
+                if (!editing) return;
+                const file = e.dataTransfer.files?.[0];
+                if (file) onFileSelected(file);
+              }}
+              className={cn(
+                "mt-2 flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed bg-surface-container text-center",
+                editing ? "cursor-pointer hover:bg-white/5" : "cursor-default opacity-70",
+                isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
+              )}
+            >
+              {pendingPreview || form.photoUrl ? (
+                <img
+                  src={pendingPreview ?? form.photoUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
                 />
-              </label>
-            </div>
-
-            <div className="flex flex-1 flex-col items-end gap-5 text-right">
-              <div>
-                <p className={labelCls}>Prénom</p>
-                <p className="mt-2 text-sm text-on-surface">{designer.firstName}</p>
-              </div>
-              <div>
-                <p className={labelCls}>Nom</p>
-                <p className="mt-2 text-sm text-on-surface">{designer.lastName}</p>
-              </div>
-              <div>
-                <p className={labelCls}>Email</p>
-                <p className="mt-2 text-sm text-on-surface">{designer.email}</p>
-              </div>
-            </div>
+              ) : (
+                <>
+                  <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
+                  <p className="text-sm text-on-surface-variant">
+                    Glisse-dépose ou <span className="text-primary">parcourir</span>
+                  </p>
+                </>
+              )}
+              <input
+                id="s-photo-input"
+                type="file"
+                disabled={!editing}
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
+              />
+            </label>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
