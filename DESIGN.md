@@ -364,6 +364,29 @@ Pattern déjà en place sur `AccessRequestModal` (`FieldHint`, icône `CircleAle
 
 ---
 
+## ⚙️ ParametresTab — branchement réel + toggle "Modifier mes informations" (14/07)
+
+**Répartition des colonnes** (vérifiée via `list_tables`, ne rien supposer) :
+- `designer_profiles` : `bio`, `photo_url`, `linkedin_url`, `twitter_url`, `website_url`, et deux colonnes **ajoutées cette session** (`profession`, `adjective` — absentes jusqu'ici, `ParametresTab` étant mock). `slug` reste en lecture seule (hors périmètre).
+- `admin_settings` : uniquement `cal_username`. Table vide (0 ligne) jusqu'au premier enregistrement — `updateDesignerProfile()` fait donc un **upsert** dessus (vs update simple sur `designer_profiles`, dont la ligne existe déjà).
+- `firstName`/`lastName`/`fullName`/`email`/`location` n'ont **aucune colonne DB** — restent statiques (`src/data/designer.ts`), hors périmètre de cette passe. Les champs Prénom/Nom du mock ont été retirés du formulaire plutôt que laissés "éditables" sans persistance réelle.
+
+**RLS — lecture publique de `cal_username`** : `admin_settings` n'a qu'une policy SELECT admin-only (`get_my_role() = 'admin'`), donc un visiteur anonyme sur `/[slug]` ne peut pas lire `cal_username` pour savoir si le widget Cal.com doit s'afficher. Plutôt qu'ouvrir toute la table en lecture publique, fonction `get_public_cal_username()` `SECURITY DEFINER` dédiée (même pattern que `get_my_role()`), n'exposant que ce seul champ, `grant execute` à `anon`/`authenticated`. `getDesignerProfile()` (`src/data/designer.ts`) l'utilise et est partagée par `ProfilePage.tsx` (public) et `ParametresTab` (admin).
+
+**Storage** : nouveau bucket `designer-photos` (public lecture, écriture admin only) — même pattern RLS que `project-thumbnails`, pour la photo de profil. Upload via `uploadDesignerPhoto()` (`src/lib/storage.ts`).
+
+**Toggle "Modifier mes informations"** : tous les champs sont `disabled` par défaut (lecture seule) ; bouton `Pencil` en haut à droite du `TabHeader` (prop `cta`) passe en mode édition. `Enregistrer`/`Annuler` n'apparaissent qu'en édition — `Annuler` recharge les valeurs serveur (pas de snapshot local, un simple refetch). Même reprise du pattern erreur de champ que `ProjectDrawer`/`ContactForm` (`border-error` + `CircleAlert` 14px) pour la validation d'URL (LinkedIn/X/site web — vide = valide, tous optionnels).
+
+**Icônes sociales réelles** (`ProfilePage.tsx`, révisé le 14/07) : exactement **3** boutons-icônes, dans cet ordre — LinkedIn, X, Site web. Le bouton mailto (`AtSign`) a été retiré. Ne s'affichent que si le champ correspondant est renseigné (tous optionnels).
+
+**⚠️ Exception à la règle "Lucide uniquement"** : Lucide n'a pas de vrai logo de marque X/LinkedIn (juste un glyph `X` générique, identique au bouton fermer utilisé partout ailleurs dans l'app — ambigu). Décision explicite de l'utilisatrice : `react-icons` (`react-icons/fa6`, `FaLinkedin`/`FaXTwitter`) pour ces deux icônes de marque uniquement — nouvelle dépendance ajoutée au projet. Le reste de l'app (nav, boutons, badges, états) reste Lucide exclusivement ; ne pas généraliser `react-icons` au-delà de ce cas précis (logos de marque non couverts par Lucide). `Globe` (site web) reste Lucide, ce n'est pas un logo de marque.
+
+**URLs factices** : `linkedin_url`/`twitter_url`/`website_url` (mock `src/data/designer.ts` + ligne `designer_profiles` seedée) pointent vers `https://example.com/...` (domaine réservé IANA, jamais de contenu réel) plutôt que vers de vrais comptes/domaines — évite de lier vers un compte existant qui n'appartient pas au projet.
+
+**Widget Cal.com — masqué si `cal_username` vide** : `CalEmbed.tsx` reste non câblé/non touché (toujours hors périmètre, cf. session ContactForm) — `ProfilePage.tsx` porte directement sa propre condition (`{designer.calUsername && (...)}`) autour du bloc "Réserver un créneau" existant, sans dupliquer le composant ni sa logique.
+
+---
+
 ## 📬 ContactForm.tsx — branchement réel + filtres dashboard admin (14/07)
 
 **ContactForm.tsx** (page profil public) passe du mock au réel :

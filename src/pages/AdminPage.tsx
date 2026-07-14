@@ -5,12 +5,14 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  CircleAlert,
   CloudUpload,
   Copy,
   Folder,
   Inbox,
   KeyRound,
   LayoutDashboard,
+  Loader2,
   Mail,
   Pencil,
   Plus,
@@ -36,9 +38,16 @@ import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { ProjectDrawer } from "@/components/ProjectDrawer";
 import { StatusBadge } from "@/components/StatusBadge";
-import { designer } from "@/data/designer";
+import {
+  designer,
+  getDesignerProfile,
+  updateDesignerProfile,
+  type DesignerProfileInput,
+} from "@/data/designer";
 import { textLinkClass } from "@/lib/linkStyles";
 import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
+import { uploadDesignerPhoto } from "@/lib/storage";
+import { cn } from "@/lib/utils";
 import {
   getAllContacts,
   updateContactStatus,
@@ -1344,21 +1353,89 @@ function ContactsTab({
 
 /* ---------- Paramètres Tab ---------- */
 
+type SocialFieldKey = "linkedin" | "twitter" | "website";
+
+interface SocialFieldError {
+  field: SocialFieldKey;
+  message: string;
+}
+
+const SOCIAL_FIELD_LABELS: Record<SocialFieldKey, string> = {
+  linkedin: "LinkedIn",
+  twitter: "X (Twitter)",
+  website: "Site web",
+};
+
+/** Vide = optionnel, valide -- rempli mais mal formé ou protocole non http(s) = invalide. */
+function isValidUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+type ParametresForm = Omit<DesignerProfileInput, "photoUrl"> & { photoUrl: string };
+
+function emptyParametresForm(): ParametresForm {
+  return {
+    photoUrl: "",
+    profession: "",
+    adjective: "",
+    bio: "",
+    linkedin: "",
+    twitter: "",
+    website: "",
+    calUsername: "",
+  };
+}
+
 function ParametresTab() {
-  const [form, setForm] = useState({
-    avatar: designer.avatar,
-    firstName: designer.firstName,
-    lastName: designer.lastName,
-    profession: designer.profession,
-    adjective: designer.adjective,
-    bio: designer.bio,
-    linkedin: designer.linkedin,
-    twitter: designer.twitter,
-    website: designer.website,
-    calUsername: designer.calUsername,
-  });
-  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<ParametresForm>(emptyParametresForm);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [errors, setErrors] = useState<SocialFieldError[]>([]);
   const [copied, setCopied] = useState(false);
+
+  const loadProfile = () =>
+    getDesignerProfile().then((profile) =>
+      setForm({
+        photoUrl: profile.avatar,
+        profession: profile.profession,
+        adjective: profile.adjective,
+        bio: profile.bio,
+        linkedin: profile.linkedin,
+        twitter: profile.twitter,
+        website: profile.website,
+        calUsername: profile.calUsername,
+      }),
+    );
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    loadProfile().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    };
+  }, [pendingPreview]);
 
   const publicUrl = useMemo(() => {
     const base = typeof window !== "undefined" ? window.location.origin : "https://folio.plus";
@@ -1376,8 +1453,84 @@ function ParametresTab() {
   };
 
   const inputCls =
-    "w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+    "w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm font-light text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60";
   const labelCls = "block text-sm font-medium text-on-surface-variant";
+
+  const errorFor = (field: SocialFieldKey) => errors.find((e) => e.field === field);
+  const errorRingCls = (field: SocialFieldKey, base: string) =>
+    cn(base, errorFor(field) && "border-error focus-visible:ring-error");
+
+  function fieldError(field: SocialFieldKey) {
+    const err = errorFor(field);
+    if (!err) return null;
+    return (
+      <p className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+        <CircleAlert aria-hidden="true" size={14} className="shrink-0" />
+        {err.message}
+      </p>
+    );
+  }
+
+  const onFileSelected = (file: File) => {
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingFile(file);
+    setPendingPreview(URL.createObjectURL(file));
+  };
+
+  const startEditing = () => {
+    setSaveSuccess(false);
+    setEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setPendingFile(null);
+    setPendingPreview(null);
+    setErrors([]);
+    setSaveError(null);
+    setEditing(false);
+    setLoading(true);
+    loadProfile().finally(() => setLoading(false));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: SocialFieldError[] = (["linkedin", "twitter", "website"] as SocialFieldKey[])
+      .filter((field) => !isValidUrl(form[field]))
+      .map((field) => ({
+        field,
+        message: `Le lien ${SOCIAL_FIELD_LABELS[field]} n'est pas valide.`,
+      }));
+    setErrors(errs);
+    if (errs.length > 0) return;
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      let photoUrl = form.photoUrl;
+      if (pendingFile) {
+        photoUrl = await uploadDesignerPhoto(pendingFile);
+      }
+      await updateDesignerProfile({
+        photoUrl,
+        profession: form.profession.trim(),
+        adjective: form.adjective.trim(),
+        bio: form.bio.trim(),
+        linkedin: form.linkedin.trim(),
+        twitter: form.twitter.trim(),
+        website: form.website.trim(),
+        calUsername: form.calUsername.trim(),
+      });
+      setForm((f) => ({ ...f, photoUrl }));
+      setPendingFile(null);
+      setPendingPreview(null);
+      setEditing(false);
+      setSaveSuccess(true);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Une erreur est survenue. Réessaie.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="relative">
@@ -1386,183 +1539,243 @@ function ParametresTab() {
         title="Mes"
         emphasis="paramètres"
         subtitle="Mets à jour ton profil public ci-dessous."
+        cta={
+          !loading && !editing ? (
+            <button
+              type="button"
+              onClick={startEditing}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Pencil aria-hidden="true" size={16} />
+              Modifier mes informations
+            </button>
+          ) : undefined
+        }
       />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSaved(true);
-          setTimeout(() => setSaved(false), 2000);
-        }}
-        className="mt-10 space-y-6"
-      >
-        <div>
-          <p className={labelCls}>Image de profil</p>
-          <div className="mt-2 flex items-center gap-4">
-            <img
-              src={form.avatar}
-              alt="Image de profil"
-              className="h-20 w-20 rounded-full border border-white/10 object-cover"
+
+      {saveSuccess && (
+        <div className="mt-6">
+          <Alert type="success" title="Profil mis à jour." />
+        </div>
+      )}
+      {saveError && (
+        <div className="mt-6">
+          <Alert type="error" title="Échec de l'enregistrement" description={saveError} />
+        </div>
+      )}
+
+      {loading ? (
+        <p className="mt-10 text-sm text-on-surface-variant">Chargement de ton profil…</p>
+      ) : (
+        <form onSubmit={handleSave} className="mt-10 space-y-6">
+          <div>
+            <p className={labelCls}>Photo de profil</p>
+            <label
+              tabIndex={editing ? -1 : undefined}
+              onDragOver={(e) => {
+                if (!editing) return;
+                e.preventDefault();
+                setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingOver(false);
+                if (!editing) return;
+                const file = e.dataTransfer.files?.[0];
+                if (file) onFileSelected(file);
+              }}
+              className={cn(
+                "mt-2 flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed bg-surface-container text-center",
+                editing ? "cursor-pointer hover:bg-white/5" : "cursor-default opacity-70",
+                isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
+              )}
+            >
+              {pendingPreview || form.photoUrl ? (
+                <img
+                  src={pendingPreview ?? form.photoUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <>
+                  <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
+                  <p className="text-sm text-on-surface-variant">
+                    Glisse-dépose ou <span className="text-primary">parcourir</span>
+                  </p>
+                </>
+              )}
+              <input
+                type="file"
+                disabled={!editing}
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label htmlFor="s-profession" className={labelCls}>
+                Profession
+              </label>
+              <input
+                id="s-profession"
+                disabled={!editing}
+                value={form.profession}
+                onChange={(e) => setForm({ ...form, profession: e.target.value })}
+                className={inputCls + " mt-2"}
+              />
+            </div>
+            <div>
+              <label htmlFor="s-adjective" className={labelCls}>
+                Adjectif qui te définit
+              </label>
+              <input
+                id="s-adjective"
+                disabled={!editing}
+                value={form.adjective}
+                onChange={(e) => setForm({ ...form, adjective: e.target.value })}
+                className={inputCls + " mt-2"}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="s-bio" className={labelCls}>
+              Bio
+            </label>
+            <textarea
+              id="s-bio"
+              rows={5}
+              disabled={!editing}
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+              className={inputCls + " mt-2 resize-y"}
             />
-            <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/15 bg-surface-container px-6 py-6 text-center">
-              <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={24} />
-              <p className="text-sm text-on-surface-variant">
-                Glisse-dépose une image ou <span className="text-primary">parcourir</span>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label htmlFor="s-linkedin" className={labelCls}>
+                LinkedIn
+              </label>
+              <input
+                id="s-linkedin"
+                disabled={!editing}
+                value={form.linkedin}
+                onChange={(e) => setForm({ ...form, linkedin: e.target.value })}
+                className={errorRingCls("linkedin", inputCls + " mt-2")}
+                placeholder="https://linkedin.com/in/votre-profil"
+              />
+              {fieldError("linkedin")}
+            </div>
+            <div>
+              <label htmlFor="s-twitter" className={labelCls}>
+                X (Twitter)
+              </label>
+              <input
+                id="s-twitter"
+                disabled={!editing}
+                value={form.twitter}
+                onChange={(e) => setForm({ ...form, twitter: e.target.value })}
+                className={errorRingCls("twitter", inputCls + " mt-2")}
+                placeholder="https://x.com/votre-profil"
+              />
+              {fieldError("twitter")}
+            </div>
+            <div>
+              <label htmlFor="s-website" className={labelCls}>
+                Site web
+              </label>
+              <input
+                id="s-website"
+                disabled={!editing}
+                value={form.website}
+                onChange={(e) => setForm({ ...form, website: e.target.value })}
+                className={errorRingCls("website", inputCls + " mt-2")}
+                placeholder="https://votre-site.fr"
+              />
+              {fieldError("website")}
+            </div>
+            <div>
+              <label htmlFor="s-cal" className={labelCls}>
+                Nom d'utilisateur Cal.com
+              </label>
+              <input
+                id="s-cal"
+                disabled={!editing}
+                value={form.calUsername}
+                onChange={(e) => setForm({ ...form, calUsername: e.target.value })}
+                className={inputCls + " mt-2"}
+                placeholder="ex : lea-martin"
+              />
+              <p className="mt-1 text-xs text-on-surface-variant/70">
+                Affiche le widget de prise de rendez-vous sur ton profil public si rempli, le masque
+                totalement si laissé vide.
               </p>
             </div>
           </div>
-        </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label htmlFor="s-first-name" className={labelCls}>
-              Prénom
+            <label htmlFor="s-url" className={labelCls}>
+              URL publique du profil
             </label>
-            <input
-              id="s-first-name"
-              value={form.firstName}
-              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-              className={inputCls + " mt-2"}
-            />
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                id="s-url"
+                readOnly
+                value={publicUrl}
+                className={inputCls + " cursor-default text-on-surface-variant"}
+              />
+              <button
+                type="button"
+                onClick={copy}
+                aria-label="Copier le lien du profil"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                {copied ? (
+                  <Check aria-hidden="true" size={18} />
+                ) : (
+                  <Copy aria-hidden="true" size={18} />
+                )}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-on-surface-variant/70">
+              Le slug est en lecture seule pour cette version.{" "}
+              <Link to={`/${designer.slug}`} className="text-primary hover:underline">
+                Voir le profil public
+              </Link>
+            </p>
           </div>
-          <div>
-            <label htmlFor="s-last-name" className={labelCls}>
-              Nom
-            </label>
-            <input
-              id="s-last-name"
-              value={form.lastName}
-              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-              className={inputCls + " mt-2"}
-            />
-          </div>
-          <div>
-            <label htmlFor="s-profession" className={labelCls}>
-              Profession
-            </label>
-            <input
-              id="s-profession"
-              value={form.profession}
-              onChange={(e) => setForm({ ...form, profession: e.target.value })}
-              className={inputCls + " mt-2"}
-            />
-          </div>
-          <div>
-            <label htmlFor="s-adjective" className={labelCls}>
-              Adjectif qui te définis
-            </label>
-            <input
-              id="s-adjective"
-              value={form.adjective}
-              onChange={(e) => setForm({ ...form, adjective: e.target.value })}
-              className={inputCls + " mt-2"}
-            />
-          </div>
-        </div>
 
-        <div>
-          <label htmlFor="s-bio" className={labelCls}>
-            Bio
-          </label>
-          <textarea
-            id="s-bio"
-            rows={5}
-            value={form.bio}
-            onChange={(e) => setForm({ ...form, bio: e.target.value })}
-            className={inputCls + " mt-2 resize-y"}
-          />
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="s-linkedin" className={labelCls}>
-              LinkedIn
-            </label>
-            <input
-              id="s-linkedin"
-              value={form.linkedin}
-              onChange={(e) => setForm({ ...form, linkedin: e.target.value })}
-              className={inputCls + " mt-2"}
-            />
-          </div>
-          <div>
-            <label htmlFor="s-twitter" className={labelCls}>
-              Twitter
-            </label>
-            <input
-              id="s-twitter"
-              value={form.twitter}
-              onChange={(e) => setForm({ ...form, twitter: e.target.value })}
-              className={inputCls + " mt-2"}
-            />
-          </div>
-          <div>
-            <label htmlFor="s-website" className={labelCls}>
-              Site web
-            </label>
-            <input
-              id="s-website"
-              value={form.website}
-              onChange={(e) => setForm({ ...form, website: e.target.value })}
-              className={inputCls + " mt-2"}
-            />
-          </div>
-          <div>
-            <label htmlFor="s-cal" className={labelCls}>
-              Nom d'utilisateur Cal.com
-            </label>
-            <input
-              id="s-cal"
-              value={form.calUsername}
-              onChange={(e) => setForm({ ...form, calUsername: e.target.value })}
-              className={inputCls + " mt-2"}
-              placeholder="ex : lea-martin"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="s-url" className={labelCls}>
-            URL publique du profil
-          </label>
-          <div className="mt-2 flex items-center gap-2">
-            <input
-              id="s-url"
-              readOnly
-              value={publicUrl}
-              className={inputCls + " cursor-default text-on-surface-variant"}
-            />
-            <button
-              type="button"
-              onClick={copy}
-              aria-label="Copier le lien du profil"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary"
-            >
-              {copied ? (
-                <Check aria-hidden="true" size={18} />
-              ) : (
-                <Copy aria-hidden="true" size={18} />
-              )}
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-on-surface-variant/70">
-            Le slug est en lecture seule pour cette version.{" "}
-            <Link to={`/${designer.slug}`} className="text-primary hover:underline">
-              Voir le profil public
-            </Link>
-          </p>
-        </div>
-
-        <div className="flex items-center justify-between gap-4">
-          {saved && <p className="text-sm text-[#34D399]">Modifications enregistrées.</p>}
-          <button
-            type="submit"
-            className="ml-auto inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
-          >
-            <Check aria-hidden="true" size={18} />
-            Enregistrer les modifications
-          </button>
-        </div>
-      </form>
+          {editing && (
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={cancelEditing}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                {saving ? (
+                  <Loader2 aria-hidden="true" className="animate-spin" size={18} />
+                ) : (
+                  <Check aria-hidden="true" size={18} />
+                )}
+                Enregistrer
+              </button>
+            </div>
+          )}
+        </form>
+      )}
     </div>
   );
 }

@@ -201,11 +201,13 @@ export type Database = {
       }
       designer_profiles: {
         Row: {
+          adjective: string | null
           bio: string | null
           created_at: string
           id: string
           linkedin_url: string | null
           photo_url: string | null
+          profession: string | null
           slug: string
           twitter_url: string | null
           updated_at: string
@@ -213,11 +215,13 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          adjective?: string | null
           bio?: string | null
           created_at?: string
           id?: string
           linkedin_url?: string | null
           photo_url?: string | null
+          profession?: string | null
           slug: string
           twitter_url?: string | null
           updated_at?: string
@@ -225,11 +229,13 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          adjective?: string | null
           bio?: string | null
           created_at?: string
           id?: string
           linkedin_url?: string | null
           photo_url?: string | null
+          profession?: string | null
           slug?: string
           twitter_url?: string | null
           updated_at?: string
@@ -357,13 +363,6 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_types_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects_catalog_view"
             referencedColumns: ["id"]
           },
           {
@@ -557,17 +556,13 @@ export type Database = {
     }
     Functions: {
       get_my_role: { Args: never; Returns: string }
-      has_other_approved_access_request: {
-        Args: { p_project_id: string }
-        Returns: boolean
-      }
+      get_public_cal_username: { Args: never; Returns: string }
       project_deletion_status: {
         Args: { p_id: string }
         Returns: {
           title: string
         }[]
       }
-      project_is_sensible: { Args: { p_project_id: string }; Returns: boolean }
       soft_delete_project: {
         Args: { p_id: string }
         Returns: {

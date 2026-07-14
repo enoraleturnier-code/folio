@@ -1,17 +1,18 @@
-import { ArrowRight, AtSign, Calendar, Globe, Link2, Lock } from "lucide-react";
+import { ArrowRight, Calendar, Globe, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { ContactForm } from "@/components/ContactForm";
-import { designer } from "@/data/designer";
+import { designer, getDesignerProfile } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 
 export async function profileLoader({ params }: LoaderFunctionArgs) {
   if (params.slug !== designer.slug) throw new Response("Not Found", { status: 404 });
-  const projects = await getProjects();
-  return { designer, projects };
+  const [projects, profile] = await Promise.all([getProjects(), getDesignerProfile()]);
+  return { designer: profile, projects };
 }
 
 export function ProfilePage() {
@@ -64,27 +65,39 @@ export function ProfilePage() {
                 <ArrowRight aria-hidden="true" size={18} />
               </Link>
               <div className="flex gap-3">
-                <a
-                  href={designer.website}
-                  aria-label={`Visiter le site web de ${designer.fullName}`}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                >
-                  <Globe aria-hidden="true" size={18} />
-                </a>
-                <a
-                  href={`mailto:${designer.email}`}
-                  aria-label="M'envoyer un e-mail"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                >
-                  <AtSign aria-hidden="true" size={18} />
-                </a>
-                <a
-                  href={designer.linkedin}
-                  aria-label="Ouvrir le profil LinkedIn"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                >
-                  <Link2 aria-hidden="true" size={18} />
-                </a>
+                {designer.linkedin && (
+                  <a
+                    href={designer.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Ouvrir le profil LinkedIn"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                  >
+                    <FaLinkedin aria-hidden="true" size={18} />
+                  </a>
+                )}
+                {designer.twitter && (
+                  <a
+                    href={designer.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Ouvrir le profil X"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                  >
+                    <FaXTwitter aria-hidden="true" size={18} />
+                  </a>
+                )}
+                {designer.website && (
+                  <a
+                    href={designer.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visiter le site web de ${designer.fullName}`}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                  >
+                    <Globe aria-hidden="true" size={18} />
+                  </a>
+                )}
               </div>
             </div>
 
@@ -130,29 +143,31 @@ export function ProfilePage() {
             <ContactForm />
           </div>
 
-          {/* Calendar widget */}
-          <div className="flex min-h-[500px] flex-col overflow-hidden rounded-[32px] border border-white/10 bg-surface-container-low backdrop-blur-md lg:col-span-6">
-            <div className="border-b border-white/5 p-8 md:p-12">
-              <h2 className="mb-4 text-4xl font-medium text-on-surface">Réserver un créneau</h2>
-              <p className="text-base leading-relaxed text-on-surface">
-                Discutons de vos besoins lors d'un appel découverte de 15 minutes pour explorer
-                votre vision.
-              </p>
-            </div>
-            <div className="relative flex-grow bg-background/30">
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-on-primary/10">
-                  <Calendar aria-hidden="true" className="text-primary" size={36} />
-                </div>
-                <p className="mb-2 text-base text-on-surface">
-                  Chargement du calendrier interactif…
-                </p>
-                <p className="text-xs text-on-surface-variant">
-                  cal.com/<span className="text-primary">{designer.calUsername}</span>
+          {/* Calendar widget -- masqué totalement si cal_username n'est pas renseigné (ParametresTab) */}
+          {designer.calUsername && (
+            <div className="flex min-h-[500px] flex-col overflow-hidden rounded-[32px] border border-white/10 bg-surface-container-low backdrop-blur-md lg:col-span-6">
+              <div className="border-b border-white/5 p-8 md:p-12">
+                <h2 className="mb-4 text-4xl font-medium text-on-surface">Réserver un créneau</h2>
+                <p className="text-base leading-relaxed text-on-surface">
+                  Discutons de vos besoins lors d'un appel découverte de 15 minutes pour explorer
+                  votre vision.
                 </p>
               </div>
+              <div className="relative flex-grow bg-background/30">
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
+                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-on-primary/10">
+                    <Calendar aria-hidden="true" className="text-primary" size={36} />
+                  </div>
+                  <p className="mb-2 text-base text-on-surface">
+                    Chargement du calendrier interactif…
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    cal.com/<span className="text-primary">{designer.calUsername}</span>
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </section>
       </main>
 
