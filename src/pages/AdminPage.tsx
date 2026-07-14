@@ -2095,13 +2095,16 @@ function ParametresTab() {
 
 /* ---------- Veille Design Tab ---------- */
 
+// Meme forme pill que les tags categorie (TagBadge) plutot qu'un style ad hoc --
+// statut est un miroir Notion, valeurs ouvertes, d'ou le fallback sur tag-keywords.
 const VEILLE_STATUT_STYLES: Record<string, string> = {
-  Publié: "border-primary/40 bg-primary/15 text-primary",
-  Brouillon: "border-outline text-on-surface-variant",
+  Publié: "border-tag-sector/30 bg-tag-sector/10 text-tag-sector",
+  Nouveau: "border-tag-tools/30 bg-tag-tools/10 text-tag-tools",
+  Brouillon: "border-tag-keywords/30 bg-tag-keywords/10 text-tag-keywords",
 };
 
 function veilleStatutClass(statut: string): string {
-  return VEILLE_STATUT_STYLES[statut] ?? "border-outline text-on-surface-variant";
+  return VEILLE_STATUT_STYLES[statut] ?? "border-tag-keywords/30 bg-tag-keywords/10 text-tag-keywords";
 }
 
 /** Formate periode_debut → periode_fin en français, ex. "3 – 9 juillet 2026". */
@@ -2142,6 +2145,7 @@ function VeilleDesignTab({
   const [filters, setFilters] = useState<Record<string, string>>({ statut: "", tag: "" });
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncSuccess, setSyncSuccess] = useState(false);
   // Deep-link depuis le tableau "Veille Hebdo" du Dashboard (?entry=<notion_page_id>) --
   // ouvre directement le drawer de contenu de l'entrée visée.
   const [openEntryId, setOpenEntryId] = useState<string | null>(() => searchParams.get("entry"));
@@ -2188,9 +2192,15 @@ function VeilleDesignTab({
     if (!session) return;
     setSyncing(true);
     setSyncError(null);
+    setSyncSuccess(false);
     try {
       await triggerNotionSync(session.access_token);
       await onSynced();
+      // Le contenu synchronisé peut être identique d'une synchro à l'autre (rien de nouveau
+      // côté Notion) -- la seule confirmation visible serait sinon la légère mise à jour de
+      // la légende "dernière synchronisation", facile à manquer. D'où ce message explicite.
+      setSyncSuccess(true);
+      setTimeout(() => setSyncSuccess(false), 4000);
     } catch (err) {
       setSyncError(err instanceof Error ? err.message : "La synchronisation a échoué. Réessaie.");
     } finally {
@@ -2229,6 +2239,11 @@ function VeilleDesignTab({
       {syncError && (
         <div className="mt-4">
           <Alert type="error" title="Échec de la synchronisation" description={syncError} />
+        </div>
+      )}
+      {syncSuccess && (
+        <div className="mt-4">
+          <Alert type="success" title="Synchronisation réussie" description="La veille est à jour." />
         </div>
       )}
 
@@ -2270,7 +2285,7 @@ function VeilleDesignTab({
                   </div>
                   <span
                     className={
-                      "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest " +
+                      "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[11px] font-medium " +
                       veilleStatutClass(e.statut)
                     }
                   >
@@ -2293,7 +2308,7 @@ function VeilleDesignTab({
                   <button
                     type="button"
                     onClick={() => setOpenEntryId(e.notion_page_id)}
-                    className="inline-flex w-fit items-center gap-1.5 rounded-full border border-violet-text/40 px-4 py-1.5 text-xs font-bold text-violet-text transition-colors hover:bg-violet-text/10"
+                    className="ml-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
                   >
                     Voir le contenu
                     <ArrowRight aria-hidden="true" size={14} />
