@@ -76,13 +76,3 @@ export interface Designer {
   email: string;
   location: string;
 }
-
-export type ContactStatus = "nouveau" | "traite" | "archive";
-export interface ContactMessage {
-  id: string;
-  fullName: string;
-  email: string;
-  message: string;
-  date: string;
-  status: ContactStatus;
-}

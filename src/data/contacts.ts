@@ -1,30 +1,68 @@
-import type { ContactMessage } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-export const contactMessages: ContactMessage[] = [
-  {
-    id: "c1",
-    fullName: "Sarah Nguyen",
-    email: "sarah@northlab.io",
-    message:
-      "Bonjour Léa, nous cherchons un lead designer pour refondre notre console interne. Auriez-vous une disponibilité en septembre pour un premier échange ? Nous sommes basés à Berlin mais totalement remote-friendly.",
-    date: "2026-07-01T08:22:00Z",
-    status: "nouveau",
-  },
-  {
-    id: "c2",
-    fullName: "Julien Perez",
-    email: "j.perez@atelier-nord.fr",
-    message:
-      "Merci pour la mise à jour d'hier — nous validons la V2 en interne, retour d'ici la fin de semaine.",
-    date: "2026-06-25T17:45:00Z",
-    status: "traite",
-  },
-  {
-    id: "c3",
-    fullName: "Elena Costa",
-    email: "elena.costa@vestige.co",
-    message: "Ancien projet — pour archives uniquement.",
-    date: "2026-05-11T11:00:00Z",
-    status: "archive",
-  },
-];
+export type ContactDbStatus = Tables<"contacts">["status"];
+
+export interface AdminContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string | null;
+  status: ContactDbStatus;
+  createdAt: string;
+}
+
+/**
+ * Insertion publique depuis ContactForm.tsx. `type: "contact"` distingue ces
+ * lignes des futures demandes de rdv Cal.com (`type: "rdv"`, hors périmètre) --
+ * `status` par défaut ("new") et `id`/`created_at` sont laissés à la base.
+ * RLS (contacts_insert_anyone) autorise anon/authenticated ; pas de check
+ * RETURNING nécessaire ici (contrairement à un UPDATE) : un INSERT qui
+ * viole la policy renvoie une erreur explicite, jamais un succès silencieux.
+ */
+export async function submitContact(input: {
+  name: string;
+  email: string;
+  message: string;
+}): Promise<void> {
+  const { error } = await supabase.from("contacts").insert({
+    type: "contact",
+    name: input.name,
+    email: input.email,
+    message: input.message,
+    consent_given_at: new Date().toISOString(),
+  });
+
+  if (error) throw error;
+}
+
+/** Admin-only : tous les messages de contact (hors rdv Cal.com). RLS (contacts_select_admin) restreint déjà aux admins. */
+export async function getAllContacts(): Promise<AdminContactMessage[]> {
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("id, name, email, message, status, created_at")
+    .eq("type", "contact")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    message: row.message,
+    status: row.status,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function updateContactStatus(id: string, status: ContactDbStatus): Promise<void> {
+  const { data, error } = await supabase
+    .from("contacts")
+    .update({ status })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error(`updateContactStatus: no row updated for id=${id}`);
+}
