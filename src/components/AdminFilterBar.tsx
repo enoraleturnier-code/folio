@@ -25,12 +25,12 @@ const focusRing =
 
 function pillClass(active: boolean) {
   return (
-    "rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
+    "rounded-full border px-4 py-1.5 text-sm transition-colors " +
     focusRing +
     " " +
     (active
-      ? "border-primary/40 bg-primary/15 text-primary"
-      : "border-outline text-on-surface-variant hover:border-primary/40 hover:bg-primary/15 hover:text-primary")
+      ? "border-primary/40 bg-primary/15 font-semibold text-primary"
+      : "border-outline font-normal text-on-surface-variant hover:border-primary/40 hover:bg-primary/15 hover:text-primary")
   );
 }
 
@@ -82,6 +82,7 @@ export function AdminFilterBar({ groups, value, onChange }: AdminFilterBarProps)
             <button
               type="button"
               onClick={() => setGroupValue(g.key, "")}
+              aria-pressed={!value[g.key]}
               className={pillClass(!value[g.key])}
             >
               Tous
@@ -93,6 +94,7 @@ export function AdminFilterBar({ groups, value, onChange }: AdminFilterBarProps)
                   key={opt.value}
                   type="button"
                   onClick={() => setGroupValue(g.key, active ? "" : opt.value)}
+                  aria-pressed={active}
                   className={pillClass(active)}
                 >
                   {opt.label}
@@ -114,6 +116,7 @@ export function AdminFilterBar({ groups, value, onChange }: AdminFilterBarProps)
                 <button
                   type="button"
                   onClick={() => setGroupValue(g.key, "")}
+                  aria-pressed={!value[g.key]}
                   className={pillClass(!value[g.key])}
                 >
                   Tous
@@ -125,6 +128,7 @@ export function AdminFilterBar({ groups, value, onChange }: AdminFilterBarProps)
                       key={opt.value}
                       type="button"
                       onClick={() => setGroupValue(g.key, active ? "" : opt.value)}
+                      aria-pressed={active}
                       className={pillClass(active)}
                     >
                       {opt.label}

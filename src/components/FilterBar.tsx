@@ -46,10 +46,12 @@ const secondaryCategories: { key: keyof FilterState; label: string }[] = [
 
 function pillClass(key: keyof FilterState, active: boolean) {
   return (
-    "rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
+    "rounded-full border px-4 py-1.5 text-sm transition-colors " +
     focusRing +
     " " +
-    (active ? activeClasses[key] : `border-outline text-on-surface-variant ${hoverClasses[key]}`)
+    (active
+      ? `font-semibold ${activeClasses[key]}`
+      : `font-normal border-outline text-on-surface-variant ${hoverClasses[key]}`)
   );
 }
 
@@ -103,6 +105,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
               <button
                 type="button"
                 onClick={() => onChange({ ...value, designType: "" })}
+                aria-pressed={value.designType === ""}
                 className={pillClass("designType", value.designType === "")}
               >
                 Tous les types
@@ -114,6 +117,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                     key={opt}
                     type="button"
                     onClick={() => onChange({ ...value, designType: active ? "" : opt })}
+                    aria-pressed={active}
                     className={pillClass("designType", active)}
                   >
                     {opt}
@@ -136,6 +140,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                 <button
                   type="button"
                   onClick={() => onChange({ ...value, [c.key]: "" })}
+                  aria-pressed={value[c.key] === ""}
                   className={pillClass(c.key, value[c.key] === "")}
                 >
                   Tous
@@ -147,6 +152,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                       key={opt}
                       type="button"
                       onClick={() => onChange({ ...value, [c.key]: active ? "" : opt })}
+                      aria-pressed={active}
                       className={pillClass(c.key, active)}
                     >
                       {optionLabel(c.key, opt)}
