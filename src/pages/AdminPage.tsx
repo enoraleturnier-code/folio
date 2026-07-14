@@ -2,6 +2,7 @@ import {
   ArchiveRestore,
   ArrowLeftRight,
   ArrowRight,
+  Ban,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -1214,7 +1215,7 @@ function DemandesTab({
               {r.status === "pending" && (
                 <div className="flex flex-col gap-3">
                   {rejecting === r.id ? (
-                    <div className="rounded-xl border border-[#F87171]/30 bg-[#F87171]/5 p-4">
+                    <div className="rounded-xl border border-white/5 bg-surface-container p-4">
                       <label
                         htmlFor={`reason-${r.id}`}
                         className="block text-sm font-medium text-on-surface-variant"
@@ -1246,8 +1247,9 @@ function DemandesTab({
                           type="button"
                           onClick={() => reject(r.id)}
                           disabled={!reason.trim() || busyId === r.id}
-                          className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50"
                         >
+                          <Ban aria-hidden="true" size={14} />
                           Confirmer le refus
                         </button>
                       </div>
@@ -1258,16 +1260,18 @@ function DemandesTab({
                         type="button"
                         onClick={() => setRejecting(r.id)}
                         disabled={busyId === r.id}
-                        className="rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50"
                       >
+                        <Ban aria-hidden="true" size={14} />
                         Refuser
                       </button>
                       <button
                         type="button"
                         onClick={() => approve(r.id)}
                         disabled={busyId === r.id}
-                        className="rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50"
                       >
+                        <Check aria-hidden="true" size={14} />
                         Valider
                       </button>
                     </div>
@@ -1277,7 +1281,7 @@ function DemandesTab({
 
               {r.status === "rejected" && r.rejectionReason && (
                 <p className="rounded-xl border border-white/5 bg-surface-container p-3 text-xs text-on-surface-variant">
-                  <span className="font-medium text-[#F87171]">Motif du refus :</span>{" "}
+                  <span className="font-medium text-on-surface-variant">Motif du refus :</span>{" "}
                   {r.rejectionReason}
                 </p>
               )}
