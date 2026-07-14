@@ -270,6 +270,65 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          access_request_id: string | null
+          created_at: string
+          id: string
+          project_id: string | null
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          access_request_id?: string | null
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          access_request_id?: string | null
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_access_request_id_fkey"
+            columns: ["access_request_id"]
+            isOneToOne: false
+            referencedRelation: "access_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects_catalog_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_keywords: {
         Row: {
           keyword_id: string
@@ -363,6 +422,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_types_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects_catalog_view"
             referencedColumns: ["id"]
           },
           {
@@ -574,6 +640,7 @@ export type Database = {
       access_request_status: "pending" | "approved" | "rejected"
       contact_status: "new" | "treated" | "archived"
       contact_type: "contact" | "rdv"
+      notification_type: "access_request_received" | "access_request_resolved"
       project_status: "draft" | "public" | "confidential"
       secteur_activite:
         | "tech_saas"
@@ -729,6 +796,7 @@ export const Constants = {
       access_request_status: ["pending", "approved", "rejected"],
       contact_status: ["new", "treated", "archived"],
       contact_type: ["contact", "rdv"],
+      notification_type: ["access_request_received", "access_request_resolved"],
       project_status: ["draft", "public", "confidential"],
       secteur_activite: [
         "tech_saas",

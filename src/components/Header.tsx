@@ -6,6 +6,7 @@ import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { initials } from "@/lib/utils";
+import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
@@ -40,6 +41,8 @@ export function Header() {
           </nav>
 
           <ThemeToggle />
+
+          {session && <NotificationBell />}
 
           {!session && (
             <Link
