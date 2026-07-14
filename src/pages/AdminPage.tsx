@@ -1175,13 +1175,7 @@ function ProjetsTab({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3
-                    className={
-                      "truncate text-xl font-bold text-on-surface " + (deleted ? "opacity-60" : "")
-                    }
-                  >
-                    {p.title}
-                  </h3>
+                  <h3 className="truncate text-xl font-bold text-on-surface">{p.title}</h3>
                   <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
                     {deleted && p.deleted_at
                       ? `Supprimé le ${new Date(p.deleted_at).toLocaleDateString("fr-FR")}`
