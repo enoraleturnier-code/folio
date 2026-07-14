@@ -49,16 +49,25 @@ const icons: Partial<Record<StatusKind, LucideIcon>> = {
 };
 
 /** `suffix` : contexte additionnel affiché après le label (ex. "Confidentiel • Sensible" dans le dashboard admin). */
-export function StatusBadge({ kind, suffix }: { kind: StatusKind; suffix?: string }) {
+export function StatusBadge({
+  kind,
+  suffix,
+  size = "sm",
+}: {
+  kind: StatusKind;
+  suffix?: string;
+  size?: "sm" | "md";
+}) {
   const Icon = icons[kind];
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-normal uppercase tracking-widest",
+        "inline-flex items-center gap-1.5 rounded-full border font-normal uppercase tracking-widest",
+        size === "md" ? "px-4 py-1.5 text-xs" : "px-3 py-1 text-[10px]",
         styles[kind],
       )}
     >
-      {Icon && <Icon aria-hidden="true" size={14} />}
+      {Icon && <Icon aria-hidden="true" size={size === "md" ? 16 : 14} />}
       {labels[kind]}
       {suffix && <span className="normal-case">&nbsp;• {suffix}</span>}
     </span>
