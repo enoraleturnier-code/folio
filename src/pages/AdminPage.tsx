@@ -291,6 +291,7 @@ export function AdminPage() {
               accessRequests={accessRequests}
               contacts={contacts}
               designWatchEntries={designWatchEntries}
+              veilleNewCount={veilleNewCount}
             />
           )}
           {tab === "projets" && (
@@ -555,18 +556,51 @@ function AdminSidebar({
 }
 /* ---------- Dashboard Tab ---------- */
 
+/** Une carte "accès rapide" du dashboard -- reprend la couleur nav de l'onglet ciblé (NAV_ACTIVE_CLASSES), pas une teinte unique partagée. */
+function QuickAccessCard({
+  icon: Icon,
+  color,
+  count,
+  label,
+  hint,
+  onClick,
+}: {
+  icon: LucideIcon;
+  color: keyof typeof NAV_ACTIVE_CLASSES;
+  count: number;
+  label: string;
+  hint: string;
+  onClick: () => void;
+}) {
+  const classes = NAV_ACTIVE_CLASSES[color];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
+    >
+      <Icon aria-hidden="true" className={classes.icon} size={24} />
+      <span className="mt-4 text-3xl font-bold text-on-surface">{count}</span>
+      <span className="mt-1 text-sm text-on-surface-variant">{label}</span>
+      <span className={"mt-2 text-xs " + classes.icon}>{hint}</span>
+    </button>
+  );
+}
+
 function DashboardTab({
   setTab,
   projects,
   accessRequests,
   contacts,
   designWatchEntries,
+  veilleNewCount,
 }: {
   setTab: (t: TabKey) => void;
   projects: Project[];
   accessRequests: AdminAccessRequest[];
   contacts: AdminContactMessage[];
   designWatchEntries: DesignWatchEntry[];
+  veilleNewCount: number;
 }) {
   const pendingRequests = accessRequests.filter((r) => r.status === "pending");
   const newMessages = contacts.filter((c) => c.status === "new");
@@ -601,52 +635,47 @@ function DashboardTab({
         subtitle="Récapitulatif de tes projets, demandes d'accès et messages en un coup d'œil."
       />
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <button
-          type="button"
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <QuickAccessCard
+          icon={Folder}
+          color="fuchsia"
+          count={activeProjects.length}
+          label="Projets"
+          hint={`${publishedProjects.length} publiés · ${draftProjects.length} brouillon`}
           onClick={() => setTab("projets")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <Folder aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">{activeProjects.length}</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Projets</span>
-          <span className="mt-2 text-xs text-primary">
-            {publishedProjects.length} publiés · {draftProjects.length} brouillon
-          </span>
-        </button>
-
-        <button
-          type="button"
+        />
+        <QuickAccessCard
+          icon={KeyRound}
+          color="violet"
+          count={pendingRequests.length}
+          label="Demandes en attente"
+          hint="À valider ou refuser"
           onClick={() => setTab("demandes")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <KeyRound aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">{pendingRequests.length}</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Demandes en attente</span>
-          <span className="mt-2 text-xs text-primary">À valider ou refuser</span>
-        </button>
-
-        <button
-          type="button"
+        />
+        <QuickAccessCard
+          icon={Mail}
+          color="nouveau"
+          count={newMessages.length}
+          label="Messages nouveaux"
+          hint="À traiter"
           onClick={() => setTab("contacts")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <Mail aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">{newMessages.length}</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Messages nouveaux</span>
-          <span className="mt-2 text-xs text-primary">À traiter</span>
-        </button>
-
-        <button
-          type="button"
+        />
+        <QuickAccessCard
+          icon={Newspaper}
+          color="cyan"
+          count={veilleNewCount}
+          label="Veille Hebdo"
+          hint="Nouveaux contenus"
+          onClick={() => setTab("veille")}
+        />
+        <QuickAccessCard
+          icon={Settings}
+          color="teal"
+          count={1}
+          label="Paramètres"
+          hint="Profil public"
           onClick={() => setTab("parametres")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <Settings aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">1</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Paramètres</span>
-          <span className="mt-2 text-xs text-primary">Profil public</span>
-        </button>
+        />
       </div>
 
       {(pendingRequests.length > 0 || newMessages.length > 0) && (
