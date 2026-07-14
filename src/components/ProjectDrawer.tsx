@@ -626,10 +626,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </div>
 
               <div>
-                <p className={labelCls}>Image</p>
+                <label htmlFor="pd-thumbnail-input" className={labelCls}>
+                  Image
+                </label>
                 <label
                   id="pd-thumbnail-drop"
-                  tabIndex={-1}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDraggingOver(true);
@@ -668,6 +669,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     </>
                   )}
                   <input
+                    id="pd-thumbnail-input"
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     className="hidden"

@@ -72,13 +72,14 @@ export function TagPicker({
   };
 
   const unselectedOptions = options.filter((o) => !selected.includes(o.name));
+  const newTagInputId = `tp-new-tag-${category}`;
 
   return (
-    <div className="space-y-2">
-      <p className="flex items-center gap-1.5 text-sm font-medium text-on-surface-variant">
+    <fieldset className="m-0 space-y-2 border-0 p-0">
+      <legend className="flex items-center gap-1.5 p-0 text-sm font-medium text-on-surface-variant">
         <Sparkles aria-hidden="true" size={14} />
         {label}
-      </p>
+      </legend>
       <div className="flex flex-wrap items-center gap-2">
         {selected.map((name) => (
           <span
@@ -131,7 +132,11 @@ export function TagPicker({
                 </div>
               )}
               <div className="flex items-center gap-1 border-t border-white/5 pt-2">
+                <label htmlFor={newTagInputId} className="sr-only">
+                  Nouveau tag pour {label.toLowerCase()}
+                </label>
                 <input
+                  id={newTagInputId}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addNew())}
@@ -154,6 +159,6 @@ export function TagPicker({
           )}
         </div>
       </div>
-    </div>
+    </fieldset>
   );
 }

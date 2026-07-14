@@ -1887,9 +1887,10 @@ function ParametresTab() {
       ) : (
         <form onSubmit={handleSave} className="mt-10 space-y-6">
           <div>
-            <p className={labelCls}>Photo de profil</p>
+            <label htmlFor="s-photo-input" className={labelCls}>
+              Photo de profil
+            </label>
             <label
-              tabIndex={editing ? -1 : undefined}
               onDragOver={(e) => {
                 if (!editing) return;
                 e.preventDefault();
@@ -1924,6 +1925,7 @@ function ParametresTab() {
                 </>
               )}
               <input
+                id="s-photo-input"
                 type="file"
                 disabled={!editing}
                 accept="image/png,image/jpeg,image/webp"
