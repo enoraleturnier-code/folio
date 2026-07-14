@@ -1887,89 +1887,91 @@ function ParametresTab() {
         <p className="mt-10 text-sm text-on-surface-variant">Chargement de ton profil…</p>
       ) : (
         <form onSubmit={handleSave} className="mt-10 space-y-6">
-          <div>
-            <label htmlFor="s-photo-input" className={labelCls}>
-              Photo de profil
-            </label>
-            <label
-              onDragOver={(e) => {
-                if (!editing) return;
-                e.preventDefault();
-                setIsDraggingOver(true);
-              }}
-              onDragLeave={() => setIsDraggingOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDraggingOver(false);
-                if (!editing) return;
-                const file = e.dataTransfer.files?.[0];
-                if (file) onFileSelected(file);
-              }}
-              className={cn(
-                "mt-2 flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed bg-surface-container text-center",
-                editing ? "cursor-pointer hover:bg-white/5" : "cursor-default opacity-70",
-                isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
-              )}
-            >
-              {pendingPreview || form.photoUrl ? (
-                <img
-                  src={pendingPreview ?? form.photoUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
+          <div className="flex flex-col gap-6 sm:flex-row">
+            <div>
+              <label htmlFor="s-photo-input" className={labelCls}>
+                Photo de profil
+              </label>
+              <label
+                onDragOver={(e) => {
+                  if (!editing) return;
+                  e.preventDefault();
+                  setIsDraggingOver(true);
+                }}
+                onDragLeave={() => setIsDraggingOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingOver(false);
+                  if (!editing) return;
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) onFileSelected(file);
+                }}
+                className={cn(
+                  "mt-2 flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed bg-surface-container text-center",
+                  editing ? "cursor-pointer hover:bg-white/5" : "cursor-default opacity-70",
+                  isDraggingOver ? "border-primary bg-primary/5" : "border-white/15",
+                )}
+              >
+                {pendingPreview || form.photoUrl ? (
+                  <img
+                    src={pendingPreview ?? form.photoUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
+                    <p className="text-sm text-on-surface-variant">
+                      Glisse-dépose ou <span className="text-primary">parcourir</span>
+                    </p>
+                  </>
+                )}
+                <input
+                  id="s-photo-input"
+                  type="file"
+                  disabled={!editing}
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
                 />
-              ) : (
-                <>
-                  <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
-                  <p className="text-sm text-on-surface-variant">
-                    Glisse-dépose ou <span className="text-primary">parcourir</span>
-                  </p>
-                </>
-              )}
-              <input
-                id="s-photo-input"
-                type="file"
-                disabled={!editing}
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
-              />
-            </label>
-          </div>
+              </label>
+            </div>
 
-          <div className="grid gap-5 sm:grid-cols-3">
-            <div>
-              <label htmlFor="s-firstname" className={labelCls}>
-                Prénom
-              </label>
-              <input
-                id="s-firstname"
-                readOnly
-                value={designer.firstName}
-                className={inputCls + " mt-2 cursor-default text-on-surface-variant"}
-              />
-            </div>
-            <div>
-              <label htmlFor="s-lastname" className={labelCls}>
-                Nom
-              </label>
-              <input
-                id="s-lastname"
-                readOnly
-                value={designer.lastName}
-                className={inputCls + " mt-2 cursor-default text-on-surface-variant"}
-              />
-            </div>
-            <div>
-              <label htmlFor="s-email" className={labelCls}>
-                Email
-              </label>
-              <input
-                id="s-email"
-                type="email"
-                readOnly
-                value={designer.email}
-                className={inputCls + " mt-2 cursor-default text-on-surface-variant"}
-              />
+            <div className="flex flex-1 flex-col gap-5">
+              <div>
+                <label htmlFor="s-firstname" className={labelCls}>
+                  Prénom
+                </label>
+                <input
+                  id="s-firstname"
+                  disabled
+                  value={designer.firstName}
+                  className={inputCls + " mt-2"}
+                />
+              </div>
+              <div>
+                <label htmlFor="s-lastname" className={labelCls}>
+                  Nom
+                </label>
+                <input
+                  id="s-lastname"
+                  disabled
+                  value={designer.lastName}
+                  className={inputCls + " mt-2"}
+                />
+              </div>
+              <div>
+                <label htmlFor="s-email" className={labelCls}>
+                  Email
+                </label>
+                <input
+                  id="s-email"
+                  type="email"
+                  disabled
+                  value={designer.email}
+                  className={inputCls + " mt-2"}
+                />
+              </div>
             </div>
           </div>
 
