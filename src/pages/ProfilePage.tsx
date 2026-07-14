@@ -5,6 +5,7 @@ import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { ContactForm } from "@/components/ContactForm";
 import { IconTooltip } from "@/components/IconTooltip";
 import { designer, getDesignerProfile } from "@/data/designer";
@@ -168,8 +169,9 @@ export function ProfilePage() {
                   <p className="mb-2 text-base text-on-surface">
                     Chargement du calendrier interactif…
                   </p>
-                  <p className="text-xs text-on-surface-variant">
+                  <p className="flex items-center gap-2 text-xs text-on-surface-variant">
                     cal.com/<span className="text-primary">{designer.calUsername}</span>
+                    <ComingSoonBadge />
                   </p>
                 </div>
               </div>
