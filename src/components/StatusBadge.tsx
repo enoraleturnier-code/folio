@@ -45,6 +45,7 @@ const icons: Partial<Record<StatusKind, LucideIcon>> = {
   confidential: Lock,
   draft: NotebookPen,
   deleted: Trash2,
+  traite: Check,
 };
 
 /** `suffix` : contexte additionnel affiché après le label (ex. "Confidentiel • Sensible" dans le dashboard admin). */

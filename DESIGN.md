@@ -364,6 +364,27 @@ Pattern déjà en place sur `AccessRequestModal` (`FieldHint`, icône `CircleAle
 
 ---
 
+## 📬 ContactForm.tsx — branchement réel + filtres dashboard admin (14/07)
+
+**ContactForm.tsx** (page profil public) passe du mock au réel :
+- Champ "Entreprise" retiré (pas de colonne correspondante dans `contacts`, pas dans le spec) — seuls Nom/Email/Message/RGPD subsistent.
+- Insert via `submitContact()` (`src/data/contacts.ts`), `type: "contact"` (distinct de `"rdv"`, réservé à un futur flux Cal.com hors périmètre). RLS déjà en place (`contacts_insert_anyone`) — aucune policy créée.
+- Reprend exactement le pattern erreurs de champ de `ProjectDrawer`/`AccessRequestModal` (`CircleAlert` 14px, `border-error`, focus+scroll premier champ en erreur, bouton jamais désactivé pour une erreur de contenu — seuls RGPD non coché et l'envoi en cours désactivent le CTA).
+- Bouton corrigé en `bg-primary-container` + **`text-on-primary-container`** (était `text-on-primary` — non conforme à la règle CTA de ce document, cf. section "Règle de mapping M3").
+- Case RGPD : composant `Checkbox.tsx` existant réutilisé tel quel (déjà `border-outline`, jamais besoin de retoucher).
+- Pas de "vue de confirmation" plein écran : succès = `Alert type="success"` inline au-dessus du formulaire réinitialisé (le visiteur peut renvoyer un message).
+
+**Dashboard admin — onglet "Messages reçus"** (`ContactsTab`, `AdminPage.tsx`) : passe du mock (`seedContacts`) au réel (`getAllContacts()`/`updateContactStatus()`), RLS déjà en place (`contacts_select_admin`/`contacts_update_admin`, `get_my_role() = 'admin'`).
+- **Progression de statut à sens unique** : `new → treated → archived`, jamais de retour à `new` — un message archivé n'a plus de bouton de cycle (`nextContactStatus` n'a pas d'entrée pour `archived`).
+- Badge `StatusBadge` du statut "Traité" affiche désormais une icône `Check` (déjà importée dans `StatusBadge.tsx`, pas de nouvel import).
+- Badge de notification sur l'onglet "Messages" du sidebar (comptage `status = 'new'`) — même mécanique que le badge "Accès" (`pendingCount`).
+
+**Filtres du dashboard admin — un seul système, partout** : le pattern "état vide/plein" du catalogue (section "Système de filtres" ci-dessus — `border-outline` transparent au repos, `bg-[couleur]/15` + `border-[couleur]/40` + `text-[couleur]` sélectionné) est désormais la référence pour **tout** filtre du dashboard admin, pas seulement le catalogue public :
+- Nouveau filtre Statut de "Messages reçus" (Tous/Nouveau/Traité/Archivé) : couleur `tag-keywords` (indigo) — cohérent avec la couleur de nav déjà attribuée à l'onglet Messages (`NAV_ACTIVE_CLASSES.nouveau`, icône `text-tag-keywords`).
+- Filtre "période" de Veille Hebdo sur le Dashboard (`DashboardTab`) : converti d'un `<select>` natif vers les mêmes pills, couleur `tag-sector` (cyan) — cohérent avec le filtre Statut déjà pill-stylé de l'onglet Veille Hebdo lui-même (`veillePillCls`, déjà existant, réutilisé tel quel plutôt que dupliqué).
+
+---
+
 ## 🏷️ Badge de statut avec suffixe (dashboard admin uniquement)
 
 `StatusBadge` accepte un prop optionnel `suffix?: string`, rendu en `normal-case` juste après le label (le label lui-même reste `uppercase`) : ex. `"CONFIDENTIEL • Sensible"`.

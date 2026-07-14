@@ -39,7 +39,12 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
 import { textLinkClass } from "@/lib/linkStyles";
 import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
-import { contactMessages as seedContacts } from "@/data/contacts";
+import {
+  getAllContacts,
+  updateContactStatus,
+  type AdminContactMessage,
+  type ContactDbStatus,
+} from "@/data/contacts";
 import {
   createProject,
   getProjectById,
@@ -60,7 +65,6 @@ import {
   triggerNotionSync,
   type DesignWatchEntry,
 } from "@/data/designWatch";
-import type { ContactMessage, ContactStatus } from "@/data/types";
 import type { Project } from "@/types/project";
 
 const ALLOWED_TABS = [
@@ -113,6 +117,8 @@ export function AdminPage() {
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [accessRequests, setAccessRequests] = useState<AdminAccessRequest[]>([]);
   const [accessRequestsLoading, setAccessRequestsLoading] = useState(true);
+  const [contacts, setContacts] = useState<AdminContactMessage[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(true);
   const [designWatchEntries, setDesignWatchEntries] = useState<DesignWatchEntry[]>([]);
   const [designWatchLoading, setDesignWatchLoading] = useState(true);
   const [veilleLastViewed, setVeilleLastViewed] = useState<string>(readVeilleLastViewed);
@@ -154,6 +160,22 @@ export function AdminPage() {
       })
       .finally(() => {
         if (!cancelled) setAccessRequestsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, roleLoading, session, role]);
+
+  useEffect(() => {
+    if (loading || roleLoading || !session || role !== "admin") return;
+    let cancelled = false;
+    setContactsLoading(true);
+    getAllContacts()
+      .then((data) => {
+        if (!cancelled) setContacts(data);
+      })
+      .finally(() => {
+        if (!cancelled) setContactsLoading(false);
       });
     return () => {
       cancelled = true;
@@ -203,6 +225,11 @@ export function AdminPage() {
     [accessRequests],
   );
 
+  const newContactsCount = useMemo(
+    () => contacts.filter((c) => c.status === "new").length,
+    [contacts],
+  );
+
   // Compare synced_at (moment technique de la synchro) à la dernière consultation --
   // jamais periode_fin (moment couvert par le contenu), ce sont deux dates distinctes :
   // le badge doit réagir à la synchro, pas au contenu qu'elle rapporte.
@@ -236,6 +263,7 @@ export function AdminPage() {
           })
         }
         pendingCount={pendingCount}
+        contactsCount={newContactsCount}
         veilleCount={veilleNewCount}
       />
       <main
@@ -250,6 +278,7 @@ export function AdminPage() {
               setTab={setTab}
               projects={projects}
               accessRequests={accessRequests}
+              contacts={contacts}
               designWatchEntries={designWatchEntries}
             />
           )}
@@ -267,7 +296,9 @@ export function AdminPage() {
               onItemsChange={setAccessRequests}
             />
           )}
-          {tab === "contacts" && <ContactsTab />}
+          {tab === "contacts" && (
+            <ContactsTab items={contacts} loading={contactsLoading} onItemsChange={setContacts} />
+          )}
           {tab === "veille" && (
             <VeilleDesignTab
               entries={designWatchEntries}
@@ -342,6 +373,7 @@ function AdminSidebar({
   collapsed,
   onToggleCollapsed,
   pendingCount,
+  contactsCount,
   veilleCount,
 }: {
   tab: TabKey;
@@ -349,6 +381,7 @@ function AdminSidebar({
   collapsed: boolean;
   onToggleCollapsed: () => void;
   pendingCount: number;
+  contactsCount: number;
   veilleCount: number;
 }) {
   const items: {
@@ -371,7 +404,14 @@ function AdminSidebar({
       badgeLabel: "demandes en attente",
       color: "violet",
     },
-    { key: "contacts", icon: Mail, label: "Messages", color: "nouveau" },
+    {
+      key: "contacts",
+      icon: Mail,
+      label: "Messages",
+      badge: contactsCount,
+      badgeLabel: "nouveaux messages",
+      color: "nouveau",
+    },
     {
       key: "veille",
       icon: Newspaper,
@@ -508,15 +548,17 @@ function DashboardTab({
   setTab,
   projects,
   accessRequests,
+  contacts,
   designWatchEntries,
 }: {
   setTab: (t: TabKey) => void;
   projects: Project[];
   accessRequests: AdminAccessRequest[];
+  contacts: AdminContactMessage[];
   designWatchEntries: DesignWatchEntry[];
 }) {
   const pendingRequests = accessRequests.filter((r) => r.status === "pending");
-  const newMessages = seedContacts.filter((c) => c.status === "nouveau");
+  const newMessages = contacts.filter((c) => c.status === "new");
   const activeProjects = projects.filter((p) => !p.deleted_at);
   const publishedProjects = activeProjects.filter(
     (p) => p.status === "public" || p.status === "confidential",
@@ -628,7 +670,7 @@ function DashboardTab({
                 className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-on-surface">{m.fullName}</p>
+                  <p className="font-medium text-on-surface">{m.name}</p>
                   <p className="text-sm text-on-surface-variant">{m.email} — Nouveau message</p>
                 </div>
                 <button
@@ -649,22 +691,28 @@ function DashboardTab({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-xl font-bold text-on-surface">Veille Hebdo</h2>
             {veilleMonthOptions.length > 1 && (
-              <select
-                value={veilleMonthFilter}
-                onChange={(e) => setVeilleMonthFilter(e.target.value)}
-                aria-label="Filtrer par date de parution"
-                className="rounded-full border border-white/10 bg-surface-container-low px-4 py-2 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <option value="">Toutes les périodes</option>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setVeilleMonthFilter("")}
+                  className={veillePillCls(veilleMonthFilter === "", "sector")}
+                >
+                  Toutes les périodes
+                </button>
                 {veilleMonthOptions.map((key) => (
-                  <option key={key} value={key}>
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setVeilleMonthFilter(veilleMonthFilter === key ? "" : key)}
+                    className={veillePillCls(veilleMonthFilter === key, "sector")}
+                  >
                     {new Date(`${key}-01`).toLocaleDateString("fr-FR", {
                       month: "long",
                       year: "numeric",
                     })}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             )}
           </div>
           <div className="mt-4 overflow-x-auto rounded-2xl border border-white/5 bg-aurora-cyan">
@@ -1149,21 +1197,55 @@ function DemandesTab({
 
 /* ---------- Contacts Tab ---------- */
 
-const nextContactStatus: Record<ContactStatus, ContactStatus> = {
-  nouveau: "traite",
-  traite: "archive",
-  archive: "nouveau",
+/** Progression à sens unique -- un message archivé ne redevient jamais "nouveau" (pas d'entrée pour "archived"). */
+const nextContactStatus: Partial<Record<ContactDbStatus, ContactDbStatus>> = {
+  new: "treated",
+  treated: "archived",
 };
 
-function ContactsTab() {
-  const [items, setItems] = useState<ContactMessage[]>(() =>
-    [...seedContacts].sort((a, b) => (a.date < b.date ? 1 : -1)),
-  );
+const CONTACT_STATUS_KIND: Record<ContactDbStatus, "nouveau" | "traite" | "archive"> = {
+  new: "nouveau",
+  treated: "traite",
+  archived: "archive",
+};
 
-  const cycle = (id: string) =>
-    setItems((xs) =>
-      xs.map((x) => (x.id === id ? { ...x, status: nextContactStatus[x.status] } : x)),
-    );
+const CONTACT_STATUS_FILTERS: { value: ContactDbStatus | "all"; label: string }[] = [
+  { value: "all", label: "Tous" },
+  { value: "new", label: "Nouveau" },
+  { value: "treated", label: "Traité" },
+  { value: "archived", label: "Archivé" },
+];
+
+function ContactsTab({
+  items,
+  loading,
+  onItemsChange,
+}: {
+  items: AdminContactMessage[];
+  loading: boolean;
+  onItemsChange: (items: AdminContactMessage[]) => void;
+}) {
+  const [statusFilter, setStatusFilter] = useState<ContactDbStatus | "all">("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const sorted = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const filtered = sorted.filter((m) => statusFilter === "all" || m.status === statusFilter);
+
+  const cycle = async (m: AdminContactMessage) => {
+    const next = nextContactStatus[m.status];
+    if (!next) return;
+    setError(null);
+    setBusyId(m.id);
+    try {
+      await updateContactStatus(m.id, next);
+      onItemsChange(items.map((x) => (x.id === m.id ? { ...x, status: next } : x)));
+    } catch {
+      setError("Impossible de changer le statut de ce message. Réessaie.");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return (
     <div className="relative">
@@ -1173,57 +1255,87 @@ function ContactsTab() {
         emphasis="reçus"
         subtitle="Traite, archive, reviens-y. Le statut se met à jour d'un clic."
       />
-      {items.length === 0 ? (
+
+      {error && (
+        <div className="mt-6">
+          <Alert type="error" title="Une erreur est survenue" description={error} />
+        </div>
+      )}
+
+      <div className="mt-10 flex flex-wrap gap-2">
+        {CONTACT_STATUS_FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => setStatusFilter(f.value)}
+            className={veillePillCls(statusFilter === f.value, "keywords")}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <p className="mt-10 text-sm text-on-surface-variant">Chargement des messages…</p>
+      ) : filtered.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center gap-3">
           <Inbox aria-hidden="true" className="text-on-surface-variant/40" size={60} />
-          <p className="text-sm font-light text-on-surface-variant">Aucun message reçu</p>
+          <p className="text-sm font-light text-on-surface-variant">
+            {items.length === 0 ? "Aucun message reçu" : "Aucun message pour ce filtre"}
+          </p>
         </div>
       ) : (
-        <ul role="list" className="mt-10 space-y-4">
-          {items.map((m) => (
-            <li
-              key={m.id}
-              className="glass-panel flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:flex-row md:items-center md:justify-between"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <p className="text-base font-medium text-on-surface">{m.fullName}</p>
-                  <span className="text-sm text-on-surface-variant">{m.email}</span>
+        <ul role="list" className="mt-6 space-y-4">
+          {filtered.map((m) => {
+            const next = nextContactStatus[m.status];
+            return (
+              <li
+                key={m.id}
+                className="glass-panel flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:flex-row md:items-center md:justify-between"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-base font-medium text-on-surface">{m.name}</p>
+                    <span className="text-sm text-on-surface-variant">{m.email}</span>
+                  </div>
+                  <p
+                    className="mt-2 text-sm font-light text-on-surface-variant"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: 2,
+                      overflow: "hidden",
+                    }}
+                  >
+                    {m.message}
+                  </p>
+                  <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
+                    {new Date(m.createdAt)
+                      .toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })
+                      .toUpperCase()}
+                  </p>
                 </div>
-                <p
-                  className="mt-2 text-sm font-light text-on-surface-variant"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitBoxOrient: "vertical",
-                    WebkitLineClamp: 2,
-                    overflow: "hidden",
-                  }}
-                >
-                  {m.message}
-                </p>
-                <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
-                  {new Date(m.date)
-                    .toLocaleDateString("fr-FR", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })
-                    .toUpperCase()}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3" aria-live="polite">
-                <StatusBadge kind={m.status} />
-                <button
-                  type="button"
-                  onClick={() => cycle(m.id)}
-                  aria-label={`Changer le statut du message de ${m.fullName}`}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary"
-                >
-                  <ArrowLeftRight aria-hidden="true" size={16} />
-                </button>
-              </div>
-            </li>
-          ))}
+                <div className="flex shrink-0 items-center gap-3" aria-live="polite">
+                  <StatusBadge kind={CONTACT_STATUS_KIND[m.status]} />
+                  {next && (
+                    <button
+                      type="button"
+                      onClick={() => cycle(m)}
+                      disabled={busyId === m.id}
+                      aria-label={`Changer le statut du message de ${m.name}`}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50"
+                    >
+                      <ArrowLeftRight aria-hidden="true" size={16} />
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
