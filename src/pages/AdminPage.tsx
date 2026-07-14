@@ -1937,40 +1937,18 @@ function ParametresTab() {
               </label>
             </div>
 
-            <div className="flex flex-1 flex-col gap-5">
+            <div className="flex flex-1 flex-col items-end gap-5 text-right">
               <div>
-                <label htmlFor="s-firstname" className={labelCls}>
-                  Prénom
-                </label>
-                <input
-                  id="s-firstname"
-                  disabled
-                  value={designer.firstName}
-                  className={inputCls + " mt-2"}
-                />
+                <p className={labelCls}>Prénom</p>
+                <p className="mt-2 text-sm text-on-surface">{designer.firstName}</p>
               </div>
               <div>
-                <label htmlFor="s-lastname" className={labelCls}>
-                  Nom
-                </label>
-                <input
-                  id="s-lastname"
-                  disabled
-                  value={designer.lastName}
-                  className={inputCls + " mt-2"}
-                />
+                <p className={labelCls}>Nom</p>
+                <p className="mt-2 text-sm text-on-surface">{designer.lastName}</p>
               </div>
               <div>
-                <label htmlFor="s-email" className={labelCls}>
-                  Email
-                </label>
-                <input
-                  id="s-email"
-                  type="email"
-                  disabled
-                  value={designer.email}
-                  className={inputCls + " mt-2"}
-                />
+                <p className={labelCls}>Email</p>
+                <p className="mt-2 text-sm text-on-surface">{designer.email}</p>
               </div>
             </div>
           </div>
