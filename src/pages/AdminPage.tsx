@@ -32,6 +32,7 @@ import type { Session } from "@supabase/supabase-js";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Alert } from "@/components/Alert";
+import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -782,6 +783,17 @@ function formatPeriod(start: string | null, end: string | null): string {
   return String(startYear ?? endYear ?? "");
 }
 
+const PROJETS_NIVEAU_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "public", label: "Public" },
+  { value: "confidentiel_sensible", label: "Confidentiel-Sensible" },
+  { value: "confidentiel_critique", label: "Confidentiel-Critique" },
+];
+
+const PROJETS_STATUT_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "publie", label: "Publié" },
+  { value: "brouillon", label: "Brouillon" },
+];
+
 function ProjetsTab({
   projects,
   loading,
@@ -795,6 +807,26 @@ function ProjetsTab({
   const [editing, setEditing] = useState<Project | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({ niveau: "", statut: "" });
+
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "niveau", label: "Niveau", primary: true, options: PROJETS_NIVEAU_OPTIONS },
+    { key: "statut", label: "Statut", options: PROJETS_STATUT_OPTIONS },
+  ];
+
+  const filteredProjects = projects
+    .filter((p) => {
+      if (!filters.niveau) return true;
+      if (filters.niveau === "public") return p.status === "public";
+      if (filters.niveau === "confidentiel_sensible")
+        return p.status === "confidential" && p.sensitivity_level === "sensible";
+      return p.status === "confidential" && p.sensitivity_level === "tres_sensible";
+    })
+    .filter((p) => {
+      if (!filters.statut) return true;
+      const published = p.status === "public" || p.status === "confidential";
+      return filters.statut === "publie" ? published : !published;
+    });
 
   const openNew = () => {
     setEditing(null);
@@ -851,24 +883,33 @@ function ProjetsTab({
     <div className="relative">
       <SectionAurora color="teal" />
       <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
-        <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
-          Mon catalogue <span className="font-display-accent italic text-primary">Projets</span>
-        </h1>
+        <div>
+          <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
+            Mon catalogue <span className="font-display-accent italic text-primary">Projets</span>
+          </h1>
+          <p className="mt-2 text-sm text-on-surface-variant">
+            Crée tes projets publics et confidentiels en un clin d'œil à l'aide de l'IA.
+          </p>
+        </div>
         <button
           type="button"
           onClick={openNew}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
         >
           <Plus aria-hidden="true" size={18} />
           Créer un nouveau projet
         </button>
       </header>
 
+      <div className="mt-8">
+        <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
+      </div>
+
       {loading ? (
         <p className="mt-10 text-sm text-on-surface-variant">Chargement des projets…</p>
       ) : (
         <ul className="mt-10 space-y-6">
-          {projects.map((p, i) => {
+          {filteredProjects.map((p, i) => {
             const deleted = Boolean(p.deleted_at);
             const num = String(i + 1).padStart(2, "0");
             const statusKind = deleted
@@ -1016,6 +1057,12 @@ function ProjetsTab({
 
 /* ---------- Demandes Tab ---------- */
 
+const DEMANDES_STATUS_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "pending", label: "En attente" },
+  { value: "approved", label: "Validées" },
+  { value: "rejected", label: "Refusées" },
+];
+
 function DemandesTab({
   items,
   loading,
@@ -1029,6 +1076,37 @@ function DemandesTab({
   const [reason, setReason] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({
+    status: "",
+    period: "",
+    person: "",
+  });
+
+  const periodOptions = useMemo(
+    () =>
+      Array.from(new Set(items.map((r) => r.createdAt.slice(0, 7))))
+        .sort((a, b) => (a < b ? 1 : -1))
+        .map((key) => ({
+          value: key,
+          label: new Date(`${key}-01`).toLocaleDateString("fr-FR", {
+            month: "long",
+            year: "numeric",
+          }),
+        })),
+    [items],
+  );
+  const personOptions = useMemo(
+    () =>
+      Array.from(new Set(items.map((r) => r.visitor?.fullName).filter((n): n is string => !!n)))
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [items],
+  );
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "status", label: "Statut", primary: true, options: DEMANDES_STATUS_OPTIONS },
+    { key: "period", label: "Date", options: periodOptions },
+    { key: "person", label: "Personne", options: personOptions },
+  ];
 
   const update = (id: string, patch: Partial<AdminAccessRequest>) =>
     onItemsChange(items.map((x) => (x.id === id ? { ...x, ...patch } : x)));
@@ -1066,7 +1144,11 @@ function DemandesTab({
     }
   };
 
-  const sorted = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const sorted = [...items]
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .filter((r) => !filters.status || r.status === filters.status)
+    .filter((r) => !filters.period || r.createdAt.slice(0, 7) === filters.period)
+    .filter((r) => !filters.person || r.visitor?.fullName === filters.person);
 
   return (
     <div className="relative">
@@ -1081,6 +1163,9 @@ function DemandesTab({
           <Alert type="error" title="Une erreur est survenue" description={error} />
         </div>
       )}
+      <div className="mt-6">
+        <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
+      </div>
       {loading ? (
         <p className="mt-10 text-sm text-on-surface-variant">Chargement des demandes…</p>
       ) : sorted.length === 0 ? (
@@ -1218,8 +1303,7 @@ const CONTACT_STATUS_KIND: Record<ContactDbStatus, "nouveau" | "traite" | "archi
   archived: "archive",
 };
 
-const CONTACT_STATUS_FILTERS: { value: ContactDbStatus | "all"; label: string }[] = [
-  { value: "all", label: "Tous" },
+const CONTACT_STATUS_OPTIONS: AdminFilterGroup["options"] = [
   { value: "new", label: "Nouveau" },
   { value: "treated", label: "Traité" },
   { value: "archived", label: "Archivé" },
@@ -1234,12 +1318,16 @@ function ContactsTab({
   loading: boolean;
   onItemsChange: (items: AdminContactMessage[]) => void;
 }) {
-  const [statusFilter, setStatusFilter] = useState<ContactDbStatus | "all">("all");
+  const [filters, setFilters] = useState<Record<string, string>>({ status: "" });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "status", label: "Statut", primary: true, options: CONTACT_STATUS_OPTIONS },
+  ];
+
   const sorted = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  const filtered = sorted.filter((m) => statusFilter === "all" || m.status === statusFilter);
+  const filtered = sorted.filter((m) => !filters.status || m.status === filters.status);
 
   const cycle = async (m: AdminContactMessage) => {
     const next = nextContactStatus[m.status];
@@ -1271,17 +1359,8 @@ function ContactsTab({
         </div>
       )}
 
-      <div className="mt-10 flex flex-wrap gap-2">
-        {CONTACT_STATUS_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => setStatusFilter(f.value)}
-            className={veillePillCls(statusFilter === f.value, "keywords")}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="mt-10">
+        <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
       </div>
 
       {loading ? (
@@ -1826,8 +1905,7 @@ function VeilleDesignTab({
   onSynced: () => Promise<void> | void;
 }) {
   const [searchParams] = useSearchParams();
-  const [statutFilter, setStatutFilter] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
+  const [filters, setFilters] = useState<Record<string, string>>({ statut: "", tag: "" });
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   // Deep-link depuis le tableau "Veille Hebdo" du Dashboard (?entry=<notion_page_id>) --
@@ -1835,6 +1913,8 @@ function VeilleDesignTab({
   const [openEntryId, setOpenEntryId] = useState<string | null>(() => searchParams.get("entry"));
   const openEntry = entries.find((e) => e.notion_page_id === openEntryId) ?? null;
 
+  // statut est un miroir direct du select Notion (valeurs vues en prod : Brouillon, Nouveau) --
+  // liste dynamique, pas une énumération figée côté app (cf. commentaire migration table).
   const statutOptions = useMemo(
     () => Array.from(new Set(entries.map((e) => e.statut))).sort(),
     [entries],
@@ -1844,9 +1924,23 @@ function VeilleDesignTab({
     [entries],
   );
 
+  const filterGroups: AdminFilterGroup[] = [
+    {
+      key: "statut",
+      label: "Statut",
+      primary: true,
+      options: statutOptions.map((s) => ({ value: s, label: s })),
+    },
+    {
+      key: "tag",
+      label: "Tags",
+      options: tagOptions.map((t) => ({ value: t, label: t })),
+    },
+  ];
+
   const filtered = entries
-    .filter((e) => !statutFilter || e.statut === statutFilter)
-    .filter((e) => !tagFilter || e.tags.includes(tagFilter));
+    .filter((e) => !filters.statut || e.statut === filters.statut)
+    .filter((e) => !filters.tag || e.tags.includes(filters.tag));
 
   const lastSync = useMemo(() => {
     if (entries.length === 0) return null;
@@ -1905,62 +1999,9 @@ function VeilleDesignTab({
       )}
 
       <div className="mt-8 rounded-2xl bg-aurora-cyan p-6">
-        {(statutOptions.length > 0 || tagOptions.length > 0) && (
-          <div className="mb-6 flex flex-wrap gap-x-10 gap-y-4 border-b border-white/10 pb-6">
-            {statutOptions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-on-surface-variant/65">
-                  Statut
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setStatutFilter("")}
-                    className={veillePillCls(statutFilter === "", "sector")}
-                  >
-                    Tous
-                  </button>
-                  {statutOptions.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setStatutFilter(statutFilter === s ? "" : s)}
-                      className={veillePillCls(statutFilter === s, "sector")}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {tagOptions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-on-surface-variant/65">
-                  Tags
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTagFilter("")}
-                    className={veillePillCls(tagFilter === "", "keywords")}
-                  >
-                    Tous
-                  </button>
-                  {tagOptions.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTagFilter(tagFilter === t ? "" : t)}
-                      className={veillePillCls(tagFilter === t, "keywords")}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        <div className="mb-6">
+          <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
+        </div>
 
         {loading ? (
           <p className="text-sm text-on-surface-variant">Chargement de la veille…</p>
