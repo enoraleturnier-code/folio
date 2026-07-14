@@ -348,6 +348,7 @@ export function AccessRequestModal({
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
                           onBlur={() => touch("name")}
                           placeholder="Jean Dupont"
+                          aria-invalid={fieldState("name")?.kind === "error"}
                           aria-describedby={fieldState("name") ? "ar-name-hint" : undefined}
                           className={inputCls + " " + borderClassFor(fieldState("name"))}
                         />
@@ -370,6 +371,7 @@ export function AccessRequestModal({
                           onChange={(e) => setForm({ ...form, company: e.target.value })}
                           onBlur={() => touch("company")}
                           placeholder="Nom de votre structure"
+                          aria-invalid={fieldState("company")?.kind === "error"}
                           aria-describedby={fieldState("company") ? "ar-company-hint" : undefined}
                           className={inputCls + " " + borderClassFor(fieldState("company"))}
                         />
@@ -392,6 +394,7 @@ export function AccessRequestModal({
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                         onBlur={() => touch("email")}
                         placeholder="jean@entreprise.com"
+                        aria-invalid={fieldState("email")?.kind === "error"}
                         aria-describedby={fieldState("email") ? "ar-email-hint" : undefined}
                         className={inputCls + " " + borderClassFor(fieldState("email"))}
                       />
@@ -417,6 +420,7 @@ export function AccessRequestModal({
                             value={form.password}
                             onChange={(e) => setForm({ ...form, password: e.target.value })}
                             onBlur={() => touch("password")}
+                            aria-invalid={fieldState("password")?.kind === "error"}
                             aria-describedby={fieldState("password") ? "ar-password-hint" : undefined}
                             className={inputCls + " pr-12 " + borderClassFor(fieldState("password"))}
                           />
@@ -455,6 +459,7 @@ export function AccessRequestModal({
                             value={form.confirmPassword}
                             onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                             onBlur={() => touch("confirmPassword")}
+                            aria-invalid={fieldState("confirmPassword")?.kind === "error"}
                             aria-describedby={
                               fieldState("confirmPassword") ? "ar-confirm-password-hint" : undefined
                             }
@@ -504,26 +509,28 @@ export function AccessRequestModal({
                       const meta = [formatSecteur(p.secteur_activite), p.company_name]
                         .filter(Boolean)
                         .join(" • ");
+                      const inputId = `ar-project-${p.id}`;
                       return (
-                        <label
+                        <div
                           key={p.id}
-                          className="group flex cursor-pointer items-start gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-white/5"
+                          className="group flex items-start gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-white/5"
                         >
                           <Checkbox
+                            id={inputId}
                             checked={checked}
                             onChange={() => toggleProject(p.id)}
                             size="sm"
                             className="mt-0.5"
                           />
-                          <span className="flex flex-col">
+                          <label htmlFor={inputId} className="flex cursor-pointer flex-col">
                             <span className="text-sm text-on-surface transition-colors group-hover:text-primary">
                               {p.title}
                             </span>
                             {meta && (
                               <span className="text-[11px] text-on-surface-variant">{meta}</span>
                             )}
-                          </span>
-                        </label>
+                          </label>
+                        </div>
                       );
                     })}
                   </div>

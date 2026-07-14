@@ -78,6 +78,7 @@ export function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+              aria-invalid={Boolean(emailInvalid)}
               aria-describedby={emailInvalid ? "auth-email-hint" : undefined}
               className={
                 inputCls + " " + (emailInvalid ? "border-error" : "border-outline focus:border-primary")
@@ -105,6 +106,7 @@ export function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                aria-invalid={Boolean(passwordInvalid)}
                 aria-describedby={passwordInvalid ? "auth-password-hint" : undefined}
                 className={
                   inputCls +

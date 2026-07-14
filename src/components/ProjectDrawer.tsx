@@ -281,6 +281,17 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const errorRingCls = (field: ValidationError["field"], base: string) =>
     cn(base, errorFor(field) && "border-error focus-visible:ring-error");
 
+  const errorId = (field: ValidationError["field"]) => `${FIELD_INPUT_IDS[field]}-error`;
+
+  /** aria-invalid + aria-describedby vers le message d'erreur -- à spread sur chaque input/textarea/select validable. */
+  function ariaErrorProps(field: ValidationError["field"]) {
+    const err = errorFor(field);
+    return {
+      "aria-invalid": Boolean(err),
+      "aria-describedby": err ? errorId(field) : undefined,
+    } as const;
+  }
+
   function counter(field: keyof typeof MAX_LENGTHS, value: string | null | undefined) {
     const max = MAX_LENGTHS[field];
     const len = (value ?? "").length;
@@ -297,7 +308,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const err = errorFor(field);
     if (!err) return null;
     return (
-      <p className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+      <p id={errorId(field)} className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
         <CircleAlert aria-hidden="true" size={14} />
         {err.message}
       </p>
@@ -617,6 +628,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   id="pd-title"
                   value={draft.title}
                   onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                  {...ariaErrorProps("title")}
                   className={errorRingCls("title", inputCls + " mt-2")}
                 />
                 <div className="mt-1 flex items-center">
@@ -674,6 +686,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     accept="image/png,image/jpeg,image/webp"
                     className="hidden"
                     onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
+                    {...ariaErrorProps("thumbnail_url")}
                   />
                 </label>
                 {uploading && <p className="mt-1 text-xs text-on-surface-variant">Envoi en cours…</p>}
@@ -754,6 +767,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   maxLength={MAX_LENGTHS.long_desc}
                   value={draft.long_desc ?? ""}
                   onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
+                  {...ariaErrorProps("long_desc")}
                   className={errorRingCls("long_desc", inputCls + " mt-2 resize-y")}
                   placeholder="Décris le brief du projet, son contexte, le cadrage, l'approche globale…"
                 />
@@ -795,6 +809,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     rows={estimateRows(MAX_LENGTHS.short_desc)}
                     value={draft.short_desc ?? ""}
                     onChange={(e) => setShortDesc(e.target.value)}
+                    {...ariaErrorProps("short_desc")}
                     className={errorRingCls("short_desc", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -818,6 +833,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     maxLength={MAX_LENGTHS.probleme}
                     value={draft.ai_structured_desc?.probleme ?? ""}
                     onChange={(e) => setAiStructuredField("probleme", e.target.value)}
+                    {...ariaErrorProps("probleme")}
                     className={errorRingCls("probleme", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -841,6 +857,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     maxLength={MAX_LENGTHS.decisions}
                     value={draft.ai_structured_desc?.decisions ?? ""}
                     onChange={(e) => setAiStructuredField("decisions", e.target.value)}
+                    {...ariaErrorProps("decisions")}
                     className={errorRingCls("decisions", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -864,6 +881,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     maxLength={MAX_LENGTHS.resultat}
                     value={draft.ai_structured_desc?.resultat ?? ""}
                     onChange={(e) => setAiStructuredField("resultat", e.target.value)}
+                    {...ariaErrorProps("resultat")}
                     className={errorRingCls("resultat", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -929,6 +947,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                           secteur_activite: (e.target.value || null) as Project["secteur_activite"],
                         })
                       }
+                      {...ariaErrorProps("secteur_activite")}
                       className={errorRingCls("secteur_activite", selectCls)}
                     >
                       <option value="">Sélectionner un secteur</option>
@@ -950,6 +969,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-company"
                     value={draft.company_name ?? ""}
                     onChange={(e) => setDraft({ ...draft, company_name: e.target.value })}
+                    {...ariaErrorProps("company_name")}
                     className={errorRingCls("company_name", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -965,6 +985,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-client"
                     value={draft.client_name ?? ""}
                     onChange={(e) => setDraft({ ...draft, client_name: e.target.value })}
+                    {...ariaErrorProps("client_name")}
                     className={errorRingCls("client_name", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -980,6 +1001,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-role"
                     value={draft.role ?? ""}
                     onChange={(e) => setDraft({ ...draft, role: e.target.value })}
+                    {...ariaErrorProps("role")}
                     className={errorRingCls("role", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -995,6 +1017,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-team"
                     value={draft.team ?? ""}
                     onChange={(e) => setDraft({ ...draft, team: e.target.value })}
+                    {...ariaErrorProps("team")}
                     className={errorRingCls("team", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -1012,6 +1035,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                       type="date"
                       value={draft.start_date ?? ""}
                       onChange={(e) => setDraft({ ...draft, start_date: e.target.value || null })}
+                      {...ariaErrorProps("start_date")}
                       className={errorRingCls(
                         "start_date",
                         inputCls +
@@ -1036,6 +1060,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                       type="date"
                       value={draft.end_date ?? ""}
                       onChange={(e) => setDraft({ ...draft, end_date: e.target.value || null })}
+                      {...ariaErrorProps("end_date")}
                       className={errorRingCls(
                         "end_date",
                         inputCls +
