@@ -18,12 +18,12 @@ const styles: Record<StatusKind, string> = {
   public: "bg-primary/10 border-primary/30 text-primary",
   confidential: "bg-secondary/80 border-white/10 text-white",
   draft: "bg-white/5 border-white/10 text-on-surface-variant",
-  deleted: "bg-[#F87171]/10 border-[#F87171]/30 text-[#F87171]",
-  pending: "bg-[#FBB040]/10 border-[#FBB040]/30 text-[#FBB040]",
-  approved: "bg-[#34D399]/10 border-[#34D399]/30 text-[#34D399]",
-  rejected: "bg-[#F87171]/10 border-[#F87171]/30 text-[#F87171]",
-  nouveau: "bg-indigo-500/10 border-indigo-500/30 text-[#818CF8]",
-  traite: "bg-[#34D399]/10 border-[#34D399]/30 text-[#34D399]",
+  deleted: "bg-error/10 border-error/30 text-error",
+  pending: "bg-warning/10 border-warning/30 text-warning",
+  approved: "bg-success/10 border-success/30 text-success",
+  rejected: "bg-error/10 border-error/30 text-error",
+  nouveau: "bg-info/10 border-info/30 text-info",
+  traite: "bg-success/10 border-success/30 text-success",
   archive: "bg-white/5 border-white/10 text-on-surface-variant",
 };
 
