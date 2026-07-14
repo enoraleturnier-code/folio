@@ -113,7 +113,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10"
+                  className="inline-flex items-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <Lock aria-hidden="true" size={18} />
                   <span className="text-sm font-bold tracking-wider">

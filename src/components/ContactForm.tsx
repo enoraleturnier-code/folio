@@ -104,7 +104,7 @@ export function ContactForm() {
   const labelCls = "block text-sm font-medium text-on-surface-variant";
 
   function borderClassFor(key: FieldKey) {
-    return showError(key) ? "border-error focus-visible:ring-error" : "border-white/5";
+    return showError(key) ? "border-error focus-visible:ring-error" : "border-outline";
   }
 
   function errorHint(key: FieldKey) {

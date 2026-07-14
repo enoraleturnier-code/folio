@@ -129,7 +129,7 @@ export function NotificationBell() {
                   const now = new Date().toISOString();
                   setItems((prev) => prev.map((x) => (x.readAt ? x : { ...x, readAt: now })));
                 }}
-                className="text-xs font-medium text-primary hover:underline"
+                className="rounded text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 Tout marquer comme lu
               </button>
@@ -153,7 +153,7 @@ export function NotificationBell() {
                       role="menuitem"
                       onClick={() => handleClick(n)}
                       className={
-                        "flex w-full flex-col items-start gap-0.5 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-white/5 " +
+                        "flex w-full flex-col items-start gap-0.5 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset " +
                         (n.readAt ? "text-on-surface-variant" : "text-on-surface")
                       }
                     >

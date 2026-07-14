@@ -595,7 +595,7 @@ function QuickAccessCard({
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
+      className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <Icon aria-hidden="true" className={classes.icon} size={24} />
       <span className="mt-4 text-3xl font-bold text-on-surface">{count}</span>
@@ -806,7 +806,7 @@ function DashboardTab({
                 <button
                   type="button"
                   onClick={() => setTab("demandes")}
-                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   Traiter
                 </button>
@@ -824,7 +824,7 @@ function DashboardTab({
                 <button
                   type="button"
                   onClick={() => setTab("contacts")}
-                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   Lire
                 </button>
@@ -1128,7 +1128,7 @@ function ProjetsTab({
         <button
           type="button"
           onClick={openNew}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Plus aria-hidden="true" size={18} />
           Créer un nouveau projet
@@ -1202,7 +1202,7 @@ function ProjetsTab({
                         onClick={() => restore(p.id)}
                         disabled={busyId === p.id}
                         aria-label={`Restaurer le projet ${p.title}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <ArchiveRestore aria-hidden="true" size={16} />
                       </button>
@@ -1215,7 +1215,7 @@ function ProjetsTab({
                           onClick={() => openEdit(p)}
                           disabled={busyId === p.id}
                           aria-label={`Éditer ${p.title}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           <Pencil aria-hidden="true" size={16} />
                         </button>
@@ -1226,7 +1226,7 @@ function ProjetsTab({
                         onClick={() => setConfirmDelete(p.id)}
                         disabled={busyId === p.id}
                         aria-label={`Supprimer ${p.title}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <Trash2 aria-hidden="true" size={18} />
                       </button>
@@ -1264,7 +1264,7 @@ function ProjetsTab({
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface"
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <X aria-hidden="true" size={16} />
                 Annuler
@@ -1276,7 +1276,7 @@ function ProjetsTab({
                   setConfirmDelete(null);
                   softDelete(id);
                 }}
-                className="inline-flex items-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171]"
+                className="inline-flex items-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Trash2 aria-hidden="true" size={16} />
                 Supprimer
@@ -1471,7 +1471,7 @@ function DemandesTab({
                             setRejecting(null);
                             setReason("");
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           <X aria-hidden="true" size={14} />
                           Annuler
@@ -1480,7 +1480,7 @@ function DemandesTab({
                           type="button"
                           onClick={() => reject(r.id)}
                           disabled={!reason.trim() || busyId === r.id}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           <Ban aria-hidden="true" size={14} />
                           Confirmer le refus
@@ -1493,7 +1493,7 @@ function DemandesTab({
                         type="button"
                         onClick={() => setRejecting(r.id)}
                         disabled={busyId === r.id}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <Ban aria-hidden="true" size={14} />
                         Refuser
@@ -1502,7 +1502,7 @@ function DemandesTab({
                         type="button"
                         onClick={() => approve(r.id)}
                         disabled={busyId === r.id}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <Check aria-hidden="true" size={14} />
                         Valider
@@ -1653,7 +1653,7 @@ function ContactsTab({
                         onClick={() => cycle(m)}
                         disabled={busyId === m.id}
                         aria-label={`Changer le statut du message de ${m.name}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <ArrowLeftRight aria-hidden="true" size={16} />
                       </button>
@@ -2227,7 +2227,7 @@ function VeilleDesignTab({
               type="button"
               onClick={handleSync}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <RefreshCw aria-hidden="true" size={16} className={syncing ? "animate-spin" : ""} />
               {syncing ? "Synchronisation…" : "Synchroniser à nouveau"}
@@ -2315,7 +2315,7 @@ function VeilleDesignTab({
                   <button
                     type="button"
                     onClick={() => setOpenEntryId(e.notion_page_id)}
-                    className="ml-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+                    className="ml-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     Voir le contenu
                     <ArrowRight aria-hidden="true" size={14} />
@@ -2379,7 +2379,7 @@ function VeilleContentDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="Fermer"
-                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
+                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <X aria-hidden="true" size={24} />
               </button>

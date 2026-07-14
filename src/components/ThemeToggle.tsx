@@ -103,7 +103,7 @@ export function ThemeToggle() {
                   type="button"
                   onClick={() => choose(opt.key)}
                   className={
-                    "flex w-full items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-on-surface " +
+                    "flex w-full items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset " +
                     (active ? "text-primary" : "text-on-surface-variant")
                   }
                 >

@@ -178,7 +178,7 @@ function AccountMenu({
               role="menuitem"
               aria-label="Se déconnecter"
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10"
+              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             >
               <LogOut aria-hidden="true" size={18} />
               Se déconnecter

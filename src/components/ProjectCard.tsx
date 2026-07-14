@@ -204,8 +204,9 @@ export function ProjectCard({
                   {rejectionReason && " "}
                   <Link
                     to={resolvedContactHref}
-                    className="text-on-surface-variant no-underline underline-offset-2 transition-colors
-                      group-hover:underline focus-visible:underline focus-visible:outline-none"
+                    className="rounded text-on-surface-variant no-underline underline-offset-2 transition-colors
+                      group-hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2
+                      focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     Contacter l'administrateur ?
                   </Link>

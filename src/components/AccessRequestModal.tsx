@@ -603,7 +603,7 @@ export function AccessRequestModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2.5 text-sm font-medium text-on-surface hover:border-white/30"
+                      className="inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2.5 text-sm font-medium text-on-surface hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       <X aria-hidden="true" size={16} />
                       Annuler
@@ -611,7 +611,7 @@ export function AccessRequestModal({
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       {submitting ? "Envoi..." : "Envoyer ma demande"}
                       <Check aria-hidden="true" size={18} />

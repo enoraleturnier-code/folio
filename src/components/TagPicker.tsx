@@ -94,7 +94,7 @@ export function TagPicker({
                 type="button"
                 onClick={() => remove(name)}
                 aria-label={`Retirer ${name}`}
-                className="rounded-full p-0.5 hover:bg-white/10"
+                className="rounded-full p-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X aria-hidden="true" size={11} />
               </button>
@@ -108,7 +108,7 @@ export function TagPicker({
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-label={`Ajouter ${label.toLowerCase()}`}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <Plus aria-hidden="true" size={14} />
             </button>
@@ -123,7 +123,7 @@ export function TagPicker({
                       key={o.id}
                       type="button"
                       onClick={() => addExisting(o.name)}
-                      className="rounded-lg px-2 py-1.5 text-left text-xs text-on-surface hover:bg-white/5"
+                      className="rounded-lg px-2 py-1.5 text-left text-xs text-on-surface hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
                     >
                       {o.name}
                     </button>
@@ -144,7 +144,7 @@ export function TagPicker({
                     onClick={addNew}
                     disabled={!input.trim() || busy}
                     aria-label="Créer ce tag"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     <Plus aria-hidden="true" size={14} />
                   </button>
