@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { Link } from "react-router-dom";
 
@@ -21,7 +22,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
   return (
     <div className={cn("space-y-4 text-base leading-relaxed text-on-surface-variant", className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
         components={{
           p: ({ children }) => <p>{children}</p>,
           strong: ({ children }) => <strong className="font-medium text-on-surface">{children}</strong>,
