@@ -17,6 +17,7 @@ import { AuroraBackground } from "@/components/AuroraBackground";
 import { IconTooltip } from "@/components/IconTooltip";
 import { Checkbox } from "@/components/Checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
+import { clearPendingAccessRequest, savePendingAccessRequest } from "@/data/accessRequests";
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 import { useAuth } from "@/hooks/useAuth";
@@ -221,23 +222,40 @@ export function AccessRequestModal({
     if (!isFormValid(form, isAuthenticated)) return;
 
     setSubmitting(true);
+    const requestSessionId = crypto.randomUUID();
+    const consentGivenAt = form.consentGivenAt ?? new Date().toISOString();
     try {
       let userId: string;
 
       if (isAuthenticated) {
         userId = session!.user.id;
       } else {
+        // Sauvegardée avant le signUp() : si le projet exige la confirmation
+        // d'email, la session n'arrive pas tout de suite et cette demande
+        // serait sinon perdue — reprise automatique dès SIGNED_IN (RootLayout).
+        savePendingAccessRequest({
+          company: form.company,
+          message: form.message || null,
+          projectIds: form.projectIds,
+          requestSessionId,
+          consentGivenAt,
+        });
+
         const { data, error } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
           options: { data: { full_name: form.name } },
         });
-        if (error) throw error;
+        if (error) {
+          clearPendingAccessRequest();
+          throw error;
+        }
         if (!data.session || !data.user) {
           throw new Error(
             "Compte créé — confirmez votre email pour finaliser votre demande d'accès.",
           );
         }
+        clearPendingAccessRequest();
         userId = data.user.id;
 
         const { data: profileRow, error: profileError } = await supabase
@@ -254,8 +272,6 @@ export function AccessRequestModal({
         }
       }
 
-      const requestSessionId = crypto.randomUUID();
-      const consentGivenAt = form.consentGivenAt ?? new Date().toISOString();
       const rows = form.projectIds.map((projectId) => ({
         user_id: userId,
         project_id: projectId,
