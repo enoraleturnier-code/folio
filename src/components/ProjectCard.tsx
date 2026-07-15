@@ -23,7 +23,7 @@ interface ProjectCardProps {
   isAdmin?: boolean;
 }
 
-/** "2024 — 4 mois" ; null si aucune date de début (rien à afficher). */
+/** "2024 • 4 mois" ; null si aucune date de début (rien à afficher). */
 function formatYearDuration(start: string | null, end: string | null): string | null {
   if (!start) return null;
   const startDate = new Date(start);
@@ -32,7 +32,7 @@ function formatYearDuration(start: string | null, end: string | null): string | 
     1,
     Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44)),
   );
-  return `${startDate.getFullYear()} — ${months} mois`;
+  return `${startDate.getFullYear()} • ${months} mois`;
 }
 
 export function ProjectCard({

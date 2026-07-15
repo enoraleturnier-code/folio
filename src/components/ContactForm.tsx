@@ -126,7 +126,7 @@ export function ContactForm() {
       {succeeded && (
         <Alert
           type="success"
-          title="Merci — message reçu."
+          title="Merci • message reçu."
           description="Je reviens vers vous sous 48 heures ouvrées."
         />
       )}

@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Ban,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
@@ -447,7 +448,7 @@ function AdminSidebar({
             ? "text-2xl font-black tracking-tighter text-primary"
             : "text-2xl font-black tracking-tighter text-primary md:text-xl md:font-medium md:text-on-surface"
         }
-        aria-label="Folio+ — Accéder au dashboard"
+        aria-label="Folio+ • Accède à la page d'accueil"
       >
         {collapsed ? (
           <>
@@ -504,7 +505,7 @@ function AdminSidebar({
               onClick={() => setTab(it.key)}
               aria-label={
                 it.badge && it.badge > 0
-                  ? `${it.label} — ${it.badge} ${it.badgeLabel ?? "nouveaux éléments"}`
+                  ? `${it.label} • ${it.badge} ${it.badgeLabel ?? "nouveaux éléments"}`
                   : it.label
               }
               aria-current={active ? "page" : undefined}
@@ -1806,19 +1807,26 @@ function MesContactsDrawer({
               value={{ kind: kindFilter }}
               onChange={(v) => setKindFilter(v.kind ?? "")}
             />
-            <select
-              value={personFilter}
-              onChange={(e) => setPersonFilter(e.target.value)}
-              aria-label="Filtrer par nom d'utilisateur"
-              className="rounded-full border border-outline bg-surface-container px-4 py-1.5 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <option value="">Tous les contacts</option>
-              {personOptions.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={personFilter}
+                onChange={(e) => setPersonFilter(e.target.value)}
+                aria-label="Filtrer par nom d'utilisateur"
+                className="appearance-none rounded-full border border-outline bg-surface-container py-1.5 pl-4 pr-9 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <option value="">Tous les contacts</option>
+                {personOptions.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                aria-hidden="true"
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+              />
+            </div>
           </div>
           {filtered.length === 0 ? (
             <p className="rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
