@@ -248,5 +248,22 @@ Deno.serve(async (req: Request) => {
 
   if (upsertError) return json({ error: "upsert_failed", detail: upsertError.message }, 500);
 
-  return json({ synced: rows.length, timestamp: new Date().toISOString() });
+  // Miroir strict de Notion : une page supprimee/trashee cote Notion n'apparait
+  // plus dans `notionPages`, donc jamais dans `rows` -- sans ce nettoyage,
+  // l'upsert seul ne fait qu'ajouter/mettre a jour, jamais retirer les entrees
+  // devenues obsoletes. Garde-fou : ne supprime rien si `rows` est vide (un
+  // fetch Notion partiel/vide ne doit jamais vider toute la table par erreur).
+  let deleted = 0;
+  if (rows.length > 0) {
+    const currentIds = rows.map((r) => r.notion_page_id);
+    const { data: deletedRows, error: deleteError } = await admin
+      .from("design_watch_entries")
+      .delete()
+      .not("notion_page_id", "in", `(${currentIds.join(",")})`)
+      .select("id");
+    if (deleteError) return json({ error: "delete_stale_failed", detail: deleteError.message }, 500);
+    deleted = deletedRows?.length ?? 0;
+  }
+
+  return json({ synced: rows.length, deleted, timestamp: new Date().toISOString() });
 });
