@@ -30,6 +30,19 @@ function normalizeGmail(email: string): string {
   return email;
 }
 
+// Audit securite 15/07 (RAPPORT_SECURITE.md) : record.full_name est fourni par
+// l'utilisateur a l'inscription et etait interpole tel quel dans le HTML de
+// l'email -- echappement pour empecher toute injection HTML (liens de
+// phishing, images de tracking) dans un email envoye par Folio+.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -65,7 +78,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const name = record.full_name || "bienvenue";
+  const name = escapeHtml(record.full_name || "bienvenue");
   const html = `
     <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
       <h2>Bienvenue sur Folio+, ${name} !</h2>

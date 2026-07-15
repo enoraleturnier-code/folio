@@ -26,6 +26,20 @@ function normalizeGmail(email: string): string {
   return email;
 }
 
+// Audit securite 15/07 (RAPPORT_SECURITE.md) : record.name/email/message viennent
+// du formulaire de contact public (n'importe quel visiteur anonyme) et etaient
+// interpoles tels quels dans le HTML des emails -- echappement pour empecher
+// toute injection HTML (liens de phishing, images de tracking) dans l'email
+// envoye a l'admin.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -65,10 +79,14 @@ Deno.serve(async (req: Request) => {
 
   const results: Record<string, unknown> = {};
 
+  const safeName = escapeHtml(record.name || "");
+  const safeEmail = escapeHtml(record.email);
+  const safeMessage = escapeHtml(record.message || "");
+
   const visitorHtml = `
     <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
       <h2>Message bien reçu</h2>
-      <p>Bonjour ${record.name || ""},</p>
+      <p>Bonjour ${safeName},</p>
       <p>Votre message a bien été transmis. Vous recevrez une réponse dans les meilleurs délais.</p>
       <p>L'équipe Folio+</p>
     </div>
@@ -79,8 +97,8 @@ Deno.serve(async (req: Request) => {
     const adminHtml = `
       <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
         <h2>Nouveau message de contact</h2>
-        <p><strong>${record.name || ""}</strong> (${record.email}) a envoyé un message :</p>
-        <blockquote>${record.message || ""}</blockquote>
+        <p><strong>${safeName}</strong> (${safeEmail}) a envoyé un message :</p>
+        <blockquote>${safeMessage}</blockquote>
       </div>
     `;
     results.admins = await Promise.all(

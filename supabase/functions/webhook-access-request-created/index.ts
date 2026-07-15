@@ -26,6 +26,18 @@ function normalizeGmail(email: string): string {
   return email;
 }
 
+// Audit securite 15/07 (RAPPORT_SECURITE.md) : full_name/title viennent de
+// donnees utilisateur (inscription) et etaient interpoles tels quels dans le
+// HTML des emails -- echappement pour empecher toute injection HTML.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -68,13 +80,15 @@ Deno.serve(async (req: Request) => {
   ]);
 
   const results: Record<string, unknown> = {};
+  const safeTitle = escapeHtml(project?.title || "");
+  const safeVisitorName = escapeHtml(visitor?.full_name || visitor?.email || "Un visiteur");
 
   if (visitor?.email) {
     const html = `
       <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
         <h2>Demande envoyée</h2>
-        <p>Bonjour ${visitor.full_name || ""},</p>
-        <p>Votre demande d'accès au projet <strong>${project?.title || "confidentiel"}</strong> est en cours de traitement. Vous recevrez une réponse dès qu'elle sera traitée.</p>
+        <p>Bonjour ${escapeHtml(visitor.full_name || "")},</p>
+        <p>Votre demande d'accès au projet <strong>${safeTitle || "confidentiel"}</strong> est en cours de traitement. Vous recevrez une réponse dès qu'elle sera traitée.</p>
         <p>L'équipe Folio+</p>
       </div>
     `;
@@ -85,7 +99,7 @@ Deno.serve(async (req: Request) => {
     const html = `
       <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
         <h2>Nouvelle demande d'accès</h2>
-        <p>${visitor?.full_name || visitor?.email || "Un visiteur"} demande l'accès au projet <strong>${project?.title || ""}</strong>.</p>
+        <p>${safeVisitorName} demande l'accès au projet <strong>${safeTitle}</strong>.</p>
         <p>Rendez-vous dans le back-office pour la traiter.</p>
       </div>
     `;

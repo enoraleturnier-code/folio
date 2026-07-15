@@ -26,6 +26,18 @@ function normalizeGmail(email: string): string {
   return email;
 }
 
+// Audit securite 15/07 (RAPPORT_SECURITE.md) : full_name/title/rejection_reason
+// viennent de donnees utilisateur/admin et etaient interpoles tels quels dans
+// le HTML des emails -- echappement pour empecher toute injection HTML.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -82,14 +94,16 @@ Deno.serve(async (req: Request) => {
 
   let subject: string;
   let html: string;
+  const safeFullName = escapeHtml(visitor.full_name || "");
+  const safeTitle = escapeHtml(project?.title || "");
 
   if (record.status === "approved") {
     subject = "Accès accordé";
     html = `
       <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
         <h2>Accès accordé</h2>
-        <p>Bonjour ${visitor.full_name || ""},</p>
-        <p>Votre demande d'accès au projet <strong>${project?.title || ""}</strong> a été validée. Vous pouvez désormais consulter la fiche complète.</p>
+        <p>Bonjour ${safeFullName},</p>
+        <p>Votre demande d'accès au projet <strong>${safeTitle}</strong> a été validée. Vous pouvez désormais consulter la fiche complète.</p>
         <p>L'équipe Folio+</p>
       </div>
     `;
@@ -98,9 +112,9 @@ Deno.serve(async (req: Request) => {
     html = `
       <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
         <h2>Demande refusée</h2>
-        <p>Bonjour ${visitor.full_name || ""},</p>
-        <p>Votre demande d'accès au projet <strong>${project?.title || ""}</strong> a été refusée.</p>
-        ${record.rejection_reason ? `<p><strong>Raison :</strong> ${record.rejection_reason}</p>` : ""}
+        <p>Bonjour ${safeFullName},</p>
+        <p>Votre demande d'accès au projet <strong>${safeTitle}</strong> a été refusée.</p>
+        ${record.rejection_reason ? `<p><strong>Raison :</strong> ${escapeHtml(record.rejection_reason)}</p>` : ""}
         <p>L'équipe Folio+</p>
       </div>
     `;
