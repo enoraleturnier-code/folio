@@ -7,6 +7,7 @@ import {
   logout,
   submitFreshAccessRequest,
   submitFreshContact,
+  expectNoUnexpectedConsoleErrors,
 } from "./fixtures";
 
 test.describe("Dashboard admin (Léa)", () => {
@@ -47,7 +48,7 @@ test.describe("Dashboard admin (Léa)", () => {
     await expect(row.getByText("Validée")).toBeVisible({ timeout: 10_000 });
 
     test.info().annotations.push({ type: "qa-test-account", description: testEmail });
-    expect(consoleErrors, "Erreurs console pendant le flux d'approbation admin").toEqual([]);
+    expectNoUnexpectedConsoleErrors(consoleErrors);
   });
 
   test("flux complet : créer un message de contact de test, puis changer son statut en admin", async ({

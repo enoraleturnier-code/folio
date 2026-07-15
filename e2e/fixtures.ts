@@ -65,6 +65,20 @@ export async function logout(page: Page) {
 }
 
 /**
+ * Filtre le seul bruit console toléré : Chrome logue automatiquement tout
+ * 409 HTTP au niveau réseau (DevTools), même quand le code applicatif le
+ * gère proprement -- cf. le fix de la race condition access_requests dans
+ * RAPPORT_QA.md. On ne masque QUE ce pattern précis, tout le reste continue
+ * de faire échouer le test normalement.
+ */
+export function expectNoUnexpectedConsoleErrors(consoleErrors: string[]) {
+  const unexpected = consoleErrors.filter(
+    (e) => !e.includes("Failed to load resource: the server responded with a status of 409"),
+  );
+  expect(unexpected, `Erreurs console inattendues : ${JSON.stringify(consoleErrors)}`).toEqual([]);
+}
+
+/**
  * Ouvre le modal de demande d'accès sur le 1er projet confidentiel disponible
  * et soumet un nouveau compte -- retourne l'email utilisé.
  *

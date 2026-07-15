@@ -12,7 +12,19 @@ const SHARE_URL = process.env.QA_SHARE_URL;
 
 const STORAGE_STATE_PATH = "./e2e/.auth/vercel-bypass.json";
 
-export default async function globalSetup(_config: FullConfig) {
+export default async function globalSetup(config: FullConfig) {
+  mkdirSync(dirname(STORAGE_STATE_PATH), { recursive: true });
+
+  const baseURL = config.projects[0]?.use.baseURL ?? "";
+  const isLocal = /^https?:\/\/localhost[:/]/.test(baseURL);
+  if (isLocal) {
+    // Dev local : pas de Vercel Authentication a contourner, storageState vide.
+    const browser = await chromium.launch();
+    await browser.newContext().then((ctx) => ctx.storageState({ path: STORAGE_STATE_PATH }));
+    await browser.close();
+    return;
+  }
+
   if (!SHARE_URL) {
     throw new Error(
       "QA_SHARE_URL manquant -- genere un lien de bypass Vercel Authentication " +
@@ -20,7 +32,6 @@ export default async function globalSetup(_config: FullConfig) {
         "QA_SHARE_URL=\"https://...?_vercel_share=...\" npx playwright test",
     );
   }
-  mkdirSync(dirname(STORAGE_STATE_PATH), { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage();
   await page.goto(SHARE_URL, { waitUntil: "networkidle" });

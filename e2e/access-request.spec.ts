@@ -1,4 +1,4 @@
-import { test, expect, SLUG, humanPause } from "./fixtures";
+import { test, expect, SLUG, humanPause, expectNoUnexpectedConsoleErrors } from "./fixtures";
 
 test.describe("Demande d'accès (AccessRequestModal)", () => {
   test.beforeEach(async ({ page }) => {
@@ -56,8 +56,13 @@ test.describe("Demande d'accès (AccessRequestModal)", () => {
     await page.locator("#ar-confirm-password").fill("TestPass123");
     await page.locator("#ar-gdpr").check();
     const submitBtn = page.getByRole("button", { name: "Envoyer ma demande" });
-    // Double-clic quasi simultané -- le bouton doit se désactiver (disabled) pendant l'envoi
-    await Promise.all([submitBtn.click(), submitBtn.click({ force: true }).catch(() => {})]);
+    // Double-clic quasi simultané via dispatch direct (évite qu'un 2e essai
+    // échoue juste parce que le bouton a déjà disparu du DOM après le 1er clic
+    // -- ce qui serait un succès, pas un échec de ce test).
+    await Promise.all([
+      submitBtn.dispatchEvent("click"),
+      submitBtn.dispatchEvent("click").catch(() => {}),
+    ]);
     await humanPause(page, 2000);
     // Un seul écran de succès attendu, pas d'erreur de type "already registered" visible en double
     const errorAlerts = page.getByText(/un compte existe déjà/i);
@@ -84,7 +89,7 @@ test.describe("Demande d'accès (AccessRequestModal)", () => {
     await humanPause(page, 2000);
 
     await expect(page.getByRole("heading", { name: "Demande envoyée" })).toBeVisible({ timeout: 15_000 });
-    expect(consoleErrors, "Erreurs console pendant la création de compte + demande").toEqual([]);
+    expectNoUnexpectedConsoleErrors(consoleErrors);
 
     // Trace pour le nettoyage / le rapport final
     test.info().annotations.push({ type: "qa-test-account", description: uniqueEmail });

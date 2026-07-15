@@ -280,7 +280,10 @@ export function AccessRequestModal({
         message: form.message || null,
       }));
       const { error: insertError } = await supabase.from("access_requests").insert(rows);
-      if (insertError) throw insertError;
+      // 23505 : RootLayout a deja insere cette meme ligne via sa reprise
+      // SIGNED_IN (declenchee par le meme signUp(), cf. submitPendingAccessRequest)
+      // avant qu'on arrive ici -- la demande existe bien, ce n'est pas un echec.
+      if (insertError && insertError.code !== "23505") throw insertError;
 
       setSubmitted(true);
       onSuccess?.();

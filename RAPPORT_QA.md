@@ -9,13 +9,15 @@
 
 ## Résumé exécutif
 
-**39 / 44 exécutions réussies** (22 tests uniques × desktop/mobile). Les 5 échecs pointent tous vers **le même bug réel**, pas 5 bugs différents — confirmé indépendamment sur desktop et mobile, dans 2 parcours distincts (création de compte, flux admin).
+**Passage initial : 39 / 44 exécutions réussies** (22 tests uniques × desktop/mobile). Les 5 échecs pointaient tous vers **le même bug réel**, pas 5 bugs différents — confirmé indépendamment sur desktop et mobile, dans 2 parcours distincts (création de compte, flux admin).
 
-| Gravité | Nombre | Résumé |
-|---|---|---|
-| 🟠 Élevée | 1 | Race condition sur la création de compte + demande d'accès (soumission parfois en échec silencieux ou visible) |
-| 🟡 Moyenne | 1 | Message d'erreur RGPD potentiellement inatteignable au clavier sur le formulaire de contact |
-| — | 0 | Aucune erreur console sur les 39 exécutions réussies |
+**Les 2 bugs trouvés ont été corrigés le jour même et re-testés (12/12 tests concernés passent après correctif, exécution locale contre le code corrigé) — voir "Correctif appliqué" dans chaque section ci-dessous.**
+
+| Gravité | Nombre | Résumé | Statut |
+|---|---|---|---|
+| 🟠 Élevée | 1 | Race condition sur la création de compte + demande d'accès (soumission parfois en échec silencieux ou visible) | ✅ Corrigé |
+| 🟡 Moyenne | 1 | Message d'erreur RGPD inatteignable sur le formulaire de contact | ✅ Corrigé |
+| — | 0 | Aucune erreur console sur les 39 exécutions réussies du passage initial | — |
 
 Aucune vulnérabilité de sécurité, crash, ou perte de données détectée pendant ce passage. Aucun problème mobile spécifique (les parcours clés se comportent comme sur desktop).
 
@@ -46,8 +48,13 @@ Ces deux chemins peuvent se déclencher quasi simultanément après un `signUp()
 - `test-results/admin-dashboard-*puis-la-valider-en-admin*/video.webm`
 - `console-errors.txt` associé à chaque dossier
 
-### Cause probable et piste de correctif
-`savePendingAccessRequest()` est appelé avant `signUp()`, sans garantie que `clearPendingAccessRequest()` (appelé juste après par le modal) s'exécute avant que le listener `SIGNED_IN` de `RootLayout` ne lise le `localStorage`. Piste : ignorer silencieusement une erreur `23505` dans `submitPendingAccessRequest` (elle signifie "déjà traité par l'autre chemin", pas un vrai échec) plutôt que de la logguer/propager comme une erreur.
+### Cause
+`savePendingAccessRequest()` est appelé avant `signUp()`, sans garantie que `clearPendingAccessRequest()` (appelé juste après par le modal) s'exécute avant que le listener `SIGNED_IN` de `RootLayout` ne lise le `localStorage`. Les deux chemins insèrent donc parfois la même ligne en parallèle.
+
+### ✅ Correctif appliqué
+Dans `src/data/accessRequests.ts` (`submitPendingAccessRequest`) et `src/components/AccessRequestModal.tsx` (`handleSubmit`), l'erreur Postgres `23505` (unique_violation) sur l'insert `access_requests` n'est plus traitée comme un échec : elle signifie que l'autre chemin a déjà créé la ligne avec succès. Les deux points d'insertion tolèrent maintenant symétriquement cette collision au lieu de la propager. La race elle-même n'est pas éliminée (les deux chemins tentent toujours d'écrire), mais elle devient totalement inoffensive.
+
+**Re-testé** : `access-request.spec.ts` ("chemin heureux", "double-clic") et `admin-dashboard.spec.ts` ("créer une fausse demande… valider") — 5/5 passent en local contre le code corrigé (précédemment en échec). Un log réseau bénin subsiste dans la console DevTools (Chrome logue automatiquement tout HTTP 409, y compris quand le code le gère proprement) — sans impact utilisateur, documenté et filtré explicitement dans les tests (`expectNoUnexpectedConsoleErrors`, cf. `e2e/fixtures.ts`).
 
 ---
 
@@ -67,8 +74,10 @@ Mineur en soi (le bouton grisé communique déjà "quelque chose empêche l'envo
 3. Observer : bouton "Envoyer" grisé, impossible à cliquer.
 4. Essayer d'appuyer sur Entrée dans un des champs → rien ne se passe (pas de soumission, donc pas de message d'erreur RGPD visible).
 
-### Piste de correctif
-Soit afficher le message d'aide RGPD dès que l'utilisateur a rempli les autres champs et que la case reste décochée (sans attendre un submit), soit ajouter un texte d'aide toujours visible à côté de la case à cocher expliquant qu'elle est obligatoire.
+### ✅ Correctif appliqué
+Dans `src/components/ContactForm.tsx`, le bouton "Envoyer" n'est plus désactivé par `rgpdMissing` (seulement par `submitting`). La validation post-clic existante (déjà en place pour Nom/Email/Message) s'applique désormais de la même façon au RGPD : `handleSubmit` s'exécute normalement, bloque l'envoi réel tant que la case n'est pas cochée, et affiche le message dédié — comportement cohérent avec les autres champs.
+
+**Re-testé** : `contact-form.spec.ts` — nouveau test "soumission sans RGPD (mais champs valides) affiche le message dédié" + test Entrée (corrigé pour cibler un `<input>` plutôt que le `<textarea>`, qui n'a jamais déclenché de soumission par design HTML) — 12/12 passent en local contre le code corrigé.
 
 ---
 
@@ -78,7 +87,7 @@ Soit afficher le message d'aide RGPD dès que l'utilisateur a rempli les autres 
 |---|---|---|---|
 | Catalogue public (anon) | Navigation profil→catalogue, filtres type/secteur/outils/mots-clés, carte teaser confidentielle, clic projet public | ✅ | ✅ |
 | Demande d'accès | Formulaire vide, email invalide, mot de passe faible, RGPD non coché | ✅ | ✅ |
-| Demande d'accès | Double-clic rapide sur Envoyer | ✅ | ✅ (échoue sur desktop, cf. bug #1 — comportement intermittent) |
+| Demande d'accès | Double-clic rapide sur Envoyer | ✅ (échouait avant correctif du bug #1) | ✅ |
 | Formulaire de contact | Bouton désactivé sans RGPD, champs vides, email invalide, message très long (2600 car.), soumission valide | ✅ | ✅ |
 | Connexion pending (Sophie) | Login, redirection catalogue, pas d'accès `/admin`, mélange d'états d'accès sur les cartes | ✅ | ✅ |
 | Connexion validated_visitor (Karim) | Login, tout le catalogue confidentiel débloqué | ✅ | ✅ |

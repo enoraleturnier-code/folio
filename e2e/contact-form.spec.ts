@@ -8,16 +8,28 @@ test.describe("Formulaire de contact (ContactForm)", () => {
     await expect(page.locator("#cf-name")).toBeVisible();
   });
 
-  test("cas limite : le bouton Envoyer reste désactivé tant que le RGPD n'est pas coché", async ({ page }) => {
-    await expect(page.getByRole("button", { name: "Envoyer" })).toBeDisabled();
+  test("cas limite : soumission sans RGPD (mais champs valides) affiche le message dédié -- fix bug #2", async ({
+    page,
+    consoleErrors,
+  }) => {
+    // Avant le fix, le bouton était `disabled={rgpdMissing || submitting}` :
+    // impossible de jamais déclencher handleSubmit avec RGPD non coché, donc
+    // ce message ne s'affichait jamais. Le bouton n'est plus désactivé que
+    // par `submitting` -- le clic doit maintenant atteindre la validation.
+    await expect(page.getByRole("button", { name: "Envoyer" })).toBeEnabled();
+    await page.locator("#cf-name").fill("QA RGPD Fix");
+    await page.locator("#cf-email").fill(`enoraleturnier+qargpd${Date.now()}@gmail.com`);
+    await page.locator("#cf-message").fill("Test du message RGPD après fix.");
+    await page.getByRole("button", { name: "Envoyer" }).click();
+    await humanPause(page, 300);
+    await expect(page.getByText("Ce consentement est requis pour envoyer votre message.")).toBeVisible();
+    expect(consoleErrors).toEqual([]);
   });
 
   test("cas limite : soumission avec RGPD coché mais champs vides affiche 3 erreurs de champ", async ({
     page,
     consoleErrors,
   }) => {
-    // Le bouton n'est désactivé que par le RGPD -- une fois coché, les champs
-    // vides doivent être rattrapés par la validation au submit.
     await page.getByLabel(/j'accepte que mes données/i).check();
     await page.getByRole("button", { name: "Envoyer" }).click();
     await humanPause(page, 300);
@@ -27,26 +39,16 @@ test.describe("Formulaire de contact (ContactForm)", () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test("cas limite : appui sur Entrée avec RGPD non coché -- le message d'erreur RGPD est-il jamais atteignable ?", async ({
-    page,
-  }) => {
+  test("cas limite : appui sur Entrée avec RGPD non coché déclenche aussi la validation", async ({ page }) => {
     await page.locator("#cf-name").fill("QA Enter Key");
     await page.locator("#cf-email").fill(`enoraleturnier+qaenter${Date.now()}@gmail.com`);
     await page.locator("#cf-message").fill("Test appui Entrée.");
-    // RGPD volontairement non coché -- le bouton Envoyer est disabled, donc
-    // un clic est impossible. On teste si Entrée dans un champ contourne ça.
-    await page.locator("#cf-message").press("Enter");
+    // Entrée dans un <textarea> insère une nouvelle ligne (comportement HTML
+    // standard, jamais une soumission) -- il faut être dans un <input> pour
+    // tester la soumission implicite au clavier.
+    await page.locator("#cf-email").press("Enter");
     await humanPause(page, 400);
-    const rgpdError = page.getByText("Ce consentement est requis pour envoyer votre message.");
-    const isVisible = await rgpdError.isVisible().catch(() => false);
-    test
-      .info()
-      .annotations.push({
-        type: "qa-observation",
-        description: isVisible
-          ? "Entrée contourne le bouton disabled -- le message RGPD est bien atteignable au clavier."
-          : "Le message d'erreur RGPD (cf-rgpd-error) semble inatteignable : le bouton Envoyer étant disabled tant que rgpd=false, ni le clic ni Entrée ne déclenchent handleSubmit -- code potentiellement mort, et aucun feedback clavier pour un utilisateur qui n'a pas coché la case.",
-      });
+    await expect(page.getByText("Ce consentement est requis pour envoyer votre message.")).toBeVisible();
   });
 
   test("cas limite : email invalide", async ({ page }) => {
