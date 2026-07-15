@@ -1,6 +1,6 @@
 # Rapport de sécurité — Folio+
 
-**Date** : 15/07/2026 (mis à jour le 15/07/2026 — 2e passage ciblé sur l'historique git)
+**Date** : 15/07/2026 (mis à jour le 16/07/2026 — correctifs des points moyens)
 **Périmètre** : revue manuelle du repo (migrations SQL/RLS, Edge Functions, GRANT/REVOKE, policies storage, dépendances npm, code client) + advisor sécurité Supabase (`get_advisors`) + **scan complet de l'historique git** (`git log --all -p`, pas seulement l'état courant).
 **Méthode** : lecture de code + introspection live de la base (`pg_policies`, `pg_proc`, `pg_trigger`, `has_function_privilege`, `vault.decrypted_secrets`) sur le projet Supabase `rctedezgdxadmkjeawsj`.
 
@@ -9,10 +9,10 @@
 | Gravité | Nombre | Résumé |
 |---|---|---|
 | 🔴 Critique | 1 | ✅ **Corrigé le 15/07** — Secret `CRON_SYNC_SECRET` commité en clair dans l'historique git (poussé sur GitHub), tournait toujours avec la valeur d'origine |
-| 🟡 Moyenne | 2 | Injection HTML dans les emails transactionnels ; protection "mot de passe compromis" désactivée |
+| 🟡 Moyenne | 2 | ✅ **Corrigé le 16/07** — Injection HTML dans les emails transactionnels &nbsp;•&nbsp; ⛔ **Bloqué (plan Pro requis)** — protection "mot de passe compromis" désactivée |
 | 🟢 Faible / informationnel | 3 | Garde-fou anti-auto-promotion admin reposant sur un seul trigger ; absence de limitation anti-abus sur les endpoints publics ; comparaison de secret non constant-time |
 
-RLS activée sur toutes les tables, GRANT/REVOKE cohérents, policies storage correctes, `npm audit` propre. Le point critique a été corrigé le jour même (rotation complète, vérifiée) — reste les points moyens/faibles ci-dessous.
+RLS activée sur toutes les tables, GRANT/REVOKE cohérents, policies storage correctes, `npm audit` propre. Le point critique et l'injection HTML sont corrigés et vérifiés ; la protection mot de passe compromis reste bloquée par le plan Supabase actuel (Free). Restent les points faibles ci-dessous.
 
 ---
 
@@ -45,7 +45,7 @@ La rotation est complète et confirmée des deux côtés (Vault + Edge Function 
 
 ---
 
-## 🟡 1. Injection HTML dans les emails transactionnels
+## 🟡 1. Injection HTML dans les emails transactionnels — ✅ Corrigé le 16/07
 
 ### Description
 Dans [`supabase/functions/webhook-contact-created/index.ts`](supabase/functions/webhook-contact-created/index.ts) et [`supabase/functions/webhook-access-request-created/index.ts`](supabase/functions/webhook-access-request-created/index.ts), des champs contrôlés par un visiteur anonyme (`name`/`message` du formulaire de contact, `full_name` à l'inscription) sont interpolés **sans échappement** dans le HTML des emails envoyés à l'admin :
@@ -64,12 +64,14 @@ Dans [`supabase/functions/webhook-contact-created/index.ts`](supabase/functions/
 ### Effet
 N'importe qui peut soumettre le formulaire public (ou créer un compte) avec `name`/`message`/`full_name` contenant du HTML arbitraire : liens de phishing déguisés, images de tracking (fuite d'IP/read-receipt), mise en page cassée. Pas d'exécution JS classique (la plupart des clients mail retirent `<script>`), mais c'est une injection HTML stockée qui atterrit dans la boîte mail de l'admin.
 
-### Correctif recommandé
-Échapper `<`, `>`, `&`, `"`, `'` avant interpolation dans les 4 fonctions `webhook-*` (une petite fonction `escapeHtml()` partagée suffit).
+### ✅ Correctif appliqué
+Ajout d'une fonction `escapeHtml()` locale (même pattern dupliqué que le reste du code de ces fonctions, pas de module partagé entre Edge Functions Deno) dans les 4 fonctions `webhook-*`, appliquée à tous les champs utilisateur interpolés dans le HTML (`name`/`email`/`message` du contact, `full_name`/`rejection_reason` des demandes d'accès, `title` des projets par défense en profondeur même si admin-only).
+
+**Vérifié en production** : appel direct de `webhook-contact-created` avec une charge utile contenant `<img src=x onerror=alert(1)>` et `<script>alert(1)</script>` dans `name`/`message`. Email réellement envoyé et inspecté via l'API Resend (`get-email`) — le HTML reçu contient `&lt;img src=x onerror=alert(1)&gt;` et `&lt;script&gt;...&lt;/script&gt;` en texte littéral, plus aucune balise active. Donnée de test supprimée après coup.
 
 ---
 
-## 🟡 2. Protection "mot de passe compromis" désactivée
+## 🟡 2. Protection "mot de passe compromis" désactivée — ⛔ Bloqué (fonctionnalité Pro)
 
 ### Description
 L'advisor sécurité Supabase (`auth_leaked_password_protection`) signale que la vérification contre HaveIBeenPwned.org est désactivée sur l'auth.
@@ -77,8 +79,8 @@ L'advisor sécurité Supabase (`auth_leaked_password_protection`) signale que la
 ### Effet
 Le flux `AccessRequestModal` crée de vrais comptes avec un mot de passe choisi par un inconnu (self-service, F-12) — sans cette protection, rien n'empêche l'usage d'un mot de passe déjà compromis dans une fuite connue.
 
-### Correctif recommandé
-Activer l'option dans Dashboard Supabase → Authentication → Policies (aucun changement de code nécessaire).
+### Statut : non applicable pour l'instant
+Vérifié dans le Dashboard (Authentication → Attack Protection) : "Prevent use of leaked passwords" est bien la bonne option, mais elle est réservée aux **projets Supabase sur plan Pro** — pas de toggle disponible sur le plan actuel (Free). Aucune action possible côté code ou configuration tant que le projet reste sur ce plan. À reconsidérer si/quand le projet passe sur un plan payant.
 
 ---
 
