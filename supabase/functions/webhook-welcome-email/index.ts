@@ -13,11 +13,23 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 // email a l'adresse de son choix. webhook_dispatch_secret (Vault) n'est
 // connu que de dispatch_webhook() et de get_webhook_dispatch_secret()
 // (EXECUTE reserve a service_role, cf. migration dediee).
+// Audit securite 16/07 (RAPPORT_SECURITE.md) : comparaison en temps constant
+// pour eviter qu'une difference de latence puisse renseigner un attaquant sur
+// le nombre d'octets corrects d'un secret devine progressivement.
+function timingSafeEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
+
 async function isAuthorizedDispatch(req: Request): Promise<boolean> {
   const provided = req.headers.get("x-webhook-secret");
   if (!provided) return false;
   const { data: expected } = await supabase.rpc("get_webhook_dispatch_secret");
-  return typeof expected === "string" && expected.length > 0 && provided === expected;
+  return typeof expected === "string" && expected.length > 0 && timingSafeEqual(provided, expected);
 }
 
 function normalizeGmail(email: string): string {

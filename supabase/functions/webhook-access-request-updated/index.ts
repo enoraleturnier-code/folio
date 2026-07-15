@@ -9,11 +9,22 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 // Audit securite 15/07 : voir webhook-welcome-email/index.ts pour le detail
 // -- meme check, meme secret partage (Vault) verifie via RPC service_role.
+// Audit securite 16/07 : voir webhook-welcome-email/index.ts pour le detail --
+// comparaison en temps constant du secret partage.
+function timingSafeEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
+
 async function isAuthorizedDispatch(req: Request): Promise<boolean> {
   const provided = req.headers.get("x-webhook-secret");
   if (!provided) return false;
   const { data: expected } = await supabase.rpc("get_webhook_dispatch_secret");
-  return typeof expected === "string" && expected.length > 0 && provided === expected;
+  return typeof expected === "string" && expected.length > 0 && timingSafeEqual(provided, expected);
 }
 
 function normalizeGmail(email: string): string {

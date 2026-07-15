@@ -31,6 +31,17 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
+// Audit securite 16/07 (RAPPORT_SECURITE.md) : comparaison en temps constant
+// pour le secret cron, meme raisonnement que les fonctions webhook-*.
+function timingSafeEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: corsHeaders });
 }
@@ -212,7 +223,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const cronSecret = req.headers.get("x-cron-secret");
-  const isCron = cronSecret !== null && cronSecret === CRON_SYNC_SECRET;
+  const isCron = cronSecret !== null && !!CRON_SYNC_SECRET && timingSafeEqual(cronSecret, CRON_SYNC_SECRET);
 
   if (!isCron) {
     const authHeader = req.headers.get("Authorization");

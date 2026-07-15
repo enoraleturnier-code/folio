@@ -1,6 +1,6 @@
 # Rapport de sécurité — Folio+
 
-**Date** : 15/07/2026 (mis à jour le 16/07/2026 — correctifs des points moyens)
+**Date** : 15/07/2026 (mis à jour le 16/07/2026 — correctifs des points moyens et faibles)
 **Périmètre** : revue manuelle du repo (migrations SQL/RLS, Edge Functions, GRANT/REVOKE, policies storage, dépendances npm, code client) + advisor sécurité Supabase (`get_advisors`) + **scan complet de l'historique git** (`git log --all -p`, pas seulement l'état courant).
 **Méthode** : lecture de code + introspection live de la base (`pg_policies`, `pg_proc`, `pg_trigger`, `has_function_privilege`, `vault.decrypted_secrets`) sur le projet Supabase `rctedezgdxadmkjeawsj`.
 
@@ -10,9 +10,9 @@
 |---|---|---|
 | 🔴 Critique | 1 | ✅ **Corrigé le 15/07** — Secret `CRON_SYNC_SECRET` commité en clair dans l'historique git (poussé sur GitHub), tournait toujours avec la valeur d'origine |
 | 🟡 Moyenne | 2 | ✅ **Corrigé le 16/07** — Injection HTML dans les emails transactionnels &nbsp;•&nbsp; ⛔ **Bloqué (plan Pro requis)** — protection "mot de passe compromis" désactivée |
-| 🟢 Faible / informationnel | 3 | Garde-fou anti-auto-promotion admin reposant sur un seul trigger ; absence de limitation anti-abus sur les endpoints publics ; comparaison de secret non constant-time |
+| 🟢 Faible / informationnel | 3 | ✅ **Corrigé le 16/07** — anti-abus (rate limit) sur le formulaire de contact ; comparaison de secret en temps constant &nbsp;•&nbsp; ℹ️ **Laissé tel quel, volontairement** — garde-fou anti-auto-promotion admin sur un seul trigger |
 
-RLS activée sur toutes les tables, GRANT/REVOKE cohérents, policies storage correctes, `npm audit` propre. Le point critique et l'injection HTML sont corrigés et vérifiés ; la protection mot de passe compromis reste bloquée par le plan Supabase actuel (Free). Restent les points faibles ci-dessous.
+RLS activée sur toutes les tables, GRANT/REVOKE cohérents, policies storage correctes, `npm audit` propre. Tous les points corrigeables sont corrigés et vérifiés ; seule la protection mot de passe compromis reste bloquée par le plan Supabase actuel (Free), et le point #3 est resté en l'état par choix (voir raisonnement dans sa section).
 
 ---
 
@@ -84,7 +84,7 @@ Vérifié dans le Dashboard (Authentication → Attack Protection) : "Prevent us
 
 ---
 
-## 🟢 3. Garde-fou anti-auto-promotion admin reposant sur un seul trigger (informationnel)
+## ℹ️ 3. Garde-fou anti-auto-promotion admin reposant sur un seul trigger (laissé tel quel, volontairement)
 
 ### Description
 La policy RLS `user_profiles_update_own` (`WITH CHECK (id = auth.uid())`) ne restreint pas la colonne `role` — à elle seule, elle laisserait n'importe quel utilisateur authentifié s'attribuer `role = 'admin'` via un `UPDATE` direct. Ce qui bloque réellement cette escalade aujourd'hui est le trigger `trg_prevent_role_self_update` (`BEFORE UPDATE OF role ON user_profiles`, fonction `prevent_role_self_update()`), qui lève une exception si un non-admin tente de changer son propre `role`.
@@ -92,31 +92,39 @@ La policy RLS `user_profiles_update_own` (`WITH CHECK (id = auth.uid())`) ne res
 ### Effet
 Aucun aujourd'hui — le trigger fonctionne et a été vérifié (`SECURITY DEFINER`, logique correcte : compare `NEW.role`/`OLD.role`, vérifie `auth.uid() = OLD.id`, vérifie le rôle courant via une sous-requête). Mais c'est un **point de défaillance unique** : si ce trigger est un jour supprimé ou modifié par inadvertance (ex. nettoyage futur de migrations) sans que la dépendance soit connue, l'escalade de privilèges redevient possible via la seule RLS.
 
+### Pourquoi ce n'est pas corrigé en RLS
+Tenté puis écarté : dupliquer cette vérification dans le `WITH CHECK` de la policy (comparer `role` à sa valeur avant modification via une sous-requête sur `user_profiles`) se heurte exactement au piège rencontré et corrigé au point #4 — une sous-requête corrélée référençant la même table ne peut pas distinguer sans ambiguïté "l'ancienne valeur" de "la nouvelle" en scope SQL simple, contrairement à un trigger `BEFORE UPDATE` qui a un accès natif et non ambigu à `OLD`/`NEW`. Forcer une solution basée sur les policies serait soit redondant et fragile, soit risquerait de casser silencieusement (comme documenté au point #4) la capacité d'un admin à modifier le rôle d'un autre utilisateur (Supabase n'a que 2 rôles Postgres réels — `anon`/`authenticated` — la distinction "admin" est une donnée applicative vérifiée par `get_my_role()`, pas un rôle Postgres séparé, donc impossible de restreindre la colonne par un `GRANT` ciblé sans bloquer aussi les admins).
+
 ### Recommandation
-Documenter explicitement ce lien dans `CLAUDE.md` (section RLS — pièges à ne pas reproduire), pour qu'une future session ne supprime jamais ce trigger sans réaliser qu'il est la seule protection sur `role`. Alternative plus robuste : ajouter aussi une contrainte au niveau du `WITH CHECK` de la policy elle-même (défense en profondeur), mais non urgent tant que le trigger reste en place.
+Le trigger est le bon mécanisme pour ce cas précis — **conservé tel quel**. Documenté explicitement dans `CLAUDE.md` (section RLS — pièges à ne pas reproduire) pour qu'une future session ne le supprime jamais sans réaliser qu'il est la seule protection sur `role`.
 
 ---
 
-## 🟢 4. Absence de limitation anti-abus sur les endpoints publics (gravité faible)
+## 🟢 4. Absence de limitation anti-abus sur les endpoints publics — ✅ Corrigé le 16/07
 
 ### Description
-`contacts_insert_anyone` (formulaire de contact) et la création de compte via `AccessRequestModal` sont ouverts à tout le monde, sans CAPTCHA ni throttling.
+`contacts_insert_anyone` (formulaire de contact) était ouvert à tout le monde, sans CAPTCHA ni throttling. `AccessRequestModal` (création de compte) reste hors scope de ce correctif : elle nécessite un vrai `signUp()`, déjà soumis au rate limiting natif de Supabase Auth.
 
 ### Effet
-Combiné au point #1, un script pourrait spammer des demandes/contacts : coût en quota Resend, comptes fantômes en base, boîte mail admin encombrée. Faible priorité pour un portfolio personnel à trafic limité, mais à garder en tête si le formulaire devient une cible (ou si le volume de trafic augmente).
+Un script pouvait spammer le formulaire de contact : coût en quota Resend, boîte mail admin encombrée.
+
+### ✅ Correctif appliqué
+Policy `contacts_insert_anyone` limitée à 3 soumissions par email par tranche de 10 minutes (migrations `20260716090000_contacts_insert_rate_limit.sql` puis `20260716090500_fix_contacts_insert_rate_limit.sql`). Ne remplace pas un CAPTCHA (n'empêche pas la rotation d'emails jetables), mais coupe le spam trivial d'un même email en boucle, sans dépendance à un service tiers.
+
+**Bug rencontré puis corrigé pendant l'implémentation** : la 1ère version comparait `c.email = email` dans une sous-requête corrélée sur la table `contacts` elle-même — la portée SQL résout `email` vers l'alias le plus proche (`c`), donnant silencieusement `c.email = c.email` (toujours vrai, pas d'erreur). Vérifié en pratique : 4 soumissions rapides du même email passaient toutes (201×4) avant correctif. Corrigé en extrayant le comptage dans une fonction `SECURITY DEFINER` prenant l'email en paramètre (`contacts_recent_count`), qui lève l'ambiguïté. **Re-vérifié** : 3 soumissions passent, la 4ᵉ est rejetée (`42501`), un email différent n'est pas affecté par la limite d'un autre. Données de test supprimées après coup.
 
 ---
 
-## 🟢 5. Comparaison du secret webhook non "constant-time" (négligeable)
+## 🟢 5. Comparaison du secret webhook non "constant-time" — ✅ Corrigé le 16/07
 
 ### Description
-Dans les 4 fonctions `webhook-*` et `sync-notion-veille`, la vérification du secret partagé utilise une comparaison de chaînes standard (`provided === expected`), potentiellement sensible à une attaque par timing (deviner le secret octet par octet en mesurant les différences de latence).
+Dans les 4 fonctions `webhook-*` et `sync-notion-veille`, la vérification du secret partagé utilisait une comparaison de chaînes standard (`provided === expected`), potentiellement sensible à une attaque par timing (deviner le secret octet par octet en mesurant les différences de latence).
 
 ### Effet
-Risque pratique quasi nul pour une cible à faible valeur comme celle-ci (le jitter réseau domine largement toute différence de timing mesurable). Mentionné pour complétude.
+Risque pratique quasi nul pour une cible à faible valeur comme celle-ci (le jitter réseau domine largement toute différence de timing mesurable), mais coût de correction quasi nul également.
 
-### Recommandation (optionnelle)
-Utiliser une comparaison en temps constant si on veut blinder complètement (`crypto.timingSafeEqual` ou équivalent Deno).
+### ✅ Correctif appliqué
+Ajout d'une fonction `timingSafeEqual()` locale (comparaison XOR octet par octet, sans retour anticipé sur la première différence) dans les 5 fonctions concernées, déployées. **Vérifié** : `sync-notion-veille` et `webhook-contact-created` répondent toujours correctement avec le bon secret (200) et rejettent toujours un mauvais secret (403/401) après le changement.
 
 ---
 
