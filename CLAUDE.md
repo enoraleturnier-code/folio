@@ -34,8 +34,13 @@ Notes condensées à l'essentiel (réduit le 13/07 — l'historique détaillé p
 
 ## Comptes de test
 
-- **Toujours de vraies adresses Gmail + alias** (`enoraleturnier+xxx@gmail.com`), jamais un domaine inventé — Resend doit pouvoir délivrer réellement. `PersonaSwitcher.tsx` (dev-only) a les emails en dur (`PERSONAS`) : à resynchroniser si les comptes changent.
+- **Toujours de vraies adresses Gmail + alias** (`enoraleturnier+xxx@gmail.com`), jamais un domaine inventé — Resend doit pouvoir délivrer réellement. `PersonaSwitcher.tsx` a les emails en dur (`PERSONAS`, dont un compte `admin`) : à resynchroniser si les comptes changent.
+- **`PersonaSwitcher` visible en dev local ET sur les previews Vercel (15/07), jamais sur le vrai domaine de prod** — gating dans `RootLayout.tsx` : `import.meta.env.DEV || import.meta.env.VITE_VERCEL_ENV === "preview"`. `VITE_VERCEL_ENV` est injecté par un `define` dans `vite.config.ts` qui relaie `process.env.VERCEL_ENV` (var système Vercel, absente par défaut côté client Vite) — *fail closed* : si la variable système n'est pas exposée par Vercel, la condition est `false` partout hors dev local, jamais l'inverse. **Prérequis côté dashboard Vercel, indispensables et non faits automatiquement par le code** : (1) Project Settings → Environment Variables → *"Automatically expose System Environment Variables"* activé, sinon `VERCEL_ENV` n'atteint jamais le build ; (2) Project Settings → Deployment Protection → protection activée sur les previews (Vercel Authentication ou Password Protection) — sans ça une URL de preview trouvée/partagée reste un accès admin en un clic, le gating par env var seul n'est qu'une couche.
 - Scripts admin réutilisables dans `scripts/` (lisent `SUPABASE_SERVICE_ROLE_KEY` depuis `.env.admin`, gitignored).
+
+## Déploiement
+
+- **Vercel** : projet `folio` (team `enora-le-turnier-s-projects`), connecté au repo GitHub, déploie automatiquement chaque push sur `main` en prod et chaque branche/PR en preview. Pas de domaine personnalisé pour l'instant, uniquement les sous-domaines `*.vercel.app` générés par Vercel (HTTPS automatique, identique à un domaine personnalisé sur ce plan). Variables d'env requises au build : `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (jamais `SUPABASE_SERVICE_ROLE_KEY`, qui n'a aucun usage côté Vercel — cf. Base de données ci-dessous et `scripts/`).
 
 ## Architecture
 

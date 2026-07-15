@@ -32,7 +32,7 @@ export function RootLayout() {
         <ScrollRestoration />
         <Outlet />
         <ScrollToTopButton />
-        {import.meta.env.DEV && <PersonaSwitcher />}
+        {(import.meta.env.DEV || import.meta.env.VITE_VERCEL_ENV === "preview") && <PersonaSwitcher />}
       </TooltipProvider>
     </QueryClientProvider>
   );

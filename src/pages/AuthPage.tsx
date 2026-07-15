@@ -1,11 +1,13 @@
-import { CircleAlert, Eye, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft, CircleAlert, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/Alert";
+import { AuroraBackground } from "@/components/AuroraBackground";
 import { IconTooltip } from "@/components/IconTooltip";
 import { designer } from "@/data/designer";
 import { supabase } from "@/integrations/supabase/client";
+import { textLinkClass } from "@/lib/linkStyles";
 
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,12 +60,26 @@ export function AuthPage() {
     "rounded-full border bg-transparent px-5 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-surface-container-lowest p-8 shadow-2xl shadow-black/40">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12">
+      <AuroraBackground variant="modal" />
+
+      <Link
+        to={`/${designer.slug}`}
+        className="absolute left-5 top-5 z-10 inline-flex items-center gap-1.5 text-sm text-on-surface-variant no-underline transition-colors hover:text-on-surface md:left-8 md:top-8"
+      >
+        <ArrowLeft aria-hidden="true" size={16} />
+        Retour au portfolio
+      </Link>
+
+      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-surface-container-lowest p-8 shadow-2xl shadow-black/40">
         <h1 className="mb-2 text-2xl font-medium tracking-tight text-on-surface">
           Folio<span className="text-primary">+</span>
         </h1>
-        <p className="mb-8 text-sm text-on-surface-variant">Connectez-vous à votre espace admin.</p>
+        <h2 className="mb-2 text-xl font-medium text-on-surface">Content de vous revoir</h2>
+        <p className="mb-8 text-sm text-on-surface-variant">
+          Connectez-vous pour accéder à votre espace — administration ou projets confidentiels
+          validés.
+        </p>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
           <div className="flex flex-col gap-2">
@@ -143,11 +159,18 @@ export function AuthPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="mt-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {submitting ? "Connexion…" : "Se connecter"}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-on-surface-variant">
+          Pas encore de compte ?{" "}
+          <Link to={`/${designer.slug}/projects`} className={textLinkClass("default")}>
+            Demandez l'accès à un projet
+          </Link>
+        </p>
       </div>
     </div>
   );
