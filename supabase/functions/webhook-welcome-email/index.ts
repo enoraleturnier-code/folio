@@ -1,6 +1,24 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+// Audit securite 15/07 : verify_jwt:true a la gateway n'accepte "une cle
+// Supabase valide" -- la cle publique passe ce test, donc sans ce check
+// n'importe qui pouvait appeler cette fonction directement et envoyer un
+// email a l'adresse de son choix. webhook_dispatch_secret (Vault) n'est
+// connu que de dispatch_webhook() et de get_webhook_dispatch_secret()
+// (EXECUTE reserve a service_role, cf. migration dediee).
+async function isAuthorizedDispatch(req: Request): Promise<boolean> {
+  const provided = req.headers.get("x-webhook-secret");
+  if (!provided) return false;
+  const { data: expected } = await supabase.rpc("get_webhook_dispatch_secret");
+  return typeof expected === "string" && expected.length > 0 && provided === expected;
+}
 
 function normalizeGmail(email: string): string {
   const [local, domain] = email.split("@");
@@ -30,6 +48,13 @@ async function sendEmail(to: string, subject: string, html: string) {
 }
 
 Deno.serve(async (req: Request) => {
+  if (!(await isAuthorizedDispatch(req))) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const payload = await req.json();
   const record = payload.record;
 
