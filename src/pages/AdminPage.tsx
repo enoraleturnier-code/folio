@@ -37,6 +37,7 @@ import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterB
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { IconTooltip } from "@/components/IconTooltip";
+import { NotificationCountBadge } from "@/components/NotificationCountBadge";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
@@ -308,10 +309,16 @@ export function AdminPage() {
               items={accessRequests}
               loading={accessRequestsLoading}
               onItemsChange={setAccessRequests}
+              projects={projects}
             />
           )}
           {tab === "contacts" && (
-            <ContactsTab items={contacts} loading={contactsLoading} onItemsChange={setContacts} />
+            <ContactsTab
+              items={contacts}
+              loading={contactsLoading}
+              onItemsChange={setContacts}
+              accessRequests={accessRequests}
+            />
           )}
           {tab === "veille" && (
             <VeilleDesignTab
@@ -334,10 +341,10 @@ export function AdminPage() {
 
 /* ---------- Sidebar ---------- */
 
-/** Couleur active par section de nav (cf. DESIGN.md). `badgeBg`/`badgeText`
- * sont la paire "conteneur solide" utilisée par le badge de notification de
- * cette même catégorie — jamais un dérivé de `bg`/`icon` (souvent une teinte
- * translucide, pas assez de contraste pour porter un chiffre en petit texte).
+/** Couleur active par section de nav (cf. DESIGN.md). Le badge de notification de
+ * chaque item de nav ne suit plus cette couleur -- un seul style partagé
+ * (`NotificationCountBadge`, bg-secondary/text-on-secondary) pour toutes les sections,
+ * identique à celui de la cloche Notifications du header (15/07).
  * ⚠️ Depuis la redéfinition du 13/07, ces couleurs ne correspondent plus
  * forcément à celle du halo `SectionAurora` de la même section (ex. Contacts :
  * nav en tertiary-container, halo toujours cyan) — décision explicite,
@@ -346,38 +353,26 @@ const NAV_ACTIVE_CLASSES = {
   teal: {
     bg: "bg-primary-container/10",
     icon: "text-primary",
-    badgeBg: "bg-primary-container",
-    badgeText: "text-on-primary-container",
   },
   fuchsia: {
     bg: "bg-tag-design-type/15",
     icon: "text-tag-design-type",
-    badgeBg: "bg-tag-design-type",
-    badgeText: "text-background",
   },
   violet: {
     bg: "bg-secondary/10",
     icon: "text-secondary",
-    badgeBg: "bg-secondary-container",
-    badgeText: "text-on-secondary-container",
   },
   cyan: {
     bg: "bg-tag-sector/10",
     icon: "text-tag-sector",
-    badgeBg: "bg-tag-sector",
-    badgeText: "text-on-primary",
   },
   nouveau: {
     bg: "bg-indigo-500/10",
     icon: "text-tag-keywords",
-    badgeBg: "bg-indigo-500",
-    badgeText: "text-black",
   },
   indigo: {
     bg: "bg-tag-keywords/10",
     icon: "text-tag-keywords",
-    badgeBg: "bg-tag-keywords",
-    badgeText: "text-on-primary",
   },
 } as const;
 
@@ -474,7 +469,7 @@ function AdminSidebar({
        * `absolute` — pas besoin d'un wrapper `relative` supplémentaire. Ancré sur
        * la bordure droite du panneau (`right-0 translate-x-1/2`, à cheval sur le
        * `border-r` de l'aside), indépendant de la largeur collapsed/expanded. */}
-      <IconTooltip label={collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"}>
+      <IconTooltip label={collapsed ? "Ouvrir" : "Fermer"}>
         <button
           type="button"
           onClick={onToggleCollapsed}
@@ -537,20 +532,10 @@ function AdminSidebar({
               >
                 {it.label}
               </span>
-              {it.badge && it.badge > 0 ? (
-                <span
-                  aria-hidden="true"
-                  className={
-                    "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold " +
-                    activeStyle.badgeBg +
-                    " " +
-                    activeStyle.badgeText +
-                    (collapsed ? "" : " md:static md:ml-auto md:h-5 md:w-5")
-                  }
-                >
-                  {it.badge}
-                </span>
-              ) : null}
+              <NotificationCountBadge
+                count={it.badge ?? 0}
+                className={"absolute -right-1 -top-1" + (collapsed ? "" : " md:static md:ml-auto")}
+              />
             </button>
           );
         })}
@@ -565,15 +550,40 @@ const CONTACTS_UNIFIED_KIND_OPTIONS: AdminFilterGroup["options"] = [
   { value: "demande", label: "Demande d'accès" },
 ];
 
-/** Libellés pour les deux vocabulaires de statut réunis dans "Mes contacts" (messages + demandes) -- pas de fusion forcée en un seul jeu de valeurs. */
-const UNIFIED_CONTACT_STATUS_LABELS: Record<string, string> = {
-  nouveau: "Nouveau",
-  traite: "Traité",
-  archive: "Archivé",
-  pending: "En attente",
-  approved: "Accordé",
-  rejected: "Refusé",
-};
+/** Date au format homogène des cartes de listes (Accès/Messages/Veille) -- capitales, cf. DESIGN.md. */
+function formatDateCaps(iso: string): string {
+  return new Date(iso)
+    .toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+    .toUpperCase();
+}
+
+/** Ligne d'identité unifiée des cartes de listes (Accès/Messages) -- Nom Prénom, puis
+ * entreprise si renseignée, puis email en style lien, tout sur une seule ligne. */
+function ContactSummaryLine({
+  name,
+  company,
+  email,
+}: {
+  name: string;
+  company?: string | null;
+  email?: string | null;
+}) {
+  return (
+    <p className="truncate text-sm">
+      <span className="font-medium text-on-surface">{name}</span>
+      {company && <span className="text-on-surface-variant"> • {company}</span>}
+      {email && (
+        <span className="text-on-surface-variant">
+          {" "}
+          •{" "}
+          <a href={`mailto:${email}`} className={textLinkClass()}>
+            {email}
+          </a>
+        </span>
+      )}
+    </p>
+  );
+}
 
 /** Une carte "accès rapide" du dashboard -- reprend la couleur nav de l'onglet ciblé (NAV_ACTIVE_CLASSES), pas une teinte unique partagée. */
 function QuickAccessCard({
@@ -596,12 +606,22 @@ function QuickAccessCard({
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="group relative flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      <Icon aria-hidden="true" className={classes.icon} size={24} />
+      <div className={cn("flex h-11 w-11 items-center justify-center rounded-xl", classes.bg)}>
+        <Icon aria-hidden="true" className={classes.icon} size={22} />
+      </div>
       <span className="mt-4 text-3xl font-bold text-on-surface">{count}</span>
       <span className="mt-1 text-sm text-on-surface-variant">{label}</span>
       <span className={"mt-2 text-xs " + classes.icon}>{hint}</span>
+      <ArrowRight
+        aria-hidden="true"
+        size={18}
+        className={cn(
+          "absolute right-5 top-5 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100",
+          classes.icon,
+        )}
+      />
     </button>
   );
 }
@@ -646,96 +666,6 @@ function DashboardTab({
     .filter((e) => !veilleMonthFilter || e.periode_fin?.slice(0, 7) === veilleMonthFilter)
     .sort((a, b) => ((a.periode_fin ?? "") < (b.periode_fin ?? "") ? 1 : -1));
 
-  const [visibilityFilters, setVisibilityFilters] = useState<Record<string, string>>({
-    niveau: "",
-    person: "",
-  });
-
-  const visibilityRows = useMemo(
-    () =>
-      publishedProjects.map((p) => {
-        const niveau: "public" | "confidentiel_sensible" | "confidentiel_critique" =
-          p.status === "public"
-            ? "public"
-            : p.sensitivity_level === "tres_sensible"
-              ? "confidentiel_critique"
-              : "confidentiel_sensible";
-        const grantees = accessRequests
-          .filter((r) => r.project?.id === p.id && r.status === "approved")
-          .map((r) => ({
-            name: r.visitor?.fullName ?? r.visitor?.email ?? "Visiteur",
-            requestedAt: r.createdAt,
-            validatedAt: r.validatedAt,
-          }));
-        return { project: p, niveau, grantees };
-      }),
-    [publishedProjects, accessRequests],
-  );
-
-  const visibilityPersonOptions = useMemo(
-    () =>
-      Array.from(new Set(visibilityRows.flatMap((r) => r.grantees.map((g) => g.name))))
-        .sort()
-        .map((name) => ({ value: name, label: name })),
-    [visibilityRows],
-  );
-
-  const visibilityFilterGroups: AdminFilterGroup[] = [
-    { key: "niveau", label: "Niveau", primary: true, options: PROJETS_NIVEAU_OPTIONS },
-    { key: "person", label: "Personne", options: visibilityPersonOptions },
-  ];
-
-  const filteredVisibilityRows = visibilityRows
-    .filter((r) => !visibilityFilters.niveau || r.niveau === visibilityFilters.niveau)
-    .filter(
-      (r) => !visibilityFilters.person || r.grantees.some((g) => g.name === visibilityFilters.person),
-    );
-
-  const [contactsUnifiedFilters, setContactsUnifiedFilters] = useState<Record<string, string>>({
-    kind: "",
-    status: "",
-  });
-
-  const unifiedContacts = useMemo(() => {
-    const fromMessages = contacts.map((c) => ({
-      id: `msg-${c.id}`,
-      name: c.name,
-      email: c.email,
-      company: c.company,
-      kind: "message" as const,
-      status: CONTACT_STATUS_KIND[c.status],
-      createdAt: c.createdAt,
-    }));
-    const fromRequests = accessRequests.map((r) => ({
-      id: `req-${r.id}`,
-      name: r.visitor?.fullName ?? "Visiteur",
-      email: r.visitor?.email ?? "—",
-      company: r.visitor?.company ?? null,
-      kind: "demande" as const,
-      status: r.status,
-      createdAt: r.createdAt,
-    }));
-    return [...fromMessages, ...fromRequests].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  }, [contacts, accessRequests]);
-
-  const contactsUnifiedStatusOptions = useMemo(
-    () =>
-      Array.from(new Set(unifiedContacts.map((r) => r.status))).map((s) => ({
-        value: s,
-        label: UNIFIED_CONTACT_STATUS_LABELS[s],
-      })),
-    [unifiedContacts],
-  );
-
-  const contactsUnifiedFilterGroups: AdminFilterGroup[] = [
-    { key: "kind", label: "Type", primary: true, options: CONTACTS_UNIFIED_KIND_OPTIONS },
-    { key: "status", label: "Statut", options: contactsUnifiedStatusOptions },
-  ];
-
-  const filteredUnifiedContacts = unifiedContacts
-    .filter((r) => !contactsUnifiedFilters.kind || r.kind === contactsUnifiedFilters.kind)
-    .filter((r) => !contactsUnifiedFilters.status || r.status === contactsUnifiedFilters.status);
-
   return (
     <>
       <TabHeader
@@ -750,7 +680,7 @@ function DashboardTab({
           color="fuchsia"
           count={activeProjects.length}
           label="Projets"
-          hint={`${publishedProjects.length} publiés · ${draftProjects.length} brouillon`}
+          hint={`${publishedProjects.length} publiés • ${draftProjects.length} brouillon`}
           onClick={() => setTab("projets")}
         />
         <QuickAccessCard
@@ -765,7 +695,7 @@ function DashboardTab({
           icon={Mail}
           color="nouveau"
           count={newMessages.length}
-          label="Messages nouveaux"
+          label="Nouveaux messages"
           hint="À traiter"
           onClick={() => setTab("contacts")}
         />
@@ -790,47 +720,80 @@ function DashboardTab({
       {(pendingRequests.length > 0 || newMessages.length > 0) && (
         <div className="mt-10">
           <h2 className="text-xl font-bold text-on-surface">Actions en attente</h2>
-          <div className="mt-4 space-y-3">
-            {pendingRequests.map((r) => (
-              <div
-                key={r.id}
-                className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-on-surface">
-                    {r.visitor?.fullName ?? r.visitor?.email ?? "Visiteur"}
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+                Nouveaux messages
+              </h3>
+              <div className="mt-3 space-y-3">
+                {newMessages.length === 0 ? (
+                  <p className="rounded-2xl border border-white/5 bg-surface-container-low p-4 text-sm text-on-surface-variant">
+                    Aucun nouveau message.
                   </p>
-                  <p className="text-sm text-on-surface-variant">
-                    {r.visitor?.company ?? "—"} — Demande d'accès
+                ) : (
+                  newMessages.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
+                    >
+                      <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] tracking-widest text-on-surface-variant">
+                          {formatDateCaps(m.createdAt)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setTab("contacts")}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Afficher
+                          <ArrowRight aria-hidden="true" size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+                Demandes d'accès
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pendingRequests.length === 0 ? (
+                  <p className="rounded-2xl border border-white/5 bg-surface-container-low p-4 text-sm text-on-surface-variant">
+                    Aucune demande en attente.
                   </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setTab("demandes")}
-                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  Traiter
-                </button>
+                ) : (
+                  pendingRequests.map((r) => (
+                    <div
+                      key={r.id}
+                      className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
+                    >
+                      <ContactSummaryLine
+                        name={r.visitor?.fullName ?? "Visiteur"}
+                        company={r.visitor?.company}
+                        email={r.visitor?.email}
+                      />
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] tracking-widest text-on-surface-variant">
+                          {formatDateCaps(r.createdAt)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setTab("demandes")}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Traiter
+                          <ArrowRight aria-hidden="true" size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            ))}
-            {newMessages.map((m) => (
-              <div
-                key={m.id}
-                className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-on-surface">{m.name}</p>
-                  <p className="text-sm text-on-surface-variant">{m.email} — Nouveau message</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setTab("contacts")}
-                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  Lire
-                </button>
-              </div>
-            ))}
+            </div>
           </div>
         </div>
       )}
@@ -910,101 +873,6 @@ function DashboardTab({
         </div>
       )}
 
-      <div className="mt-10">
-        <h2 className="text-xl font-bold text-on-surface">
-          Suivi visibilité — projets confidentiels
-        </h2>
-        <div className="mt-4">
-          <AdminFilterBar
-            groups={visibilityFilterGroups}
-            value={visibilityFilters}
-            onChange={setVisibilityFilters}
-          />
-        </div>
-        {filteredVisibilityRows.length === 0 ? (
-          <p className="mt-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
-            Aucun projet pour ce filtre.
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {filteredVisibilityRows.map(({ project: p, niveau, grantees }) => (
-              <li
-                key={p.id}
-                className="rounded-2xl border border-white/5 bg-surface-container-low p-5"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="font-medium text-on-surface">{p.title}</p>
-                  <div className="flex items-center gap-3">
-                    <StatusBadge
-                      kind={p.status === "public" ? "public" : "confidential"}
-                      suffix={niveau !== "public" ? SENSITIVITY_LABELS[p.sensitivity_level] : undefined}
-                    />
-                    <span className="text-xs text-on-surface-variant">
-                      {grantees.length} accès accordé{grantees.length > 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </div>
-                {grantees.length > 0 && (
-                  <ul className="mt-3 space-y-1.5 border-t border-white/5 pt-3">
-                    {grantees.map((g, i) => (
-                      <li
-                        key={i}
-                        className="flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant"
-                      >
-                        <span className="font-medium text-on-surface">{g.name}</span>
-                        <span>
-                          Demandé le{" "}
-                          {new Date(g.requestedAt).toLocaleDateString("fr-FR")}
-                          {g.validatedAt &&
-                            ` · Validé le ${new Date(g.validatedAt).toLocaleDateString("fr-FR")}`}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="mt-10">
-        <h2 className="text-xl font-bold text-on-surface">Mes contacts</h2>
-        <div className="mt-4">
-          <AdminFilterBar
-            groups={contactsUnifiedFilterGroups}
-            value={contactsUnifiedFilters}
-            onChange={setContactsUnifiedFilters}
-          />
-        </div>
-        {filteredUnifiedContacts.length === 0 ? (
-          <p className="mt-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
-            Aucun contact pour ce filtre.
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {filteredUnifiedContacts.map((r) => (
-              <li
-                key={r.id}
-                className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-on-surface">{r.name}</p>
-                  <p className="text-sm text-on-surface-variant">
-                    {r.email} · {r.company ?? "—"}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-on-surface-variant">
-                    {r.kind === "message" ? "Message" : "Demande d'accès"}
-                  </span>
-                  <StatusBadge kind={r.status} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </>
   );
 }
@@ -1197,7 +1065,7 @@ function ProjetsTab({
 
                 <div className="flex shrink-0 items-center gap-2">
                   {deleted ? (
-                    <IconTooltip label={`Restaurer le projet ${p.title}`}>
+                    <IconTooltip label="Restaurer">
                       <button
                         type="button"
                         onClick={() => restore(p.id)}
@@ -1210,7 +1078,7 @@ function ProjetsTab({
                     </IconTooltip>
                   ) : (
                     <>
-                      <IconTooltip label={`Éditer ${p.title}`}>
+                      <IconTooltip label="Éditer">
                         <button
                           type="button"
                           onClick={() => openEdit(p)}
@@ -1221,7 +1089,7 @@ function ProjetsTab({
                           <Pencil aria-hidden="true" size={16} />
                         </button>
                       </IconTooltip>
-                      <IconTooltip label={`Supprimer ${p.title}`}>
+                      <IconTooltip label="Supprimer">
                       <button
                         type="button"
                         onClick={() => setConfirmDelete(p.id)}
@@ -1302,15 +1170,18 @@ function DemandesTab({
   items,
   loading,
   onItemsChange,
+  projects,
 }: {
   items: AdminAccessRequest[];
   loading: boolean;
   onItemsChange: (items: AdminAccessRequest[]) => void;
+  projects: Project[];
 }) {
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [accesDrawerOpen, setAccesDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<Record<string, string>>({
     status: "",
     period: "",
@@ -1392,6 +1263,15 @@ function DemandesTab({
         title="Demandes d'"
         emphasis="accès"
         subtitle="Valide ou refuse l'accès aux projets confidentiels — chaque refus doit être motivé."
+        cta={
+          <button
+            type="button"
+            onClick={() => setAccesDrawerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Suivi accès confidentiels par projet
+          </button>
+        }
       />
       {error && (
         <div className="mt-6">
@@ -1417,13 +1297,11 @@ function DemandesTab({
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-base font-medium text-on-surface">
-                    {r.visitor?.fullName ?? "Visiteur"}
-                  </p>
-                  <p className="text-sm text-on-surface-variant">
-                    {r.visitor?.company ?? "—"} ·{" "}
-                    <span className="text-primary">{r.visitor?.email ?? "—"}</span>
-                  </p>
+                  <ContactSummaryLine
+                    name={r.visitor?.fullName ?? "Visiteur"}
+                    company={r.visitor?.company}
+                    email={r.visitor?.email}
+                  />
                   <p className="mt-2 text-sm text-on-surface-variant">
                     <span className="text-on-surface">Projet :</span>{" "}
                     {r.project?.title ?? "Projet supprimé"}
@@ -1433,12 +1311,8 @@ function DemandesTab({
                       <span className="text-on-surface">Message :</span> {r.message}
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-on-surface-variant/70">
-                    {new Date(r.createdAt).toLocaleDateString("fr-FR", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                  <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
+                    {formatDateCaps(r.createdAt)}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
@@ -1523,6 +1397,162 @@ function DemandesTab({
           ))}
         </div>
       )}
+
+      {accesDrawerOpen && (
+        <AccesConfidentielsDrawer
+          projects={projects}
+          accessRequests={items}
+          onClose={() => setAccesDrawerOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Suivi des accès confidentiels accordés, projet par projet -- exclut les projets publics
+ * (aucune notion d'accès accordé pour eux). Ouvert depuis un bouton de l'onglet Accès. */
+function AccesConfidentielsDrawer({
+  projects,
+  accessRequests,
+  onClose,
+}: {
+  projects: Project[];
+  accessRequests: AdminAccessRequest[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = original;
+      document.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const confidentialRows = useMemo(
+    () =>
+      projects
+        .filter((p) => !p.deleted_at && p.status === "confidential")
+        .map((p) => {
+          const grantees = accessRequests
+            .filter((r) => r.project?.id === p.id && r.status === "approved")
+            .map((r) => ({
+              name: r.visitor?.fullName ?? r.visitor?.email ?? "Visiteur",
+              requestedAt: r.createdAt,
+              validatedAt: r.validatedAt,
+            }));
+          return { project: p, grantees };
+        }),
+    [projects, accessRequests],
+  );
+
+  const [personFilter, setPersonFilter] = useState("");
+  const personOptions = useMemo(
+    () =>
+      Array.from(new Set(confidentialRows.flatMap((r) => r.grantees.map((g) => g.name))))
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [confidentialRows],
+  );
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "person", label: "Personne", primary: true, options: personOptions },
+  ];
+
+  const filteredRows = confidentialRows.filter(
+    (r) => !personFilter || r.grantees.some((g) => g.name === personFilter),
+  );
+
+  const totalGranted = confidentialRows.reduce((sum, r) => sum + r.grantees.length, 0);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Suivi des accès confidentiels accordés"
+    >
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+        <div className="border-b border-white/5 px-10 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-medium text-on-surface">
+              Suivi des accès confidentiels accordés
+              <span className="ml-2 text-sm font-normal text-on-surface-variant">
+                • {totalGranted} accès accordé{totalGranted > 1 ? "s" : ""}
+              </span>
+            </h2>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer"
+                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-10 py-6">
+          {personOptions.length > 0 && (
+            <div className="mb-4">
+              <AdminFilterBar
+                groups={filterGroups}
+                value={{ person: personFilter }}
+                onChange={(v) => setPersonFilter(v.person ?? "")}
+              />
+            </div>
+          )}
+          {filteredRows.length === 0 ? (
+            <p className="rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
+              Aucun projet confidentiel pour ce filtre.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {filteredRows.map(({ project: p, grantees }) => (
+                <li
+                  key={p.id}
+                  className="rounded-2xl border border-white/5 bg-surface-container-low p-5"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="font-medium text-on-surface">{p.title}</p>
+                    <div className="flex items-center gap-3">
+                      <StatusBadge kind="confidential" suffix={SENSITIVITY_LABELS[p.sensitivity_level]} />
+                      <span className="text-xs text-on-surface-variant">
+                        {grantees.length} accès accordé{grantees.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  </div>
+                  {grantees.length > 0 && (
+                    <ul className="mt-3 space-y-1.5 border-t border-white/5 pt-3">
+                      {grantees.map((g, i) => (
+                        <li
+                          key={i}
+                          className="flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant"
+                        >
+                          <span className="font-medium text-on-surface">{g.name}</span>
+                          <span>
+                            Demandé le {new Date(g.requestedAt).toLocaleDateString("fr-FR")}
+                            {g.validatedAt &&
+                              ` • Validé le ${new Date(g.validatedAt).toLocaleDateString("fr-FR")}`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
@@ -1551,14 +1581,17 @@ function ContactsTab({
   items,
   loading,
   onItemsChange,
+  accessRequests,
 }: {
   items: AdminContactMessage[];
   loading: boolean;
   onItemsChange: (items: AdminContactMessage[]) => void;
+  accessRequests: AdminAccessRequest[];
 }) {
   const [filters, setFilters] = useState<Record<string, string>>({ status: "" });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [contactsDrawerOpen, setContactsDrawerOpen] = useState(false);
 
   const filterGroups: AdminFilterGroup[] = [
     { key: "status", label: "Statut", primary: true, options: CONTACT_STATUS_OPTIONS },
@@ -1589,6 +1622,15 @@ function ContactsTab({
         title="Messages"
         emphasis="reçus"
         subtitle="Traite, archive, reviens-y. Le statut se met à jour d'un clic."
+        cta={
+          <button
+            type="button"
+            onClick={() => setContactsDrawerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Mes contacts
+          </button>
+        }
       />
 
       {error && (
@@ -1620,10 +1662,7 @@ function ContactsTab({
                 className="glass-panel flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:flex-row md:items-center md:justify-between"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-base font-medium text-on-surface">{m.name}</p>
-                    <span className="text-sm text-on-surface-variant">{m.email}</span>
-                  </div>
+                  <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
                   <p
                     className="mt-2 text-sm font-light text-on-surface-variant"
                     style={{
@@ -1636,19 +1675,13 @@ function ContactsTab({
                     {m.message}
                   </p>
                   <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
-                    {new Date(m.createdAt)
-                      .toLocaleDateString("fr-FR", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      })
-                      .toUpperCase()}
+                    {formatDateCaps(m.createdAt)}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3" aria-live="polite">
                   <StatusBadge kind={CONTACT_STATUS_KIND[m.status]} />
                   {next && (
-                    <IconTooltip label={`Changer le statut du message de ${m.name}`}>
+                    <IconTooltip label="Changer">
                       <button
                         type="button"
                         onClick={() => cycle(m)}
@@ -1666,6 +1699,156 @@ function ContactsTab({
           })}
         </ul>
       )}
+
+      {contactsDrawerOpen && (
+        <MesContactsDrawer
+          contacts={items}
+          accessRequests={accessRequests}
+          onClose={() => setContactsDrawerOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Vue unifiée messages + demandes d'accès -- ouverte depuis un bouton dédié de l'onglet Messages. */
+function MesContactsDrawer({
+  contacts,
+  accessRequests,
+  onClose,
+}: {
+  contacts: AdminContactMessage[];
+  accessRequests: AdminAccessRequest[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = original;
+      document.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [kindFilter, setKindFilter] = useState("");
+  const [personFilter, setPersonFilter] = useState("");
+
+  const unifiedContacts = useMemo(() => {
+    const fromMessages = contacts.map((c) => ({
+      id: `msg-${c.id}`,
+      name: c.name,
+      email: c.email,
+      company: c.company,
+      kind: "message" as const,
+      status: CONTACT_STATUS_KIND[c.status],
+      createdAt: c.createdAt,
+    }));
+    const fromRequests = accessRequests.map((r) => ({
+      id: `req-${r.id}`,
+      name: r.visitor?.fullName ?? "Visiteur",
+      email: r.visitor?.email ?? null,
+      company: r.visitor?.company ?? null,
+      kind: "demande" as const,
+      status: r.status,
+      createdAt: r.createdAt,
+    }));
+    return [...fromMessages, ...fromRequests].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  }, [contacts, accessRequests]);
+
+  const personOptions = useMemo(
+    () => Array.from(new Set(unifiedContacts.map((r) => r.name))).sort(),
+    [unifiedContacts],
+  );
+
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "kind", label: "Type", primary: true, options: CONTACTS_UNIFIED_KIND_OPTIONS },
+  ];
+
+  const filtered = unifiedContacts
+    .filter((r) => !kindFilter || r.kind === kindFilter)
+    .filter((r) => !personFilter || r.name === personFilter);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mes contacts Folio+"
+    >
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+        <div className="border-b border-white/5 px-10 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-medium text-on-surface">Mes contacts Folio+</h2>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer"
+                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-10 py-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+            <AdminFilterBar
+              groups={filterGroups}
+              value={{ kind: kindFilter }}
+              onChange={(v) => setKindFilter(v.kind ?? "")}
+            />
+            <select
+              value={personFilter}
+              onChange={(e) => setPersonFilter(e.target.value)}
+              aria-label="Filtrer par nom d'utilisateur"
+              className="rounded-full border border-outline bg-surface-container px-4 py-1.5 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <option value="">Tous les contacts</option>
+              {personOptions.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {filtered.length === 0 ? (
+            <p className="rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
+              Aucun contact pour ce filtre.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {filtered.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <ContactSummaryLine name={r.name} company={r.company} email={r.email} />
+                    <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
+                      {formatDateCaps(r.createdAt)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-on-surface-variant">
+                      {r.kind === "message" ? "Message" : "Demande d'accès"}
+                    </span>
+                    <StatusBadge kind={r.status} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
@@ -2053,7 +2236,7 @@ function ParametresTab() {
                 value={publicUrl}
                 className={inputCls + " cursor-default text-on-surface-variant"}
               />
-              <IconTooltip label="Copier le lien du profil">
+              <IconTooltip label="Copier">
                 <button
                   type="button"
                   onClick={copy}
@@ -2284,21 +2467,10 @@ function VeilleDesignTab({
                 className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-base font-medium text-on-surface">{e.titre}</p>
-                    <p className="mt-1 text-xs text-on-surface-variant/70">
-                      {formatPeriode(e.periode_debut, e.periode_fin)}
-                      {typeof e.nb_sources === "number" && (
-                        <span>
-                          {" "}
-                          · {e.nb_sources} source{e.nb_sources > 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </p>
-                  </div>
+                  <p className="min-w-0 text-base font-medium text-on-surface">{e.titre}</p>
                   <span
                     className={
-                      "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[11px] font-medium " +
+                      "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-wide " +
                       veilleStatutClass(e.statut)
                     }
                   >
@@ -2317,20 +2489,31 @@ function VeilleDesignTab({
                     ))}
                   </div>
                 )}
-                {e.contenu ? (
-                  <button
-                    type="button"
-                    onClick={() => setOpenEntryId(e.notion_page_id)}
-                    className="ml-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  >
-                    Voir le contenu
-                    <ArrowRight aria-hidden="true" size={14} />
-                  </button>
-                ) : (
-                  <p className="text-xs text-on-surface-variant/70">
-                    Contenu indisponible — relance une synchro.
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-[10px] tracking-widest text-on-surface-variant">
+                    {formatPeriode(e.periode_debut, e.periode_fin).toUpperCase()}
+                    {typeof e.nb_sources === "number" && (
+                      <span>
+                        {" "}
+                        • {e.nb_sources} SOURCE{e.nb_sources > 1 ? "S" : ""}
+                      </span>
+                    )}
                   </p>
-                )}
+                  {e.contenu ? (
+                    <button
+                      type="button"
+                      onClick={() => setOpenEntryId(e.notion_page_id)}
+                      className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      Voir le contenu
+                      <ArrowRight aria-hidden="true" size={14} />
+                    </button>
+                  ) : (
+                    <p className="text-xs text-on-surface-variant/70">
+                      Contenu indisponible — relance une synchro.
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>

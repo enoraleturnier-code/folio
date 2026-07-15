@@ -90,7 +90,7 @@ export function TagPicker({
             )}
           >
             {name}
-            <IconTooltip label={`Retirer ${name}`}>
+            <IconTooltip label="Retirer">
               <button
                 type="button"
                 onClick={() => remove(name)}
@@ -104,7 +104,7 @@ export function TagPicker({
         ))}
 
         <div className="relative" ref={ref}>
-          <IconTooltip label={`Ajouter ${label.toLowerCase()}`}>
+          <IconTooltip label="Ajouter">
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
@@ -143,7 +143,7 @@ export function TagPicker({
                   placeholder="Nouveau tag..."
                   className="min-w-0 flex-1 rounded-lg border border-white/5 bg-surface-container px-2 py-1.5 text-xs text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 />
-                <IconTooltip label="Créer ce tag">
+                <IconTooltip label="Créer">
                   <button
                     type="button"
                     onClick={addNew}

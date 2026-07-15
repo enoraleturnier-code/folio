@@ -40,9 +40,11 @@ export function Header() {
             <VisitorLink to={`/${designer.slug}/projects`} label="Projets" />
           </nav>
 
-          <ThemeToggle />
-
-          {session && <NotificationBell />}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {session && <NotificationBell />}
+            {session && <AccountMenu fullName={fullName} role={role} roleLoading={roleLoading} />}
+          </div>
 
           {!session && (
             <Link
@@ -53,8 +55,6 @@ export function Header() {
               Se connecter
             </Link>
           )}
-
-          {session && <AccountMenu fullName={fullName} role={role} roleLoading={roleLoading} />}
         </div>
       </div>
     </header>

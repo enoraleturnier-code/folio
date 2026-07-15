@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { IconTooltip } from "@/components/IconTooltip";
+import { NotificationCountBadge } from "@/components/NotificationCountBadge";
 import { designer } from "@/data/designer";
 import {
   getMyNotifications,
@@ -103,11 +104,7 @@ export function NotificationBell() {
           className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Bell aria-hidden="true" size={22} />
-          {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-bold text-on-secondary">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
+          <NotificationCountBadge count={unreadCount} className="absolute -right-0.5 -top-0.5" />
         </button>
       </IconTooltip>
 

@@ -1,6 +1,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
+import { IconTooltip } from "@/components/IconTooltip";
 import { formatSecteur } from "@/lib/secteurLabels";
 
 export interface FilterState {
@@ -74,28 +75,29 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
         <div className="flex flex-wrap items-center gap-4 border-b border-white/5 pb-6">
           {visibleSecondaryCategories.length > 0 && (
             <>
-              <button
-                type="button"
-                onClick={() => setExpanded((v) => !v)}
-                aria-expanded={expanded}
-                aria-label="Plus de filtres"
-                className={
-                  "flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
-                  focusRing +
-                  " " +
-                  (expanded || activeSecondaryCount > 0
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
-                }
-              >
-                <SlidersHorizontal aria-hidden="true" size={14} />
-                Filtrer
-                {activeSecondaryCount > 0 && (
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">
-                    {activeSecondaryCount}
-                  </span>
-                )}
-              </button>
+              <IconTooltip label="Filtrer">
+                <button
+                  type="button"
+                  onClick={() => setExpanded((v) => !v)}
+                  aria-expanded={expanded}
+                  aria-label="Filtrer"
+                  className={
+                    "relative flex h-10 w-10 items-center justify-center rounded-full border transition-colors " +
+                    focusRing +
+                    " " +
+                    (expanded || activeSecondaryCount > 0
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
+                  }
+                >
+                  <SlidersHorizontal aria-hidden="true" size={16} />
+                  {activeSecondaryCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">
+                      {activeSecondaryCount}
+                    </span>
+                  )}
+                </button>
+              </IconTooltip>
               <div className="h-8 w-px bg-white/10" />
             </>
           )}

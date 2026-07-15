@@ -1,4 +1,14 @@
-import { Check, Lock, NotebookPen, Trash2, type LucideIcon } from "lucide-react";
+import {
+  Archive,
+  Ban,
+  Check,
+  Clock,
+  Lock,
+  NotebookPen,
+  Sparkles,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -45,7 +55,12 @@ const icons: Partial<Record<StatusKind, LucideIcon>> = {
   confidential: Lock,
   draft: NotebookPen,
   deleted: Trash2,
+  pending: Clock,
+  approved: Check,
+  rejected: Ban,
+  nouveau: Sparkles,
   traite: Check,
+  archive: Archive,
 };
 
 /** `suffix` : contexte additionnel affiché après le label (ex. "Confidentiel • Sensible" dans le dashboard admin). */
