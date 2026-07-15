@@ -32,6 +32,10 @@ const PERSONAS: Persona[] = [
   },
 ];
 
+// Distingue visuellement un dev local d'une preview Vercel (où ce switcher
+// devient aussi visible, cf. RootLayout.tsx) — jamais affiché en prod.
+const ENV_LABEL = import.meta.env.DEV ? "Dev" : "Preview";
+
 export function PersonaSwitcher() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -78,10 +82,10 @@ export function PersonaSwitcher() {
   return (
     <div className="fixed bottom-4 right-4 z-40" ref={ref}>
       {open && (
-        <div className="absolute bottom-full right-0 mb-2 w-56 rounded-2xl border border-white/10 bg-black/40 p-3 text-xs shadow-2xl backdrop-blur-sm">
+        <div className="absolute bottom-full right-0 mb-2 w-56 rounded-2xl border border-white/10 bg-surface-container p-3 text-xs shadow-2xl backdrop-blur-sm">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-              Persona switcher (dev)
+              Personas · {ENV_LABEL}
             </p>
             <button
               type="button"
@@ -131,10 +135,10 @@ export function PersonaSwitcher() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label="Ouvrir le sélecteur de personas"
-        className="flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-4 py-2.5 text-xs font-bold text-on-surface shadow-2xl backdrop-blur-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="flex items-center gap-2 rounded-full border border-white/10 bg-surface-container px-4 py-2.5 text-xs font-bold text-on-surface shadow-2xl backdrop-blur-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <Zap aria-hidden="true" size={14} className="text-primary" />
-        Personas
+        Personas · {ENV_LABEL}
       </button>
     </div>
   );

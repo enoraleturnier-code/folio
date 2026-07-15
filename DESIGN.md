@@ -452,7 +452,7 @@ CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `auro
 |---|---|---|
 | `profile` (défaut) | Page profil public | 4 taches : teal en haut-gauche, purple en bas-droite, cyan centrée, indigo en bas-gauche — composition d'origine |
 | `catalogue` | Catalogue de projets | Mêmes 4 couleurs, réparties différemment (teal en haut-**droite** et plus petit, purple en bas-**gauche** et plus petit, cyan décalée à 30%/65% et plus large, indigo en haut-**gauche**) — pour que les deux pages restent reconnaissables l'une de l'autre sans changer de palette |
-| `modal` | Derrière chaque modale ouverte (`AccessRequestModal`, `ProjectDrawer`, confirmations `AdminPage`) | Même géométrie que `profile`, alphas propres et plus marqués (table ci-dessus) — combinée à l'overlay `bg-background/80-90` + `backdrop-blur-sm` déjà en place, qui apporte le flou |
+| `modal` | Derrière chaque modale ouverte (`AccessRequestModal`, `ProjectDrawer`, confirmations `AdminPage`) + la page `/auth` (`AuthPage.tsx`, 15/07 — pas une modale à proprement parler, mais même traitement visuel pour la cohérence avec le reste de l'app) | Même géométrie que `profile`, alphas propres et plus marqués (table ci-dessus) — combinée à l'overlay `bg-background/80-90` + `backdrop-blur-sm` déjà en place, qui apporte le flou (sauf `/auth`, qui n'a pas d'overlay de dim puisqu'il n'y a rien derrière à assombrir) |
 
 **Dashboard admin — un halo par section (`SectionAurora`, `AdminPage.tsx`, 12/07)** : une seule tache douce (`.aurora-section`, `position: absolute` dans le conteneur de la section — pas `position: fixed` plein écran comme `.aurora-bg`), couleur dominante différente par onglet, réutilise les 4 teintes déjà existantes :
 
@@ -465,6 +465,12 @@ CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `auro
 | Vue d'ensemble (Dashboard) | — | aucun |
 
 **⚠️ Depuis le 13/07, le halo de section (ci-dessus) et la couleur de nav active (ci-dessous) ne sont plus forcément la même teinte** — décision explicite, périmètres volontairement dissociés (ex. Messages : halo toujours cyan, nav désormais tertiary-container). Ne pas chercher à les réaligner sans nouvelle demande. **Exception : Paramètres**, dont halo et nav ont au contraire été réalignés (les deux en teal) le 14/07 sur demande explicite pour matcher Vue d'ensemble.
+
+## 🔑 Page `/auth` + `PersonaSwitcher` (15/07)
+
+`AuthPage.tsx` reçoit le même traitement que les autres surfaces de l'app : `AuroraBackground variant="modal"` en fond (cf. section Aurora ci-dessus), accroche renforcée ("Content de vous revoir" + sous-titre), lien de retour vers le portfolio public (`← Retour au portfolio`) et un renvoi vers la demande d'accès (`AccessRequestModal`, via le catalogue) pour les visiteurs sans compte — `/auth` reste **login-only**, aucune bascule "Sign up" (la création de compte passe exclusivement par le flux F-12). CTA "Se connecter" corrigé de `text-on-primary` vers `text-on-primary-container` (divergence à la règle M3 de ce document, déjà corrigée ailleurs mais oubliée ici).
+
+`PersonaSwitcher.tsx` (dev tool, cf. `CLAUDE.md`) abandonne ses couleurs brutes (`bg-black/40`) pour le token `bg-surface-container`, cohérent avec le reste de l'app. Le libellé devient dynamique — `Personas · Dev` en local, `Personas · Preview` sur une preview Vercel — pour qu'il soit sans ambiguïté qu'on n'est jamais en train de regarder la vraie prod quand ce bouton est visible.
 
 ## 🧭 Couleurs de nav active + badges (dashboard admin, `NAV_ACTIVE_CLASSES`, 13/07)
 
