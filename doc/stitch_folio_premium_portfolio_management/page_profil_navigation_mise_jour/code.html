@@ -1,0 +1,312 @@
+<!DOCTYPE html><html class="dark" data-stitch-anim-opacity="true" lang="fr" style="opacity: 1;"><head>
+<title>Folio+ — Profil d'Alexandre Rossi</title>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..700&amp;family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#09100e",
+            "surface-container-highest": "#2f3634",
+            "on-surface-variant": "#bacac5",
+            "inverse-on-surface": "#2b3230",
+            "on-error": "#690005",
+            "surface-bright": "#333b38",
+            "secondary-container": "#6001d1",
+            "primary": "#57f1db",
+            "primary-fixed-dim": "#3cddc7",
+            "on-primary": "#003731",
+            "border-glass": "rgba(186, 202, 197, 0.1)",
+            "error": "#ffb4ab",
+            "secondary-fixed": "#eaddff",
+            "primary-fixed": "#62fae3",
+            "surface-tint": "#3cddc7",
+            "surface-container-low": "#161d1b",
+            "on-secondary-fixed-variant": "#5a00c6",
+            "on-error-container": "#ffdad6",
+            "background": "#0e1513",
+            "tertiary": "#d9d6ff",
+            "on-surface": "#dde4e0",
+            "surface-container-high": "#242b29",
+            "on-secondary-container": "#c9aeff",
+            "on-tertiary-container": "#3a2cd2",
+            "on-secondary-fixed": "#25005a",
+            "secondary": "#d2bbff",
+            "aurora-purple": "rgba(124, 58, 237, 0.1)",
+            "on-tertiary": "#1d00a5",
+            "on-background": "#dde4e0",
+            "tertiary-fixed": "#e2dfff",
+            "aurora-teal": "rgba(45, 212, 191, 0.12)",
+            "surface": "#0e1513",
+            "surface-glass": "rgba(22, 29, 27, 0.7)",
+            "outline": "#859490",
+            "on-tertiary-fixed": "#0f0069",
+            "aurora-cyan": "rgba(6, 182, 212, 0.08)",
+            "inverse-surface": "#dde4e0",
+            "tertiary-fixed-dim": "#c3c0ff",
+            "surface-variant": "#2f3634",
+            "on-primary-container": "#00574d",
+            "on-tertiary-fixed-variant": "#3323cc",
+            "inverse-primary": "#006b5f",
+            "surface-container": "#1a211f",
+            "primary-container": "#2dd4bf",
+            "on-secondary": "#3f008e",
+            "outline-variant": "#3c4a46",
+            "on-primary-fixed": "#00201c",
+            "surface-dim": "#0e1513",
+            "tertiary-container": "#b9b7ff",
+            "error-container": "#93000a",
+            "secondary-fixed-dim": "#d2bbff",
+            "on-primary-fixed-variant": "#005047"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "section-gap": "80px",
+            "margin-mobile": "20px",
+            "margin-desktop": "64px",
+            "gutter": "24px",
+            "container-max": "1440px",
+            "unit": "8px"
+          },
+          "fontFamily": {
+            "headline-xl": ["Outfit"],
+            "body-md": ["Outfit"],
+            "body-lg": ["Outfit"],
+            "headline-lg-mobile": ["Outfit"],
+            "label-caps": ["Outfit"],
+            "numbering": ["Outfit"],
+            "headline-lg": ["Outfit"],
+            "display-accent": ["Cormorant Garamond"]
+          },
+          "fontSize": {
+            "headline-xl": ["64px", {"lineHeight": "1.2", "fontWeight": "500"}],
+            "body-md": ["18px", {"lineHeight": "1.6", "fontWeight": "300"}],
+            "body-lg": ["22px", {"lineHeight": "1.6", "fontWeight": "300"}],
+            "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "500"}],
+            "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+            "numbering": ["14px", {"lineHeight": "1.0", "fontWeight": "500"}],
+            "headline-lg": ["40px", {"lineHeight": "1.2", "fontWeight": "500"}],
+            "display-accent": ["80px", {"lineHeight": "1.1", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #0e1513 !important;
+      color: #dde4e0;
+      overflow-x: hidden;
+    }
+    .aurora-bg { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      z-index: -2; 
+      pointer-events: none; 
+      background: #0e1513; 
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.08) 0%, transparent 40%), 
+        radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 45%), 
+        radial-gradient(circle at 50% 50%, rgba(87, 241, 219, 0.02) 0%, transparent 60%); 
+    }
+    .star-field { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      z-index: -1; 
+      pointer-events: none; 
+    }
+    .star { 
+      position: absolute; 
+      background: white; 
+      border-radius: 50%; 
+      opacity: 0.3; 
+      animation: clignottement var(--duration) infinite ease-in-out; 
+    }
+    @keyframes clignottement { 
+      0%, 100% { opacity: 0.3; transform: scale(1); } 
+      50% { opacity: 1; transform: scale(1.2); } 
+    }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    @keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  </style>
+</head>
+<body class="font-body-md [&amp;_*:-focus-visible]:outline-none [&amp;_*:-focus-visible]:ring-2 [&amp;_*:-focus-visible]:ring-primary [&amp;_*:-focus-visible]:ring-offset-2 [&amp;_*:-focus-visible]:ring-offset-background">
+<div class="aurora-bg"></div>
+<div class="star-field" id="star-field"><div class="star" style="width: 1.0207px; height: 1.0207px; left: 35.6868%; top: 95.6517%; --duration: 5.403007646267827s;"></div><div class="star" style="width: 1.11649px; height: 1.11649px; left: 35.9233%; top: 11.9707%; --duration: 4.999849790349419s;"></div><div class="star" style="width: 1.73px; height: 1.73px; left: 6.00413%; top: 91.4675%; --duration: 1.5361476961572942s;"></div><div class="star" style="width: 1.52309px; height: 1.52309px; left: 9.88647%; top: 83.5806%; --duration: 4.404618850291751s;"></div><div class="star" style="width: 1.12784px; height: 1.12784px; left: 55.5827%; top: 46.0497%; --duration: 2.236900914005086s;"></div><div class="star" style="width: 0.410258px; height: 0.410258px; left: 11.4891%; top: 93.157%; --duration: 1.618036340177396s;"></div><div class="star" style="width: 0.520145px; height: 0.520145px; left: 73.2654%; top: 88.1976%; --duration: 3.7058007859313538s;"></div><div class="star" style="width: 1.76742px; height: 1.76742px; left: 95.561%; top: 46.8973%; --duration: 2.4109860202291373s;"></div><div class="star" style="width: 0.301928px; height: 0.301928px; left: 61.9244%; top: 20.1531%; --duration: 5.061051010244419s;"></div><div class="star" style="width: 0.759465px; height: 0.759465px; left: 66.4159%; top: 58.2277%; --duration: 3.675098627028932s;"></div><div class="star" style="width: 0.662596px; height: 0.662596px; left: 26.1047%; top: 82.5532%; --duration: 4.192126039592802s;"></div><div class="star" style="width: 0.618184px; height: 0.618184px; left: 4.92358%; top: 78.2732%; --duration: 1.7465563209750816s;"></div><div class="star" style="width: 1.43252px; height: 1.43252px; left: 60.9975%; top: 53.6616%; --duration: 2.0539064359446515s;"></div><div class="star" style="width: 1.29552px; height: 1.29552px; left: 51.8646%; top: 6.17619%; --duration: 2.112402539379104s;"></div><div class="star" style="width: 1.55911px; height: 1.55911px; left: 84.8965%; top: 4.62054%; --duration: 4.352788758726879s;"></div><div class="star" style="width: 1.46821px; height: 1.46821px; left: 46.6425%; top: 20.677%; --duration: 4.632047061982599s;"></div><div class="star" style="width: 0.40774px; height: 0.40774px; left: 51.6966%; top: 70.4945%; --duration: 1.985032466147182s;"></div><div class="star" style="width: 1.4043px; height: 1.4043px; left: 30.4338%; top: 9.7317%; --duration: 5.418952111884897s;"></div><div class="star" style="width: 1.30806px; height: 1.30806px; left: 46.3855%; top: 38.6124%; --duration: 4.510421070739028s;"></div><div class="star" style="width: 0.539927px; height: 0.539927px; left: 97.0816%; top: 73.1534%; --duration: 2.121950601349843s;"></div><div class="star" style="width: 0.591711px; height: 0.591711px; left: 95.0851%; top: 6.21608%; --duration: 4.622432315073912s;"></div><div class="star" style="width: 0.801148px; height: 0.801148px; left: 69.5687%; top: 72.9727%; --duration: 2.720751276853173s;"></div><div class="star" style="width: 0.731709px; height: 0.731709px; left: 96.7172%; top: 90.6873%; --duration: 5.13283079332446s;"></div><div class="star" style="width: 0.914413px; height: 0.914413px; left: 88.1666%; top: 52.7401%; --duration: 5.469947039034329s;"></div><div class="star" style="width: 0.699582px; height: 0.699582px; left: 90.0603%; top: 76.9794%; --duration: 4.633507342483881s;"></div><div class="star" style="width: 1.08895px; height: 1.08895px; left: 92.8814%; top: 41.9579%; --duration: 3.811191045758036s;"></div><div class="star" style="width: 1.21612px; height: 1.21612px; left: 85.4877%; top: 46.459%; --duration: 5.0956112614738815s;"></div><div class="star" style="width: 1.58221px; height: 1.58221px; left: 55.4072%; top: 59.602%; --duration: 4.829231429147297s;"></div><div class="star" style="width: 0.520991px; height: 0.520991px; left: 99.4218%; top: 82.717%; --duration: 1.830376648496265s;"></div><div class="star" style="width: 0.764912px; height: 0.764912px; left: 79.9313%; top: 43.343%; --duration: 4.759692580257738s;"></div><div class="star" style="width: 1.12025px; height: 1.12025px; left: 4.28926%; top: 93.2172%; --duration: 3.1891923638751973s;"></div><div class="star" style="width: 0.510364px; height: 0.510364px; left: 60.4906%; top: 98.5361%; --duration: 4.208570602439236s;"></div><div class="star" style="width: 1.73517px; height: 1.73517px; left: 2.20173%; top: 48.3597%; --duration: 5.216072923903516s;"></div><div class="star" style="width: 0.587982px; height: 0.587982px; left: 12.1264%; top: 51.9693%; --duration: 3.870765434418055s;"></div><div class="star" style="width: 0.848087px; height: 0.848087px; left: 24.5022%; top: 21.2803%; --duration: 2.076482382359402s;"></div><div class="star" style="width: 1.07769px; height: 1.07769px; left: 24.0028%; top: 1.90468%; --duration: 5.325494310536728s;"></div><div class="star" style="width: 1.10946px; height: 1.10946px; left: 66.3978%; top: 98.3786%; --duration: 5.19670059451463s;"></div><div class="star" style="width: 0.475327px; height: 0.475327px; left: 36.6796%; top: 82.9586%; --duration: 5.480179035043713s;"></div><div class="star" style="width: 0.388435px; height: 0.388435px; left: 51.8869%; top: 52.7093%; --duration: 2.738772242203107s;"></div><div class="star" style="width: 0.667973px; height: 0.667973px; left: 25.7759%; top: 77.4114%; --duration: 5.055657568438869s;"></div><div class="star" style="width: 1.4519px; height: 1.4519px; left: 25.1962%; top: 1.99132%; --duration: 2.7238039328928414s;"></div><div class="star" style="width: 1.14449px; height: 1.14449px; left: 64.2536%; top: 78.5433%; --duration: 4.717868316930669s;"></div><div class="star" style="width: 1.24594px; height: 1.24594px; left: 86.5235%; top: 10.0027%; --duration: 3.7116248766875315s;"></div><div class="star" style="width: 1.43468px; height: 1.43468px; left: 67.0179%; top: 7.2337%; --duration: 4.241377681278424s;"></div><div class="star" style="width: 0.631078px; height: 0.631078px; left: 34.8327%; top: 98.4607%; --duration: 2.7995416933075608s;"></div><div class="star" style="width: 1.26198px; height: 1.26198px; left: 13.7013%; top: 47.5195%; --duration: 3.226773926996959s;"></div><div class="star" style="width: 0.772491px; height: 0.772491px; left: 37.1596%; top: 59.1831%; --duration: 5.197235169938326s;"></div><div class="star" style="width: 1.71045px; height: 1.71045px; left: 88.1447%; top: 14.0402%; --duration: 1.760311480769293s;"></div><div class="star" style="width: 1.5117px; height: 1.5117px; left: 50.0862%; top: 41.3604%; --duration: 2.274372425545415s;"></div><div class="star" style="width: 0.598145px; height: 0.598145px; left: 68.4549%; top: 61.136%; --duration: 4.347628221228478s;"></div><div class="star" style="width: 1.16541px; height: 1.16541px; left: 58.6606%; top: 67.0137%; --duration: 2.5804492640529073s;"></div><div class="star" style="width: 1.46363px; height: 1.46363px; left: 10.6425%; top: 51.682%; --duration: 1.9372711675323755s;"></div><div class="star" style="width: 1.06955px; height: 1.06955px; left: 24.2624%; top: 98.4933%; --duration: 3.0593067101191305s;"></div><div class="star" style="width: 1.20279px; height: 1.20279px; left: 89.7768%; top: 66.2812%; --duration: 2.211541375995332s;"></div><div class="star" style="width: 0.73171px; height: 0.73171px; left: 15.4525%; top: 32.1968%; --duration: 3.833034051805369s;"></div><div class="star" style="width: 1.25654px; height: 1.25654px; left: 2.07591%; top: 7.02229%; --duration: 1.841628739869095s;"></div><div class="star" style="width: 1.40897px; height: 1.40897px; left: 22.964%; top: 89.6379%; --duration: 5.385478274012686s;"></div><div class="star" style="width: 1.44542px; height: 1.44542px; left: 26.2973%; top: 59.2111%; --duration: 5.25220350460607s;"></div><div class="star" style="width: 0.736873px; height: 0.736873px; left: 20.6088%; top: 27.0024%; --duration: 3.9811339944736686s;"></div><div class="star" style="width: 1.6521px; height: 1.6521px; left: 15.4282%; top: 92.7428%; --duration: 3.322759768091896s;"></div><div class="star" style="width: 0.410897px; height: 0.410897px; left: 41.1436%; top: 29.7067%; --duration: 5.05544425846562s;"></div><div class="star" style="width: 1.76186px; height: 1.76186px; left: 12.2393%; top: 47.326%; --duration: 4.304347988272498s;"></div><div class="star" style="width: 1.69989px; height: 1.69989px; left: 24.0117%; top: 4.18962%; --duration: 4.412565780282028s;"></div><div class="star" style="width: 0.334105px; height: 0.334105px; left: 96.9512%; top: 37.4033%; --duration: 2.536888829411047s;"></div><div class="star" style="width: 0.398005px; height: 0.398005px; left: 31.9768%; top: 82.3331%; --duration: 2.3257150466728254s;"></div><div class="star" style="width: 1.50589px; height: 1.50589px; left: 62.0551%; top: 69.1868%; --duration: 1.8856597214141968s;"></div><div class="star" style="width: 1.46573px; height: 1.46573px; left: 70.2905%; top: 6.41109%; --duration: 5.368174133885792s;"></div><div class="star" style="width: 0.722426px; height: 0.722426px; left: 69.3587%; top: 48.2598%; --duration: 2.6833465903548865s;"></div><div class="star" style="width: 1.72668px; height: 1.72668px; left: 94.747%; top: 45.3117%; --duration: 1.6399756339256593s;"></div><div class="star" style="width: 0.964387px; height: 0.964387px; left: 9.04586%; top: 91.2307%; --duration: 3.371156033870534s;"></div><div class="star" style="width: 0.622869px; height: 0.622869px; left: 36.9926%; top: 43.4279%; --duration: 3.348585214799447s;"></div><div class="star" style="width: 1.44235px; height: 1.44235px; left: 10.3352%; top: 53.869%; --duration: 2.4549659596909956s;"></div><div class="star" style="width: 1.75299px; height: 1.75299px; left: 95.8173%; top: 27.4946%; --duration: 1.8988062485994495s;"></div><div class="star" style="width: 1.76739px; height: 1.76739px; left: 57.3291%; top: 6.13467%; --duration: 5.256556070124157s;"></div><div class="star" style="width: 1.03782px; height: 1.03782px; left: 49.2308%; top: 26.1637%; --duration: 3.240949907199063s;"></div><div class="star" style="width: 1.17679px; height: 1.17679px; left: 23.0773%; top: 81.2458%; --duration: 3.2253735962405683s;"></div><div class="star" style="width: 1.38149px; height: 1.38149px; left: 97.6552%; top: 30.5309%; --duration: 1.6975631400574995s;"></div><div class="star" style="width: 0.870611px; height: 0.870611px; left: 41.3271%; top: 67.2216%; --duration: 2.0637587566677422s;"></div><div class="star" style="width: 1.67893px; height: 1.67893px; left: 69.2023%; top: 19.5797%; --duration: 4.065242075964251s;"></div><div class="star" style="width: 0.89738px; height: 0.89738px; left: 44.0854%; top: 59.3523%; --duration: 1.8749554474180492s;"></div><div class="star" style="width: 1.63636px; height: 1.63636px; left: 35.5573%; top: 59.443%; --duration: 3.4365730145373385s;"></div><div class="star" style="width: 1.64004px; height: 1.64004px; left: 75.5068%; top: 6.78798%; --duration: 3.0582787516384524s;"></div><div class="star" style="width: 1.01652px; height: 1.01652px; left: 48.8396%; top: 62.0023%; --duration: 2.3434079343281713s;"></div><div class="star" style="width: 1.65954px; height: 1.65954px; left: 30.8243%; top: 47.9355%; --duration: 5.485549573680922s;"></div><div class="star" style="width: 1.07254px; height: 1.07254px; left: 79.3333%; top: 53.9974%; --duration: 1.822566827477909s;"></div><div class="star" style="width: 0.637227px; height: 0.637227px; left: 42.8494%; top: 8.21761%; --duration: 4.424098425284466s;"></div><div class="star" style="width: 1.37555px; height: 1.37555px; left: 62.8158%; top: 7.82044%; --duration: 3.6131324565499803s;"></div><div class="star" style="width: 0.55443px; height: 0.55443px; left: 67.9914%; top: 3.18502%; --duration: 1.9659022692222372s;"></div><div class="star" style="width: 1.29156px; height: 1.29156px; left: 66.8801%; top: 64.8905%; --duration: 4.674424766426258s;"></div><div class="star" style="width: 0.752774px; height: 0.752774px; left: 25.6512%; top: 68.8756%; --duration: 2.6300765491080056s;"></div><div class="star" style="width: 1.5351px; height: 1.5351px; left: 85.1126%; top: 74.0856%; --duration: 4.16933351824678s;"></div><div class="star" style="width: 1.6823px; height: 1.6823px; left: 12.7726%; top: 1.46521%; --duration: 2.3070424273168144s;"></div><div class="star" style="width: 1.77233px; height: 1.77233px; left: 17.0325%; top: 73.6238%; --duration: 1.708108738107763s;"></div><div class="star" style="width: 1.11041px; height: 1.11041px; left: 89.4409%; top: 18.0729%; --duration: 3.7376678167608492s;"></div><div class="star" style="width: 0.387365px; height: 0.387365px; left: 96.2124%; top: 29.4756%; --duration: 2.2383038893452674s;"></div><div class="star" style="width: 0.538483px; height: 0.538483px; left: 93.5965%; top: 70.6197%; --duration: 3.190838018047338s;"></div><div class="star" style="width: 0.464311px; height: 0.464311px; left: 57.4201%; top: 66.6471%; --duration: 4.3250419581170245s;"></div><div class="star" style="width: 1.4022px; height: 1.4022px; left: 69.8426%; top: 11.7637%; --duration: 2.1988168030848247s;"></div><div class="star" style="width: 0.614762px; height: 0.614762px; left: 8.63503%; top: 60.6933%; --duration: 4.0951207668843885s;"></div><div class="star" style="width: 0.714066px; height: 0.714066px; left: 30.1673%; top: 54.7342%; --duration: 4.5063865516554245s;"></div><div class="star" style="width: 0.341396px; height: 0.341396px; left: 82.996%; top: 12.3237%; --duration: 3.100446495944627s;"></div><div class="star" style="width: 0.367246px; height: 0.367246px; left: 97.7082%; top: 53.7516%; --duration: 2.5765809176017203s;"></div><div class="star" style="width: 0.300787px; height: 0.300787px; left: 90.3791%; top: 40.4177%; --duration: 3.9531189744724973s;"></div><div class="star" style="width: 0.397104px; height: 0.397104px; left: 97.3639%; top: 94.5214%; --duration: 2.8817091269934125s;"></div><div class="star" style="width: 1.73441px; height: 1.73441px; left: 41.9848%; top: 19.579%; --duration: 2.6984223389525397s;"></div><div class="star" style="width: 1.18745px; height: 1.18745px; left: 59.6672%; top: 14.7634%; --duration: 2.1743935690723504s;"></div><div class="star" style="width: 0.842587px; height: 0.842587px; left: 7.9768%; top: 4.08153%; --duration: 4.055879460554401s;"></div><div class="star" style="width: 1.6212px; height: 1.6212px; left: 1.90001%; top: 33.5403%; --duration: 5.46604744085153s;"></div><div class="star" style="width: 1.31029px; height: 1.31029px; left: 64.1316%; top: 37.8341%; --duration: 1.7130732086869895s;"></div><div class="star" style="width: 0.477969px; height: 0.477969px; left: 40.6673%; top: 9.64033%; --duration: 2.9474162777361346s;"></div><div class="star" style="width: 1.60017px; height: 1.60017px; left: 32.9345%; top: 64.3498%; --duration: 4.150362982326866s;"></div><div class="star" style="width: 1.6571px; height: 1.6571px; left: 27.1253%; top: 22.88%; --duration: 4.896058231036293s;"></div><div class="star" style="width: 0.971041px; height: 0.971041px; left: 40.0526%; top: 13.106%; --duration: 3.5663496096746723s;"></div><div class="star" style="width: 1.08788px; height: 1.08788px; left: 78.8588%; top: 17.1277%; --duration: 5.438104509707205s;"></div><div class="star" style="width: 0.897301px; height: 0.897301px; left: 66.4912%; top: 58.9657%; --duration: 3.3243521712008515s;"></div><div class="star" style="width: 1.61021px; height: 1.61021px; left: 36.2615%; top: 71.1528%; --duration: 2.1738595071257816s;"></div><div class="star" style="width: 0.877767px; height: 0.877767px; left: 90.4782%; top: 70.296%; --duration: 4.878966406997876s;"></div><div class="star" style="width: 1.5819px; height: 1.5819px; left: 60.9635%; top: 58.8462%; --duration: 5.348019483625874s;"></div><div class="star" style="width: 0.747107px; height: 0.747107px; left: 8.04647%; top: 58.0818%; --duration: 5.098339721681206s;"></div><div class="star" style="width: 1.73374px; height: 1.73374px; left: 90.0231%; top: 47.186%; --duration: 3.1193303173940548s;"></div><div class="star" style="width: 0.490695px; height: 0.490695px; left: 16.2549%; top: 28.2807%; --duration: 3.073763478433239s;"></div><div class="star" style="width: 0.643152px; height: 0.643152px; left: 12.4149%; top: 58.5802%; --duration: 1.7223174123240699s;"></div><div class="star" style="width: 0.313074px; height: 0.313074px; left: 54.7505%; top: 4.44303%; --duration: 4.837993795716206s;"></div><div class="star" style="width: 1.39779px; height: 1.39779px; left: 3.25445%; top: 92.2527%; --duration: 4.553428705688109s;"></div><div class="star" style="width: 1.36799px; height: 1.36799px; left: 81.6112%; top: 64.7176%; --duration: 2.974699940829413s;"></div><div class="star" style="width: 0.8257px; height: 0.8257px; left: 87.9602%; top: 55.2388%; --duration: 5.1276955127121475s;"></div><div class="star" style="width: 0.346551px; height: 0.346551px; left: 28.6731%; top: 28.6701%; --duration: 4.780488147612109s;"></div><div class="star" style="width: 0.64421px; height: 0.64421px; left: 69.0193%; top: 44.4027%; --duration: 4.2166402052602745s;"></div><div class="star" style="width: 0.760494px; height: 0.760494px; left: 81.7084%; top: 39.0028%; --duration: 2.95125002503653s;"></div><div class="star" style="width: 0.64224px; height: 0.64224px; left: 49.9916%; top: 19.4287%; --duration: 3.67506910840121s;"></div><div class="star" style="width: 1.51695px; height: 1.51695px; left: 73.5855%; top: 92.8477%; --duration: 3.6169930478592685s;"></div><div class="star" style="width: 1.6326px; height: 1.6326px; left: 43.2611%; top: 7.09824%; --duration: 4.391935799797853s;"></div><div class="star" style="width: 0.308481px; height: 0.308481px; left: 35.5802%; top: 97.214%; --duration: 3.2043886211525563s;"></div><div class="star" style="width: 1.38034px; height: 1.38034px; left: 29.9243%; top: 37.6157%; --duration: 1.7788602319798357s;"></div><div class="star" style="width: 1.01731px; height: 1.01731px; left: 67.8262%; top: 79.3006%; --duration: 4.630035681845954s;"></div><div class="star" style="width: 1.74436px; height: 1.74436px; left: 53.5457%; top: 41.3788%; --duration: 5.052554416553814s;"></div><div class="star" style="width: 1.49314px; height: 1.49314px; left: 74.8757%; top: 12.2532%; --duration: 3.720727219329615s;"></div><div class="star" style="width: 0.638993px; height: 0.638993px; left: 20.2709%; top: 7.02693%; --duration: 4.120425724054469s;"></div><div class="star" style="width: 1.07316px; height: 1.07316px; left: 78.0535%; top: 82.8111%; --duration: 4.067558520138903s;"></div><div class="star" style="width: 1.67592px; height: 1.67592px; left: 72.5852%; top: 23.7756%; --duration: 4.6418969679408635s;"></div><div class="star" style="width: 1.52155px; height: 1.52155px; left: 53.8272%; top: 78.2426%; --duration: 5.31757168611578s;"></div><div class="star" style="width: 1.00573px; height: 1.00573px; left: 36.0824%; top: 23.4354%; --duration: 4.973961895894728s;"></div><div class="star" style="width: 0.743452px; height: 0.743452px; left: 4.07193%; top: 69.4074%; --duration: 1.5003969821643652s;"></div><div class="star" style="width: 0.810561px; height: 0.810561px; left: 87.2156%; top: 80.5442%; --duration: 5.386305207144842s;"></div><div class="star" style="width: 0.459835px; height: 0.459835px; left: 93.6267%; top: 1.60244%; --duration: 5.1891164077035254s;"></div><div class="star" style="width: 1.67179px; height: 1.67179px; left: 13.9574%; top: 36.6282%; --duration: 2.1530020094044775s;"></div><div class="star" style="width: 0.594698px; height: 0.594698px; left: 56.5502%; top: 36.8571%; --duration: 3.674499511770774s;"></div><div class="star" style="width: 1.79922px; height: 1.79922px; left: 45.575%; top: 69.8584%; --duration: 5.055161675203653s;"></div><div class="star" style="width: 0.792863px; height: 0.792863px; left: 5.45294%; top: 61.4782%; --duration: 3.8708877894520555s;"></div><div class="star" style="width: 1.21407px; height: 1.21407px; left: 97.8472%; top: 11.2231%; --duration: 3.3791417165482915s;"></div><div class="star" style="width: 0.760084px; height: 0.760084px; left: 64.8892%; top: 25.3078%; --duration: 4.139329880423158s;"></div><div class="star" style="width: 0.975802px; height: 0.975802px; left: 97.8545%; top: 56.8773%; --duration: 4.3593691311953195s;"></div><div class="star" style="width: 1.12699px; height: 1.12699px; left: 28.5483%; top: 94.813%; --duration: 1.8703077124593661s;"></div><div class="star" style="width: 1.353px; height: 1.353px; left: 17.4104%; top: 4.46591%; --duration: 4.51371468336062s;"></div><div class="star" style="width: 1.59989px; height: 1.59989px; left: 88.7815%; top: 72.4716%; --duration: 2.95382290311597s;"></div><div class="star" style="width: 1.53866px; height: 1.53866px; left: 63.9603%; top: 11.1441%; --duration: 4.852671147966672s;"></div><div class="star" style="width: 0.305354px; height: 0.305354px; left: 15.6739%; top: 43.6845%; --duration: 2.525222422982675s;"></div><div class="star" style="width: 0.991207px; height: 0.991207px; left: 96.5318%; top: 1.00934%; --duration: 4.8383243989609666s;"></div><div class="star" style="width: 0.982451px; height: 0.982451px; left: 80.9403%; top: 16.7171%; --duration: 3.171767338921468s;"></div><div class="star" style="width: 1.24663px; height: 1.24663px; left: 49.4796%; top: 46.6924%; --duration: 5.383401665956441s;"></div><div class="star" style="width: 1.32551px; height: 1.32551px; left: 40.7902%; top: 14.3026%; --duration: 1.7210082410119112s;"></div><div class="star" style="width: 0.727028px; height: 0.727028px; left: 10.3614%; top: 12.223%; --duration: 3.8018682103858827s;"></div><div class="star" style="width: 1.71479px; height: 1.71479px; left: 88.9254%; top: 94.7413%; --duration: 4.208692726650451s;"></div><div class="star" style="width: 1.75593px; height: 1.75593px; left: 92.827%; top: 77.3778%; --duration: 2.6142161112233193s;"></div><div class="star" style="width: 0.353231px; height: 0.353231px; left: 27.3607%; top: 67.6942%; --duration: 5.022977170396992s;"></div><div class="star" style="width: 0.550966px; height: 0.550966px; left: 90.1515%; top: 89.9812%; --duration: 4.914169917673171s;"></div><div class="star" style="width: 1.76206px; height: 1.76206px; left: 89.3296%; top: 29.5366%; --duration: 4.239848413461036s;"></div><div class="star" style="width: 0.45642px; height: 0.45642px; left: 74.5401%; top: 38.4791%; --duration: 5.170113839918823s;"></div><div class="star" style="width: 0.714808px; height: 0.714808px; left: 78.134%; top: 95.2203%; --duration: 5.3570117484214546s;"></div><div class="star" style="width: 0.806467px; height: 0.806467px; left: 78.367%; top: 10.5501%; --duration: 3.0827722663482433s;"></div><div class="star" style="width: 0.425109px; height: 0.425109px; left: 72.7214%; top: 25.8051%; --duration: 2.259317789267828s;"></div><div class="star" style="width: 1.69438px; height: 1.69438px; left: 6.02226%; top: 0.495471%; --duration: 4.890487912677901s;"></div><div class="star" style="width: 0.319467px; height: 0.319467px; left: 67.243%; top: 12.7114%; --duration: 3.7206550330876955s;"></div><div class="star" style="width: 0.720355px; height: 0.720355px; left: 8.68005%; top: 36.5357%; --duration: 3.0444425562913575s;"></div><div class="star" style="width: 1.4306px; height: 1.4306px; left: 66.7408%; top: 56.3441%; --duration: 3.868981971929881s;"></div><div class="star" style="width: 0.397195px; height: 0.397195px; left: 18.8736%; top: 83.4231%; --duration: 2.1143142940215722s;"></div><div class="star" style="width: 1.43162px; height: 1.43162px; left: 64.4666%; top: 92.2369%; --duration: 2.087060338755019s;"></div><div class="star" style="width: 1.3963px; height: 1.3963px; left: 32.8614%; top: 24.6315%; --duration: 1.7003582624610436s;"></div><div class="star" style="width: 0.746735px; height: 0.746735px; left: 98.443%; top: 62.0424%; --duration: 3.3096899149964165s;"></div><div class="star" style="width: 1.40597px; height: 1.40597px; left: 96.0334%; top: 47.0359%; --duration: 1.8456982858449433s;"></div><div class="star" style="width: 1.59522px; height: 1.59522px; left: 69.1119%; top: 65.8773%; --duration: 5.2428583699378155s;"></div><div class="star" style="width: 1.46418px; height: 1.46418px; left: 85.0443%; top: 25.2147%; --duration: 2.833524580555096s;"></div><div class="star" style="width: 0.928996px; height: 0.928996px; left: 31.1729%; top: 64.7407%; --duration: 3.1741736360621142s;"></div><div class="star" style="width: 1.43347px; height: 1.43347px; left: 22.8351%; top: 53.8009%; --duration: 3.28087226816798s;"></div><div class="star" style="width: 0.65757px; height: 0.65757px; left: 44.6421%; top: 53.33%; --duration: 4.937354270965315s;"></div><div class="star" style="width: 1.27142px; height: 1.27142px; left: 17.038%; top: 83.8051%; --duration: 3.5069788944262976s;"></div><div class="star" style="width: 0.325743px; height: 0.325743px; left: 71.5925%; top: 67.5449%; --duration: 3.842478083188903s;"></div><div class="star" style="width: 1.74065px; height: 1.74065px; left: 69.8582%; top: 10.7756%; --duration: 1.5124033558677206s;"></div><div class="star" style="width: 1.09521px; height: 1.09521px; left: 24.9723%; top: 11.0192%; --duration: 5.18848614686082s;"></div><div class="star" style="width: 0.556307px; height: 0.556307px; left: 45.798%; top: 52.8139%; --duration: 2.957622255297276s;"></div><div class="star" style="width: 0.430972px; height: 0.430972px; left: 21.7738%; top: 89.6011%; --duration: 5.0349344667608005s;"></div><div class="star" style="width: 1.62737px; height: 1.62737px; left: 89.5823%; top: 67.0643%; --duration: 3.955807070610635s;"></div><div class="star" style="width: 1.35038px; height: 1.35038px; left: 90.5838%; top: 59.9589%; --duration: 4.4833900294603595s;"></div><div class="star" style="width: 0.942673px; height: 0.942673px; left: 54.9421%; top: 48.6467%; --duration: 2.565250946378526s;"></div><div class="star" style="width: 0.42633px; height: 0.42633px; left: 84.3442%; top: 34.3774%; --duration: 4.8464569798292905s;"></div><div class="star" style="width: 1.59143px; height: 1.59143px; left: 9.74072%; top: 18.6832%; --duration: 2.7790105380146386s;"></div><div class="star" style="width: 0.385978px; height: 0.385978px; left: 21.4131%; top: 96.0638%; --duration: 3.3271226477210494s;"></div><div class="star" style="width: 0.415404px; height: 0.415404px; left: 56.6086%; top: 48.3589%; --duration: 2.1878375182455714s;"></div><div class="star" style="width: 0.400044px; height: 0.400044px; left: 19.2515%; top: 78.1513%; --duration: 5.033201112326532s;"></div><div class="star" style="width: 1.11551px; height: 1.11551px; left: 81.4486%; top: 94.0508%; --duration: 4.619111706456129s;"></div><div class="star" style="width: 0.760748px; height: 0.760748px; left: 44.3517%; top: 32.5299%; --duration: 4.914558089071722s;"></div><div class="star" style="width: 1.38368px; height: 1.38368px; left: 4.59693%; top: 83.9198%; --duration: 4.832437019747935s;"></div><div class="star" style="width: 1.63734px; height: 1.63734px; left: 9.75634%; top: 91.3157%; --duration: 5.378662882381897s;"></div><div class="star" style="width: 0.487662px; height: 0.487662px; left: 78.4393%; top: 78.7369%; --duration: 3.9062064933805143s;"></div><div class="star" style="width: 1.15786px; height: 1.15786px; left: 72.2539%; top: 63.6207%; --duration: 4.214079836054786s;"></div><div class="star" style="width: 1.64994px; height: 1.64994px; left: 14.4006%; top: 29.15%; --duration: 5.430294200496144s;"></div><div class="star" style="width: 1.69787px; height: 1.69787px; left: 73.0262%; top: 97.2319%; --duration: 4.207122068717965s;"></div><div class="star" style="width: 0.666983px; height: 0.666983px; left: 9.16374%; top: 11.0021%; --duration: 5.128714748374243s;"></div><div class="star" style="width: 1.14674px; height: 1.14674px; left: 14.4055%; top: 96.9988%; --duration: 3.949708654068537s;"></div><div class="star" style="width: 0.375139px; height: 0.375139px; left: 91.1201%; top: 86.0615%; --duration: 2.008030299282977s;"></div><div class="star" style="width: 0.652535px; height: 0.652535px; left: 84.9584%; top: 88.5345%; --duration: 2.337249669817873s;"></div><div class="star" style="width: 0.43845px; height: 0.43845px; left: 57.7167%; top: 29.0799%; --duration: 3.4841822628639436s;"></div><div class="star" style="width: 0.604217px; height: 0.604217px; left: 49.9955%; top: 76.4156%; --duration: 4.797571171920785s;"></div><div class="star" style="width: 1.45712px; height: 1.45712px; left: 93.8055%; top: 21.1961%; --duration: 4.51452615200833s;"></div><div class="star" style="width: 0.882979px; height: 0.882979px; left: 5.90001%; top: 75.9451%; --duration: 4.178464754325922s;"></div><div class="star" style="width: 1.36599px; height: 1.36599px; left: 76.1409%; top: 65.5603%; --duration: 3.9508831010656844s;"></div><div class="star" style="width: 1.57172px; height: 1.57172px; left: 58.9141%; top: 26.6156%; --duration: 4.911229067977106s;"></div><div class="star" style="width: 0.300369px; height: 0.300369px; left: 28.5078%; top: 75.8894%; --duration: 4.128977974450713s;"></div><div class="star" style="width: 0.991478px; height: 0.991478px; left: 48.0414%; top: 96.5413%; --duration: 2.333285421636711s;"></div><div class="star" style="width: 1.21574px; height: 1.21574px; left: 96.5845%; top: 89.3291%; --duration: 4.424489077291064s;"></div><div class="star" style="width: 1.42052px; height: 1.42052px; left: 94.5378%; top: 18.1751%; --duration: 4.027658146233432s;"></div><div class="star" style="width: 1.60452px; height: 1.60452px; left: 63.691%; top: 99.0313%; --duration: 2.8470877454192607s;"></div><div class="star" style="width: 1.50159px; height: 1.50159px; left: 22.8712%; top: 60.2744%; --duration: 3.8781487265318115s;"></div><div class="star" style="width: 0.754671px; height: 0.754671px; left: 75.3263%; top: 74.0796%; --duration: 4.946873016917728s;"></div><div class="star" style="width: 0.608891px; height: 0.608891px; left: 20.3033%; top: 25%; --duration: 1.6383654366240337s;"></div><div class="star" style="width: 1.39189px; height: 1.39189px; left: 2.99055%; top: 50.1275%; --duration: 4.020867342201773s;"></div><div class="star" style="width: 0.640472px; height: 0.640472px; left: 60.8573%; top: 4.16003%; --duration: 4.246131379699234s;"></div><div class="star" style="width: 1.56262px; height: 1.56262px; left: 98.6358%; top: 37.0484%; --duration: 4.623225878325476s;"></div><div class="star" style="width: 1.33587px; height: 1.33587px; left: 0.898336%; top: 81.9265%; --duration: 3.769678710007091s;"></div><div class="star" style="width: 1.1487px; height: 1.1487px; left: 24.4311%; top: 90.7704%; --duration: 4.799488957419861s;"></div><div class="star" style="width: 1.79675px; height: 1.79675px; left: 30.644%; top: 13.4238%; --duration: 1.777562048333401s;"></div><div class="star" style="width: 0.331054px; height: 0.331054px; left: 13.1114%; top: 42.9697%; --duration: 5.31625936784685s;"></div><div class="star" style="width: 0.931171px; height: 0.931171px; left: 49.5043%; top: 3.93706%; --duration: 3.6219417720963016s;"></div><div class="star" style="width: 0.502683px; height: 0.502683px; left: 1.61894%; top: 79.9794%; --duration: 2.4756209964279163s;"></div><div class="star" style="width: 0.868594px; height: 0.868594px; left: 61.2185%; top: 81.0681%; --duration: 5.161800251338244s;"></div><div class="star" style="width: 0.603106px; height: 0.603106px; left: 93.7018%; top: 46.9248%; --duration: 1.7777002630034127s;"></div><div class="star" style="width: 1.40149px; height: 1.40149px; left: 3.47998%; top: 6.88651%; --duration: 3.8118766731333293s;"></div><div class="star" style="width: 0.448678px; height: 0.448678px; left: 48.7211%; top: 23.6729%; --duration: 3.8735135730774224s;"></div><div class="star" style="width: 0.539118px; height: 0.539118px; left: 33.5088%; top: 35.0413%; --duration: 2.2240472387411736s;"></div><div class="star" style="width: 0.669819px; height: 0.669819px; left: 93.0235%; top: 35.3439%; --duration: 2.612164860770728s;"></div><div class="star" style="width: 1.52986px; height: 1.52986px; left: 24.9279%; top: 34.5124%; --duration: 5.312804141063982s;"></div><div class="star" style="width: 0.435341px; height: 0.435341px; left: 24.4425%; top: 30.0933%; --duration: 4.852232905254848s;"></div><div class="star" style="width: 1.67737px; height: 1.67737px; left: 89.6771%; top: 88.0953%; --duration: 3.152883776268794s;"></div><div class="star" style="width: 1.64901px; height: 1.64901px; left: 1.10686%; top: 96.0948%; --duration: 5.48415398892031s;"></div><div class="star" style="width: 0.739277px; height: 0.739277px; left: 82.1895%; top: 25.3719%; --duration: 4.813643145949197s;"></div><div class="star" style="width: 1.6243px; height: 1.6243px; left: 19.0344%; top: 83.8069%; --duration: 4.0465542803575s;"></div><div class="star" style="width: 0.91803px; height: 0.91803px; left: 31.8409%; top: 70.4344%; --duration: 2.3189818038984855s;"></div><div class="star" style="width: 1.68704px; height: 1.68704px; left: 4.30688%; top: 42.4668%; --duration: 1.5890049664273898s;"></div><div class="star" style="width: 1.16145px; height: 1.16145px; left: 55.3992%; top: 56.5405%; --duration: 2.508393911572634s;"></div><div class="star" style="width: 0.632177px; height: 0.632177px; left: 22.3349%; top: 17.7819%; --duration: 1.614545372575432s;"></div><div class="star" style="width: 1.5433px; height: 1.5433px; left: 96.0933%; top: 51.3731%; --duration: 3.369303499413093s;"></div><div class="star" style="width: 0.412418px; height: 0.412418px; left: 18.8053%; top: 28.9857%; --duration: 3.3173907459371397s;"></div><div class="star" style="width: 0.726615px; height: 0.726615px; left: 69.8274%; top: 14.4989%; --duration: 2.5635251345109835s;"></div><div class="star" style="width: 0.640635px; height: 0.640635px; left: 7.38612%; top: 66.3257%; --duration: 3.4600553852907865s;"></div><div class="star" style="width: 1.17257px; height: 1.17257px; left: 26.194%; top: 98.594%; --duration: 4.187427490658305s;"></div><div class="star" style="width: 0.906914px; height: 0.906914px; left: 66.9887%; top: 22.1524%; --duration: 3.0197583686779144s;"></div><div class="star" style="width: 1.54519px; height: 1.54519px; left: 24.1606%; top: 84.4811%; --duration: 2.0663921093831226s;"></div><div class="star" style="width: 0.481611px; height: 0.481611px; left: 13.4514%; top: 99.8832%; --duration: 2.822731246332383s;"></div><div class="star" style="width: 0.705767px; height: 0.705767px; left: 51.3857%; top: 74.3462%; --duration: 2.891297759411994s;"></div><div class="star" style="width: 1.29246px; height: 1.29246px; left: 69.2838%; top: 2.58169%; --duration: 4.966772604083475s;"></div><div class="star" style="width: 0.83624px; height: 0.83624px; left: 44.9148%; top: 94.1033%; --duration: 3.2119077752021914s;"></div><div class="star" style="width: 0.530064px; height: 0.530064px; left: 90.0913%; top: 51.5276%; --duration: 3.84685512978443s;"></div><div class="star" style="width: 0.523532px; height: 0.523532px; left: 61.8518%; top: 87.566%; --duration: 2.3063341268125557s;"></div><div class="star" style="width: 1.05747px; height: 1.05747px; left: 6.29468%; top: 30.5802%; --duration: 4.271514993087868s;"></div><div class="star" style="width: 1.6415px; height: 1.6415px; left: 53.7973%; top: 50.2759%; --duration: 5.026061172497084s;"></div><div class="star" style="width: 0.378928px; height: 0.378928px; left: 91.1554%; top: 91.9907%; --duration: 3.037958183728756s;"></div><div class="star" style="width: 1.21525px; height: 1.21525px; left: 36.8995%; top: 16.6935%; --duration: 4.963293459171325s;"></div><div class="star" style="width: 0.427116px; height: 0.427116px; left: 3.88868%; top: 42.2637%; --duration: 2.4109136256291244s;"></div><div class="star" style="width: 1.01547px; height: 1.01547px; left: 88.7099%; top: 96.0969%; --duration: 4.024265375390922s;"></div><div class="star" style="width: 1.345px; height: 1.345px; left: 24.5918%; top: 4.73277%; --duration: 2.5510418737493983s;"></div><div class="star" style="width: 0.502388px; height: 0.502388px; left: 70.6873%; top: 30.5714%; --duration: 5.488846548350515s;"></div><div class="star" style="width: 0.432458px; height: 0.432458px; left: 61.7368%; top: 17.2804%; --duration: 3.70695792489215s;"></div><div class="star" style="width: 0.833221px; height: 0.833221px; left: 51.5136%; top: 92.1751%; --duration: 3.8917525309495384s;"></div><div class="star" style="width: 1.305px; height: 1.305px; left: 62.8487%; top: 83.601%; --duration: 2.8253547185556s;"></div><div class="star" style="width: 1.03229px; height: 1.03229px; left: 95.1899%; top: 71.527%; --duration: 4.267024915117023s;"></div><div class="star" style="width: 0.544598px; height: 0.544598px; left: 56.0282%; top: 51.5501%; --duration: 3.1372289008210603s;"></div><div class="star" style="width: 0.559149px; height: 0.559149px; left: 64.9679%; top: 98.5347%; --duration: 3.535202095624849s;"></div><div class="star" style="width: 0.523142px; height: 0.523142px; left: 74.6125%; top: 80.4523%; --duration: 4.295399255128279s;"></div><div class="star" style="width: 1.3301px; height: 1.3301px; left: 34.9235%; top: 29.803%; --duration: 2.8808180089538817s;"></div><div class="star" style="width: 1.32445px; height: 1.32445px; left: 23.7023%; top: 19.4793%; --duration: 5.323068334500581s;"></div><div class="star" style="width: 0.552939px; height: 0.552939px; left: 61.466%; top: 41.8179%; --duration: 5.118458353733687s;"></div><div class="star" style="width: 1.66399px; height: 1.66399px; left: 68.307%; top: 8.76505%; --duration: 1.6751323064126669s;"></div><div class="star" style="width: 1.63646px; height: 1.63646px; left: 0.0269454%; top: 82.8221%; --duration: 3.176052057444471s;"></div><div class="star" style="width: 1.57194px; height: 1.57194px; left: 48.1247%; top: 35.9254%; --duration: 4.676573705733901s;"></div><div class="star" style="width: 1.43923px; height: 1.43923px; left: 56.8706%; top: 76.9792%; --duration: 1.9829218735726735s;"></div><div class="star" style="width: 1.78108px; height: 1.78108px; left: 42.5082%; top: 15.8909%; --duration: 4.957203562069036s;"></div><div class="star" style="width: 0.941932px; height: 0.941932px; left: 94.4863%; top: 24.0969%; --duration: 3.7014840122966146s;"></div><div class="star" style="width: 1.182px; height: 1.182px; left: 63.3552%; top: 76.1687%; --duration: 2.8257376753923324s;"></div><div class="star" style="width: 1.18165px; height: 1.18165px; left: 80.791%; top: 77.1222%; --duration: 3.5657979195266427s;"></div><div class="star" style="width: 0.620402px; height: 0.620402px; left: 45.1307%; top: 95.8762%; --duration: 3.9684374069827073s;"></div><div class="star" style="width: 0.454528px; height: 0.454528px; left: 18.0626%; top: 17.4923%; --duration: 4.861071425998457s;"></div><div class="star" style="width: 0.883279px; height: 0.883279px; left: 89.7124%; top: 1.76138%; --duration: 2.9883249404761125s;"></div><div class="star" style="width: 1.50375px; height: 1.50375px; left: 30.6327%; top: 93.6832%; --duration: 4.447152954605196s;"></div><div class="star" style="width: 1.7449px; height: 1.7449px; left: 44.2369%; top: 16.0683%; --duration: 3.5396436087731677s;"></div><div class="star" style="width: 0.386937px; height: 0.386937px; left: 74.857%; top: 84.888%; --duration: 5.128305624364922s;"></div><div class="star" style="width: 0.541863px; height: 0.541863px; left: 66.8147%; top: 41.1834%; --duration: 3.650908584684023s;"></div><div class="star" style="width: 0.693962px; height: 0.693962px; left: 96.901%; top: 73.0951%; --duration: 5.2092818510945715s;"></div><div class="star" style="width: 1.73033px; height: 1.73033px; left: 17.5482%; top: 8.95638%; --duration: 2.462497730988297s;"></div><div class="star" style="width: 0.733923px; height: 0.733923px; left: 9.79466%; top: 30.1302%; --duration: 4.519089602760271s;"></div><div class="star" style="width: 1.53003px; height: 1.53003px; left: 37.5553%; top: 47.4633%; --duration: 3.6467967365260527s;"></div></div>
+<!-- Top Navigation -->
+<header class="fixed top-0 w-full z-50 bg-[#0e1513]/90 backdrop-blur-md transition-all duration-300">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<a class="font-headline-lg text-2xl font-bold text-on-surface tracking-tight focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">Folio<span class="text-primary">+</span></a>
+<div class="h-6 w-px bg-outline-variant/30 hidden md:block mx-2"></div>
+<span class="font-headline text-on-surface font-medium whitespace-nowrap text-lg hidden md:block">Alexandre Rossi</span>
+</div>
+<div class="flex items-center gap-4 md:gap-8">
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary hover:text-primary transition-colors duration-300 font-bold text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">Profil</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-300 font-medium text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">Projets</a>
+</nav>
+<button aria-label="Passer en mode clair" class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container text-on-surface hover:bg-primary hover:text-surface transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+<span aria-hidden="true" class="material-symbols-outlined">light_mode</span>
+</button>
+<button class="text-on-surface border border-outline-variant px-6 py-2.5 font-bold transition-all duration-300 hover:border-primary hover:text-primary active:scale-95 rounded-full text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Se connecter</button>
+</div>
+</div>
+</header>
+<main class="relative z-10 pt-32 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-32 items-center">
+<div class="md:col-span-1 hidden md:block">
+<span class="font-headline text-headline-xl text-primary font-bold opacity-90">01</span>
+<div class="h-px w-8 bg-primary/20 mt-2"></div>
+</div>
+<div class="md:col-span-7 bg-surface-container/30 p-8 md:p-12 rounded-[32px] backdrop-blur-sm border border-outline-variant/10">
+<div class="mb-4">
+<span class="font-label-caps text-primary tracking-widest">Directeur artistique</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl mb-2 text-on-surface">Alexandre Rossi</h1>
+<p class="font-display-accent text-[64px] italic text-primary leading-tight mb-8">Visionnaire</p>
+<p class="text-body-md max-w-md mb-10 text-on-surface">
+          Créateur d'identités numériques immersives pour les marques audacieuses. Basé à Paris, j'allie précision technique et poésie visuelle pour transformer vos idées en expériences inoubliables.
+        </p>
+<div class="flex flex-wrap items-center gap-4 mb-8">
+<a aria-label="Voir les projets de Alexandre Rossi" class="bg-primary text-[#003731] px-8 py-4 font-bold hover:opacity-90 transition-opacity rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">
+<span class="flex items-center gap-2">Voir les projets <span aria-hidden="true" class="material-symbols-outlined">arrow_forward</span></span>
+</a>
+<div class="flex gap-4">
+<a aria-label="Visiter le site web d'Alexandre Rossi" class="w-12 h-12 flex items-center justify-center rounded-full border border-outline-variant hover:border-primary transition-colors text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+<a aria-label="M'envoyer un e-mail" class="w-12 h-12 flex items-center justify-center rounded-full border border-outline-variant hover:border-primary transition-colors text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">alternate_email</span>
+</a>
+<a aria-label="Lien externe" class="w-12 h-12 flex items-center justify-center rounded-full border border-outline-variant hover:border-primary transition-colors text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">
+<span class="material-symbols-outlined">link</span>
+</a>
+</div>
+</div>
+<div class="flex justify-start">
+<div class="rounded-full flex items-center gap-3 transition-all cursor-pointer border border-primary text-primary py-3 px-6 hover:bg-primary/10">
+<span aria-hidden="true" class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">lock</span>
+<span class="font-label-caps font-bold tracking-wider text-sm">Accéder aux projets confidentiels</span>
+</div>
+</div>
+</div>
+<div class="md:col-span-4 flex justify-center md:justify-end">
+<div class="relative max-w-[360px] w-full">
+<div class="aspect-square rounded-[48px] overflow-hidden border border-outline-variant/20">
+<img alt="Portrait professionnel d'Alexandre Rossi" class="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700" src="https://lh3.googleusercontent.com/aida/AP1WRLvY7jtShexvwjO5SkwAAeLjS5JKpbfE4yL3hVqLPWBQWqOA2Dz1n4ll7SsDfB7nUZigUQor97kT7kzqCHdr18j6k3NTlIYuk89tShff6hmX_HpVTgWAA8WPWmlEdJm2tlah6K5QxB_goR8wVtLHCxhbZsn-BBd267XMadzbOv2D0w6X2k7GoN1Jb2HIO6-AfALYgEEKLy8B1uyZ4Fsvl7dVX1x_vwl1P2DO7UllLRzQtbTguFyBI5QHUU0">
+</div>
+</div>
+</div>
+</section>
+<!-- Contact & Calendar Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<div class="lg:col-span-1 hidden lg:block">
+<span class="font-headline text-headline-xl text-secondary font-bold whitespace-nowrap opacity-90">02</span>
+<div class="h-px w-8 bg-secondary/20 mt-2"></div>
+</div>
+<!-- Contact Form -->
+<div class="lg:col-span-5 bg-surface-container-low p-8 md:p-12 rounded-[32px] border border-outline-variant/20 backdrop-blur-md">
+<h2 class="font-headline-lg text-headline-lg mb-8 text-on-surface">Collaborons ensemble</h2>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="font-label-caps text-xs font-bold text-on-surface-variant/70" for="full-name">Nom complet</label>
+<input class="w-full bg-surface-container border border-outline-variant/30 py-3 px-4 text-on-surface font-body-md focus:ring-1 focus:ring-primary focus:border-primary transition-colors rounded-xl outline-none placeholder:text-on-surface-variant" id="full-name" placeholder="Jean Dupont" type="text">
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-xs font-bold text-on-surface-variant/70" for="email-address">Adresse e-mail</label>
+<input class="w-full bg-surface-container border border-outline-variant/30 py-3 px-4 text-on-surface font-body-md focus:ring-1 focus:ring-primary focus:border-primary transition-colors rounded-xl outline-none placeholder:text-on-surface-variant" id="email-address" placeholder="jean@entreprise.com" type="email">
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-xs font-bold text-on-surface-variant/70" for="message-content">Votre projet</label>
+<textarea class="w-full bg-surface-container border border-outline-variant/30 py-3 px-4 text-on-surface font-body-md focus:ring-1 focus:ring-primary focus:border-primary transition-colors rounded-xl outline-none placeholder:text-on-surface-variant" id="message-content" placeholder="Parlez-moi de votre projet..." rows="4"></textarea>
+</div>
+<div class="flex items-start gap-3">
+<input class="mt-1 bg-surface-container text-primary focus:ring-0 border-outline rounded-lg" id="consent" type="checkbox">
+<label class="text-sm leading-relaxed text-on-surface-variant/70" for="consent">J'accepte que mes données soient traitées conformément à la politique de confidentialité pour répondre à ma demande.</label>
+</div>
+<button class="w-full bg-primary text-[#003731] py-4 font-bold font-body-md hover:opacity-90 transition-all duration-300 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" type="submit">
+<span class="flex items-center justify-center gap-2">Envoyer <span aria-hidden="true" class="material-symbols-outlined">send</span></span>
+</button>
+</form>
+</div>
+<!-- Calendar Widget -->
+<div class="lg:col-span-6 bg-surface-container-low rounded-[32px] overflow-hidden min-h-[500px] flex flex-col border border-outline-variant/20 backdrop-blur-md">
+<div class="p-8 md:p-12 border-b border-outline-variant/10">
+<h2 class="font-headline-lg text-headline-lg mb-4 text-on-surface">Réserver un créneau</h2>
+<p class="font-body-md leading-relaxed text-on-surface">Discutons de vos besoins lors d'un appel découverte de 15 minutes pour explorer votre vision.</p>
+</div>
+<div class="flex-grow relative bg-[#0e1513]/30">
+<div class="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+<span aria-hidden="true" class="material-symbols-outlined text-primary text-4xl">calendar_month</span>
+</div>
+<p class="font-body-md mb-8 text-on-surface">Chargement du calendrier interactif...</p>
+<div class="w-full max-w-[240px] h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
+<div class="h-full bg-primary animate-[loading_2s_infinite] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="bg-surface relative z-10 py-12 border-t border-outline-variant/10">
+<div class="flex flex-col md:flex-row items-center justify-between px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto gap-8">
+<div class="flex justify-start">
+<a class="font-headline-lg text-2xl font-bold text-primary tracking-tighter focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" href="#">Folio<span class="text-on-surface">+</span></a>
+</div>
+<div class="flex gap-8 justify-center flex-row flex-wrap">
+<a class="font-label-caps text-[10px] hover:text-primary transition-colors font-bold tracking-[0.2em] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface text-on-surface" href="#">Légale</a>
+<a class="font-label-caps text-[10px] hover:text-primary transition-colors font-bold tracking-[0.2em] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface text-on-surface" href="#">Politique de confidentialité</a>
+<a class="font-label-caps text-[10px] hover:text-primary transition-colors font-bold tracking-[0.2em] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface text-on-surface" href="#">Conditions d'utilisation</a>
+</div>
+<div class="flex justify-end">
+<p class="font-label-caps text-[10px] tracking-[0.2em] font-bold text-on-surface">© 2024 Folio+. Midnight gallery edition.</p>
+</div>
+</div>
+</footer>
+<script>
+    const starField = document.getElementById('star-field');
+    const starCount = 300; 
+
+    for (let i = 0; i < starCount; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      const size = Math.random() * 1.5 + 0.3; 
+      star.style.width = `${size}px`;
+      star.style.height = `${size}px`;
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.top = `${Math.random() * 100}%`;
+      star.style.setProperty('--duration', `${Math.random() * 4 + 1.5}s`);
+      starField.appendChild(star);
+    }
+
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('header');
+      if (window.scrollY > 50) {
+        header.classList.add('py-2', 'bg-[#0e1513]/95', 'shadow-xl', 'border-b', 'border-outline-variant/10');
+      } else {
+        header.classList.remove('py-2', 'bg-[#0e1513]/95', 'shadow-xl', 'border-b', 'border-outline-variant/10');
+      }
+    });
+  </script>
+
+
+</body></html>

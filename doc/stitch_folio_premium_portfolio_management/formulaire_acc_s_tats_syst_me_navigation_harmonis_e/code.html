@@ -1,0 +1,277 @@
+<!DOCTYPE html><html class="dark" lang="fr" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Folio+ — Formulaire d'accès sécurisé</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&amp;family=Cormorant+Garamond:ital,wght@0,500;1,500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-on-surface": "#2b3230",
+                        "error-container": "#93000a",
+                        "surface-variant": "#2f3634",
+                        "on-primary-fixed": "#00201c",
+                        "on-background": "#e2e8f0",
+                        "surface-container-highest": "#2f3634",
+                        "surface-container": "#1a211f",
+                        "primary-fixed": "#62fae3",
+                        "surface-container-high": "#242b2a",
+                        "tertiary-fixed-dim": "#c3c0ff",
+                        "surface-tint": "#3cddc7",
+                        tertiary: "#d9d6ff",
+                        "surface-container-low": "#161d1b",
+                        "inverse-primary": "#006b5f",
+                        "on-tertiary": "#1d00a5",
+                        "on-surface": "#e2e8f0",
+                        "secondary-fixed": "#eaddff",
+                        "on-secondary-fixed-variant": "#5a00c6",
+                        "surface-bright": "#333b39",
+                        background: "#0e1513",
+                        "secondary-fixed-dim": "#d2bbff",
+                        "on-primary": "#0e1513",
+                        "on-secondary-fixed": "#25005a",
+                        primary: "#2dd4bf",
+                        "on-error": "#690005",
+                        "outline-variant": "#3c4a46",
+                        "primary-fixed-dim": "#3cddc7",
+                        "on-primary-container": "#00574d",
+                        "surface-container-lowest": "#09100e",
+                        "on-tertiary-container": "#3a2cd2",
+                        error: "#ffb4ab",
+                        surface: "#0e1513",
+                        "on-secondary-container": "#c9aeff",
+                        secondary: "#d2bbff",
+                        "primary-container": "#2dd4bf",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#005047",
+                        "tertiary-container": "#b9b7ff",
+                        "secondary-container": "#6001d1",
+                        "on-secondary": "#3f008e",
+                        outline: "#859490",
+                        "on-surface-variant": "#bacac5",
+                        "on-tertiary-fixed": "#0f0069",
+                        "inverse-surface": "#dde4e1",
+                        "surface-dim": "#0e1513",
+                        "tertiary-fixed": "#e2dfff",
+                        "on-tertiary-fixed-variant": "#3323cc"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "20px",
+                        unit: "8px",
+                        gutter: "24px",
+                        "container-max": "1440px",
+                        "margin-desktop": "64px"
+                    },
+                    fontFamily: {
+                        numbering: ["Outfit"],
+                        "display-accent": ["Cormorant Garamond"],
+                        "headline-lg": ["Outfit"],
+                        "headline-xl": ["Outfit"],
+                        "body-md": ["Outfit"],
+                        "label-caps": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        headline: ["Outfit"],
+                        display: ["Outfit"],
+                        body: ["Outfit"],
+                        label: ["Outfit"]
+                    },
+                    fontSize: {
+                        numbering: ["14px", {lineHeight: "1.0", fontWeight: "500"}],
+                        "display-accent": ["80px", {lineHeight: "1.1", fontWeight: "500"}],
+                        "headline-lg": ["40px", {lineHeight: "1.2", fontWeight: "500"}],
+                        "headline-xl": ["64px", {lineHeight: "1.2", fontWeight: "500"}],
+                        "body-md": ["18px", {lineHeight: "1.6", fontWeight: "300"}],
+                        "label-caps": ["12px", {lineHeight: "1.0", letterSpacing: "0.1em", fontWeight: "500"}],
+                        "headline-lg-mobile": ["32px", {lineHeight: "1.2", fontWeight: "500"}]
+                    }
+                }
+            }
+        };
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .boreal-bg {
+            background-color: #0e1513;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .star-field {
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+
+        .glass-card {
+            background: rgba(14, 21, 19, 0.85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(45, 212, 191, 0.1);
+        }
+
+        .custom-checkbox:checked {
+            background-color: #2dd4bf;
+            border-color: #2dd4bf;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2dd4bf !important;
+            box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md boreal-bg min-h-screen selection:bg-primary/30" style="background-color: #050507;">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-md"><div class="flex justify-between items-center px-margin-desktop py-4 max-w-container-max mx-auto"><div class="flex items-center gap-8"><a class="font-headline text-3xl font-bold text-on-surface tracking-tight" href="#">Folio<span class="text-primary">+</span></a><div class="h-8 w-px bg-white/10 mx-2"></div><span class="font-headline text-on-surface font-medium whitespace-nowrap text-xl">Alexandre Rossi</span></div><div class="flex items-center gap-8"><nav class="hidden md:flex items-center gap-8 mr-4"><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-300 font-medium text-sm" href="#">Profil</a><a aria-current="page" class="font-body-md text-primary hover:text-primary transition-colors duration-300 font-bold text-sm" href="#">Projets</a></nav><button aria-label="Passer en mode clair" class="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 text-on-surface hover:bg-primary hover:text-on-primary transition-all duration-300 active:scale-95"><span aria-hidden="true" class="material-symbols-outlined">light_mode</span></button><button class="text-on-surface border border-white/20 px-8 py-3 font-bold font-headline transition-all duration-300 hover:border-primary hover:text-primary active:scale-95 rounded-full text-sm">Se connecter</button></div></div></header>
+<!-- Main Content Canvas -->
+<main class="relative flex items-center justify-center min-h-screen pt-24 pb-12 px-margin-mobile md:px-margin-desktop">
+<!-- Static Glow Ambient Elements -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden"><div class="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-[#2dd4bf]/30 rounded-full blur-[150px] mix-blend-screen opacity-80"></div><div class="absolute top-[20%] right-[-10%] w-[50rem] h-[50rem] bg-[#7c3aed]/25 rounded-full blur-[120px] mix-blend-screen opacity-70"></div><div class="absolute bottom-[-10%] left-[20%] w-[55rem] h-[55rem] bg-[#06b6d4]/30 rounded-full blur-[130px] mix-blend-screen opacity-70"></div><div class="absolute inset-0 star-field opacity-60"></div></div>
+<div class="glass-card w-full max-w-2xl rounded-2xl p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative z-10 backdrop-blur-xl bg-surface/95" id="form-container">
+<button aria-label="Fermer le formulaire" class="absolute right-6 top-6 text-on-surface-variant/70 hover:text-on-surface transition-colors p-2 z-20">
+<span class="material-symbols-outlined">close</span>
+</button>
+<!-- Header section -->
+<div class="mb-10">
+<span class="font-label-caps text-label-caps text-primary mb-3 block">Demande d'accès exclusif</span>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Demander l'accès</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md">Accédez à aux études de cas confidentielles et aux détails de projets sous accord de divulgation restreinte.</p>
+</div><div class="flex flex-col gap-2 mb-8"><div class="flex items-center gap-3 p-3 rounded-lg border border-[#34D399]/20 text-[#34D399] text-sm"><span class="material-symbols-outlined text-sm">check_circle</span><span class="">Action réussie</span></div><div class="flex items-center gap-3 p-3 rounded-lg border border-[#F87171]/20 text-[#fca5a5] text-sm"><span class="material-symbols-outlined text-sm">error</span><span class="">Une erreur est survenue</span></div><div class="flex items-center gap-3 p-3 rounded-lg border border-[#FBB040]/20 text-[#FBB040] text-sm"><span class="material-symbols-outlined text-sm">warning</span><span class="">Attention nécessaire</span></div><div class="flex items-center gap-3 p-3 rounded-lg border border-[#818CF8]/20 text-[#818CF8] text-sm"><span class="material-symbols-outlined text-sm">info</span><span class="">Information système</span></div></div>
+<!-- Form -->
+<form class="space-y-8" id="access-request-form" onsubmit="handleFormSubmit(event)">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Row 1: Name & Company -->
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps mb-1 block text-on-surface-variant/70" for="name">Nom complet</label>
+<input class="w-full font-body-md text-on-surface bg-surface-container-low p-4 border border-white/5 focus:border-primary outline-none transition-all rounded-xl placeholder:text-on-surface-variant" id="name" placeholder="Jean Dupont" required="" style="border-color: rgb(52, 211, 153);" type="text">
+<div class="flex items-center gap-1 text-[#34D399] text-xs mt-1"><span class="material-symbols-outlined text-sm">check_circle</span><span class="">Validé</span></div></div>
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps mb-1 block text-on-surface-variant/70" for="company">Entreprise</label>
+<input class="w-full font-body-md text-on-surface bg-surface-container-low p-4 border border-white/5 focus:border-primary outline-none transition-all rounded-xl placeholder:text-on-surface-variant" id="company" placeholder="Nom de votre structure" required="" style="border-color: rgb(251, 176, 64);" type="text">
+<div class="flex items-center gap-1 text-[#FBB040] text-xs mt-1"><span class="material-symbols-outlined text-sm">warning</span><span class="">Vérification requise</span></div></div>
+</div>
+<!-- Row 2: Email (Full Width) -->
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps mb-1 block text-on-surface-variant/70" for="email">Email professionnel</label>
+<input class="w-full font-body-md text-on-surface bg-surface-container-low p-4 border border-white/5 focus:border-primary outline-none transition-all rounded-xl placeholder:text-on-surface-variant" id="email" placeholder="jean@entreprise.com" required="" style="border-color: rgb(248, 113, 113);" type="email">
+<p class="text-[#fca5a5] text-xs mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-sm">warning</span>Veuillez entrer une adresse email valide</p></div>
+<!-- Row 3: Passwords (2 Columns) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-caps text-label-caps mb-1 block text-on-surface-variant/70" for="password">Mot de passe souhaité</label>
+<input class="w-full font-body-md text-on-surface bg-surface-container-low p-4 border border-white/5 focus:border-primary outline-none transition-all rounded-xl pr-12 placeholder:text-on-surface-variant/70" id="password" required="" style="border-color: rgb(129, 140, 248);" type="password">
+<span class="material-symbols-outlined absolute right-4 top-1/2 text-on-surface-variant cursor-pointer hover:text-primary transition-colors -translate-y-1/2">visibility_off</span>
+</div>
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-caps text-label-caps mb-1 block text-on-surface-variant/70" for="confirm-password">Répéter le mot de passe</label>
+<input class="w-full font-body-md text-on-surface bg-surface-container-low p-4 border border-white/5 focus:border-primary outline-none transition-all rounded-xl pr-12 placeholder:text-on-surface-variant/70" id="confirm-password" required="" type="password">
+<span class="material-symbols-outlined absolute right-4 top-1/2 text-on-surface-variant cursor-pointer hover:text-primary transition-colors -translate-y-1/2">visibility_off</span>
+</div>
+</div>
+<!-- Projects Selection -->
+<div class="pt-2">
+<div class="flex items-center gap-2 mb-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Projets demandés</span>
+<div class="bg-[#6001d1] px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-white/10">
+<span aria-hidden="true" class="material-symbols-outlined text-[10px] text-white" style="font-variation-settings: &quot;FILL&quot; 1;">lock</span>
+<span class="text-[9px] font-bold text-white tracking-widest" data-stitch-orig-opacity="0">Confidentiel</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<label class="group cursor-pointer flex items-start gap-3">
+<input class="w-5 h-5 custom-checkbox bg-surface-container-low border rounded-lg transition-all placeholder:text-on-surface-variant/70 border-outline" name="projects" type="checkbox" value="aurora-core">
+<div class="flex flex-col">
+<span class="font-body-md text-on-surface group-hover:text-primary transition-colors text-sm">Aurora Core Infrastructure</span>
+<span class="text-[11px] text-on-surface-variant/70">Fintech • 2024</span>
+</div>
+</label>
+<label class="group cursor-pointer flex items-start gap-3">
+<input class="w-5 h-5 custom-checkbox bg-surface-container-low border rounded-lg transition-all placeholder:text-on-surface-variant/70 border-outline" name="projects" type="checkbox" value="nexus-v2">
+<div class="flex flex-col">
+<span class="font-body-md text-on-surface group-hover:text-primary transition-colors text-sm">Nexus v2 Design System</span>
+<span class="text-[11px] text-on-surface-variant/70">Enterprise • 2023</span>
+</div>
+</label>
+<label class="group cursor-pointer flex items-start gap-3">
+<input class="w-5 h-5 custom-checkbox bg-surface-container-low border rounded-lg transition-all placeholder:text-on-surface-variant/70 border-outline" name="projects" type="checkbox" value="luminous-ai">
+<div class="flex flex-col">
+<span class="font-body-md text-on-surface group-hover:text-primary transition-colors text-sm">Luminous AI Dashboards</span>
+<span class="text-[11px] text-on-surface-variant/70">Data Science • 2024</span>
+</div>
+</label>
+<label class="group cursor-pointer flex items-start gap-3">
+<input class="w-5 h-5 custom-checkbox bg-surface-container-low border rounded-lg transition-all placeholder:text-on-surface-variant/70 border-outline" name="projects" type="checkbox" value="ethereal-pay">
+<div class="flex flex-col">
+<span class="font-body-md text-on-surface group-hover:text-primary transition-colors text-sm">Ethereal Payment Flow</span>
+<span class="text-[11px] text-on-surface-variant/70">E-commerce • 2023</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Message -->
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps mb-1 block text-on-surface-variant/70" for="message">Message (optionnel)</label>
+<textarea class="w-full font-body-md text-on-surface bg-surface-container-low p-4 border border-white/5 focus:border-primary outline-none transition-all rounded-xl placeholder:text-on-surface-variant" id="message" placeholder="Dites-nous en plus sur votre besoin..." rows="3"></textarea>
+</div>
+<!-- GDPR -->
+<div class="flex items-start gap-3">
+<input class="w-5 h-5 custom-checkbox bg-surface-container-low border rounded-lg mt-0.5 placeholder:text-on-surface-variant/70 border-outline" id="gdpr" required="" type="checkbox">
+<label class="font-body-md text-sm text-on-surface-variant leading-relaxed" for="gdpr">
+                        J'accepte que Folio+ traite mes données pour gérer ma demande d'accès conformément à la <a class="text-primary hover:underline transition-all" href="#">politique de confidentialité</a>.
+                    </label>
+</div>
+<!-- Actions -->
+<div class="flex flex-col md:flex-row items-center justify-between gap-6 pt-4">
+<a class="text-sm text-on-surface-variant hover:text-on-surface transition-colors" href="#">Déjà un compte ? <span class="text-primary font-medium">Se connecter</span></a>
+<button class="w-full md:w-auto px-10 py-4 font-body-md font-bold flex items-center justify-center gap-3 bg-primary text-on-primary hover:brightness-110 active:scale-[0.98] transition-all rounded-full" type="submit">
+                        Envoyer ma demande <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Submission Confirmation State (Hidden by default) -->
+<div class="hidden absolute inset-0 flex items-center justify-center bg-surface/95 rounded-2xl z-30 backdrop-blur-xl" id="success-message">
+<div class="text-center p-8 max-w-sm">
+<div class="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-primary text-5xl" style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-4">Demande envoyée</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8">
+                        Votre demande est bien envoyée. Notre équipe examinera votre profil et vous répondra par email sous 24h.
+                    </p>
+<button class="text-primary hover:underline font-medium transition-all" onclick="resetForm()">Retour au formulaire</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const successMsg = document.getElementById('success-message');
+            successMsg.classList.remove('hidden');
+            successMsg.classList.add('flex');
+        }
+
+        function resetForm() {
+            const successMsg = document.getElementById('success-message');
+            successMsg.classList.add('hidden');
+            successMsg.classList.remove('flex');
+            document.getElementById('access-request-form').reset();
+        }
+    </script>
+
+
+
+
+</body></html>
