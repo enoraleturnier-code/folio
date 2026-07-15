@@ -257,6 +257,8 @@ Resserrés le 12/07 (passe de finitions UI) — trop imposants par rapport au re
 
 **Non concernés** (catégorie différente, déjà conforme) : les pills de `FilterBar` (déjà `text-sm font-normal` depuis la session filtres) et les petites pastilles de compte (badge de notification `h-5 w-5` sur la sidebar admin, compteur de filtres actifs) — ce sont des indicateurs numériques compacts, pas des étiquettes de statut/tag, réduire encore leur taille les rendrait illisibles.
 
+**`ComingSoonBadge`** (15/07, `src/components/ComingSoonBadge.tsx`) — pastille "Bientôt disponible", rôle **info** (même token `tertiary` que l'alerte info, voir section suivante) pour signaler une fonctionnalité temporairement désactivée : `bg-tertiary/15 border-tertiary/40 text-tertiary`, icône `Flame`, même gabarit que les autres badges (`px-3 py-1 text-[10px] font-normal uppercase tracking-widest rounded-full`, cf. `StatusBadge`). **Règle confirmée 15/07** : tout badge de statut (pas les tags libres type `TagBadge`) est obligatoirement en capitales — `uppercase tracking-widest` systématique. Contraste texte `tertiary` sur fond `tertiary/15` (dark) ≈ **9.28:1** (calculé par blend alpha sur `#0E1513`, au-delà du seuil AAA) — cohérent avec la méthode "état plein" déjà en place (section Filtres, `bg-[couleur]/15` + `border-[couleur]/40` + `text-[couleur]`, AA 4.59–6.03:1 pour les autres catégories). Composant partagé, réutilisé sur les options désactivées de `ThemeToggle` (Clair/Auto) et sur le label `cal.com/{calUsername}` du widget de `ProfilePage`.
+
 ---
 
 ## 🔔 Système d'alertes (composant générique Alert)
@@ -459,25 +461,27 @@ CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `auro
 | Catalogue projets | teal | `aurora-teal` |
 | Demandes d'accès | violet | `aurora-purple` |
 | Messages (Contacts) | cyan | `aurora-cyan` |
-| Paramètres | indigo | `aurora-indigo` |
+| Paramètres | teal (depuis le 14/07, était indigo) | `aurora-teal` |
 | Vue d'ensemble (Dashboard) | — | aucun |
 
-**⚠️ Depuis le 13/07, le halo de section (ci-dessus) et la couleur de nav active (ci-dessous) ne sont plus forcément la même teinte** — décision explicite, périmètres volontairement dissociés (ex. Messages : halo toujours cyan, nav désormais tertiary-container). Ne pas chercher à les réaligner sans nouvelle demande.
+**⚠️ Depuis le 13/07, le halo de section (ci-dessus) et la couleur de nav active (ci-dessous) ne sont plus forcément la même teinte** — décision explicite, périmètres volontairement dissociés (ex. Messages : halo toujours cyan, nav désormais tertiary-container). Ne pas chercher à les réaligner sans nouvelle demande. **Exception : Paramètres**, dont halo et nav ont au contraire été réalignés (les deux en teal) le 14/07 sur demande explicite pour matcher Vue d'ensemble.
 
 ## 🧭 Couleurs de nav active + badges (dashboard admin, `NAV_ACTIVE_CLASSES`, 13/07)
 
-Chaque section a désormais sa propre paire fond/icône pour l'état actif de la sidebar, **et** sa propre paire fond/texte pour le badge de notification de cette section (jamais un dérivé du fond de nav, souvent une teinte translucide à 10-15% — pas assez de contraste pour porter un chiffre en petit texte gras). Tous les ratios ci-dessous sont ≥ 4.5:1 (texte normal, calcul WCAG 2.1 sur les valeurs dark) :
+Chaque section a sa propre paire fond/icône pour l'état actif de la sidebar. Tous les ratios ci-dessous sont ≥ 4.5:1 (texte normal, calcul WCAG 2.1 sur les valeurs dark) :
 
-| Section | Nav actif — fond | Nav actif — icône | Ratio icône | Badge — fond | Badge — texte | Ratio badge |
-|---|---|---|---|---|---|---|
-| Dashboard | `primary-container` tinté 10% | `primary` | déjà vérifié (palette teal) | `primary-container` | `on-primary-container` | déjà vérifié (paire M3) |
-| Catalogue projets | `tag-design-type` (fuchsia `#D946EF`) tinté 15% sur `surface` | `tag-design-type` plein | 4.59:1 | `tag-design-type` | `background` | 5.35:1 |
-| Demandes d'accès | `secondary` tinté 10% | `secondary` | ~3.25:1 (seuil UI 3:1, pas seuil texte — label jamais coloré, cf. plus haut) | `secondary-container` `#6001D1` | `on-secondary-container` `#EADDFF` | 6.72:1 |
-| Messages (Contacts) | Tailwind `indigo-500` tinté 10% (raw, pas un token sémantique) | `tag-keywords` `#818CF8` | 6.20:1 | `indigo-500` plein | noir | 4.70:1 (limite, cf. note) |
-| Veille Hebdo | `tag-sector` tinté 10% | `tag-sector` | — | `tag-sector` `#06B6D4` | `on-primary` `#003731` | 5.43:1 |
-| Paramètres | `tag-keywords` (indigo) tinté 10% | `tag-keywords` | déjà vérifié (palette indigo) | `tag-keywords` | `on-primary` | 5.43:1 (même calcul que Veille, même paire de tokens) |
+| Section | Nav actif — fond | Nav actif — icône | Ratio icône |
+|---|---|---|---|
+| Dashboard | `primary-container` tinté 10% | `primary` | déjà vérifié (palette teal) |
+| Catalogue projets | `tag-design-type` (fuchsia `#D946EF`) tinté 15% sur `surface` | `tag-design-type` plein | 4.59:1 |
+| Demandes d'accès | `secondary` tinté 10% | `secondary` | ~3.25:1 (seuil UI 3:1, pas seuil texte — label jamais coloré, cf. plus haut) |
+| Messages (Contacts) | Tailwind `indigo-500` tinté 10% (raw, pas un token sémantique) | `tag-keywords` `#818CF8` | 6.20:1 |
+| Veille Hebdo | `tag-sector` tinté 10% | `tag-sector` | — |
+| Paramètres | `primary-container` tinté 10% | `primary` | déjà vérifié (palette teal) |
 
-**Cas Messages, volontairement à part** : reprend exactement le style du badge `StatusBadge` "nouveau" (`bg-indigo-500/10 border-indigo-500/30 text-[#818CF8]`, `StatusBadge.tsx`) sur demande explicite — bg/border en Tailwind `indigo-500` brut (`#6366F1`), icône en `tag-keywords` (même hex que le texte du badge, `#818CF8`, substitué par le token sémantique équivalent plutôt que l'arbitraire `text-[#818CF8]`). Seule entrée de cette table qui n'utilise pas un token de couleur du design system pour son fond. **Badge (fond `indigo-500` plein + texte noir, 4.70:1) reste dormant** : Messages n'a actuellement aucun badge de notification (`contacts` sans champ `badge`) — valeur choisie pour repasser le seuil 4.5:1 malgré le fond assez clair de `indigo-500` (le blanc n'y arrive pas non plus, 4.47:1), à revérifier si un badge y apparaît un jour. Paramètres a gardé sa couleur indigo (`tag-keywords`) d'origine, essai en neutre annulé — deux couleurs "indigo" cohabitent donc désormais (Messages en `indigo-500` Tailwind brut, Paramètres en `tag-keywords` token), volontairement proches mais pas identiques.
+**Badges de notification unifiés (15/07)** : les paires fond/texte par section (une par couleur de nav, documentées ci-dessous jusqu'au 13/07) sont abandonnées sur demande explicite — tous les badges de comptage (items de la sidebar admin **et** cloche `NotificationBell` du header) partagent désormais un seul composant, `NotificationCountBadge` (`src/components/NotificationCountBadge.tsx`, `bg-secondary`/`text-on-secondary`, `h-4 min-w-4`). `NAV_ACTIVE_CLASSES` ne porte donc plus que `bg`/`icon` par section, `badgeBg`/`badgeText` ont été retirés.
+
+**Paramètres réaligné sur Dashboard (14/07)** : nav actif + `SectionAurora` de l'onglet passent de `indigo`/`tag-keywords` à `teal`/`primary`, sur demande explicite pour matcher exactement l'accent de Vue d'ensemble — identique ligne pour ligne à la ligne Dashboard ci-dessus. L'entrée `NAV_ACTIVE_CLASSES.indigo` (et `SECTION_AURORA.indigo`) reste définie dans le code mais n'est plus référencée par aucun onglet — non supprimée par prudence, à nettoyer si confirmé définitivement inutile.
 
 Pour chaque item de nav actif : fond `bg-{teinte}/10` + icône `text-{teinte}`, mais le **libellé reste `text-on-surface`** (jamais coloré) — `secondary` (#7C3AED) mesuré à ~3.25:1 sur le fond `background` de la sidebar, sous le seuil AA texte (4.5:1) bien qu'au-dessus du seuil UI/icône (3:1). Plutôt que de traiter Demandes différemment des 3 autres sections, la même règle (icône colorée / libellé neutre) s'applique uniformément aux 4 — cohérence visuelle et zéro risque de contraste, y compris pour cyan/indigo dont le texte aurait pourtant été safe seul.
 

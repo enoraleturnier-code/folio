@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
+import { Link, useLoaderData, useSearchParams, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
@@ -25,6 +25,8 @@ function uniq(xs: string[]) {
 export function CataloguePage() {
   const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof catalogueLoader>>;
   const { role, session } = useAuth();
+  const [searchParams] = useSearchParams();
+  const notifProjectId = searchParams.get("notif");
   // Un validated_visitor/admin a accès à tous les projets confidentiels (règle
   // RLS projects_select_unified) — pas de suivi par demande individuelle.
   const isEntitled = role === "validated_visitor" || role === "admin";
@@ -84,13 +86,22 @@ export function CataloguePage() {
     [list],
   );
 
-  const filtered = list.filter((p) => {
-    if (filters.designType && !p.tags.types.includes(filters.designType)) return false;
-    if (filters.sector && p.secteur_activite !== filters.sector) return false;
-    if (filters.tools && !p.tags.tools.includes(filters.tools)) return false;
-    if (filters.keywords && !p.tags.keywords.includes(filters.keywords)) return false;
-    return true;
-  });
+  const filtered = list
+    .filter((p) => {
+      if (filters.designType && !p.tags.types.includes(filters.designType)) return false;
+      if (filters.sector && p.secteur_activite !== filters.sector) return false;
+      if (filters.tools && !p.tags.tools.includes(filters.tools)) return false;
+      if (filters.keywords && !p.tags.keywords.includes(filters.keywords)) return false;
+      return true;
+    })
+    // Venant d'une notification de résolution de demande d'accès : le projet concerné
+    // remonte en tête de liste (tri, pas de scroll vers sa position).
+    .sort((a, b) => {
+      if (!notifProjectId) return 0;
+      if (a.id === notifProjectId) return -1;
+      if (b.id === notifProjectId) return 1;
+      return 0;
+    });
 
   const openRequest = (p: Project) => {
     setModalProject(p);

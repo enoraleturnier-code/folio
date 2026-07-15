@@ -1,6 +1,9 @@
 import { Check, Contrast, Moon, Sun, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { ComingSoonBadge } from "@/components/ComingSoonBadge";
+import { IconTooltip } from "@/components/IconTooltip";
+
 type ThemeMode = "dark" | "light" | "system";
 
 function applyTheme(mode: ThemeMode) {
@@ -14,16 +17,13 @@ function applyTheme(mode: ThemeMode) {
   }
 }
 
+// TEMPORAIRE (C.1) : "Clair" et "Système" sont désactivés dans le menu --
+// le mode reste forcé sur "dark" quelle que soit la préférence stockée ou
+// le matchMedia système, pour rester cohérent avec THEME_INIT (index.html).
+// Ne touche pas à applyTheme()/choose() : la logique light reste en place,
+// seule l'activation est coupée -- à retirer ici avec la réactivation complète.
 function readStoredMode(): ThemeMode {
-  if (typeof window === "undefined") return "system";
-  try {
-    const stored = localStorage.getItem("folio-theme");
-    if (stored === "light") return "light";
-    if (stored === "dark") return "dark";
-    return "system";
-  } catch {
-    return "system";
-  }
+  return "dark";
 }
 
 export function ThemeToggle() {
@@ -66,29 +66,31 @@ export function ThemeToggle() {
     setOpen(false);
   };
 
-  const options: { key: ThemeMode; icon: LucideIcon; label: string }[] = [
+  const options: { key: ThemeMode; icon: LucideIcon; label: string; disabled?: boolean }[] = [
     { key: "dark", icon: Moon, label: "Sombre" },
-    { key: "light", icon: Sun, label: "Clair" },
-    { key: "system", icon: Contrast, label: "Auto" },
+    { key: "light", icon: Sun, label: "Clair", disabled: true },
+    { key: "system", icon: Contrast, label: "Auto", disabled: true },
   ];
 
   const TriggerIcon = mode === "light" ? Sun : mode === "system" ? Contrast : Moon;
 
   return (
     <div className="relative" ref={ref}>
-      <button
-        type="button"
-        aria-haspopup="true"
-        aria-expanded={open}
-        aria-label="Choisir le thème d'affichage"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        <TriggerIcon aria-hidden="true" size={24} />
-      </button>
+      <IconTooltip label="Choisir le thème d'affichage">
+        <button
+          type="button"
+          aria-haspopup="true"
+          aria-expanded={open}
+          aria-label="Choisir le thème d'affichage"
+          onClick={() => setOpen((v) => !v)}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <TriggerIcon aria-hidden="true" size={24} />
+        </button>
+      </IconTooltip>
 
       {open && (
-        <div className="absolute right-0 z-[80] mt-2 w-44 overflow-hidden rounded-2xl border border-white/10 bg-surface-container-low shadow-2xl">
+        <div className="absolute right-0 z-[80] mt-2 w-64 overflow-hidden rounded-2xl border border-white/10 bg-surface-container-low shadow-2xl">
           <div className="flex flex-col py-1">
             {options.map((opt) => {
               const active = mode === opt.key;
@@ -98,14 +100,20 @@ export function ThemeToggle() {
                   key={opt.key}
                   type="button"
                   onClick={() => choose(opt.key)}
+                  disabled={opt.disabled}
+                  aria-disabled={opt.disabled}
                   className={
-                    "flex w-full items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-on-surface " +
-                    (active ? "text-primary" : "text-on-surface-variant")
+                    "flex w-full items-center gap-3 px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset " +
+                    (opt.disabled
+                      ? "cursor-not-allowed text-on-surface-variant/50"
+                      : "hover:bg-white/5 hover:text-on-surface " +
+                        (active ? "text-primary" : "text-on-surface-variant"))
                   }
                 >
                   <OptIcon aria-hidden="true" size={18} />
                   <span className="flex-1 text-left">{opt.label}</span>
-                  {active && <Check aria-hidden="true" className="text-primary" size={18} />}
+                  {opt.disabled && <ComingSoonBadge />}
+                  {active && !opt.disabled && <Check aria-hidden="true" className="text-primary" size={18} />}
                 </button>
               );
             })}

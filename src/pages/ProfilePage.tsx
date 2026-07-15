@@ -5,7 +5,9 @@ import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { ContactForm } from "@/components/ContactForm";
+import { IconTooltip } from "@/components/IconTooltip";
 import { designer, getDesignerProfile } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 
@@ -66,37 +68,43 @@ export function ProfilePage() {
               </Link>
               <div className="flex gap-3">
                 {designer.linkedin && (
-                  <a
-                    href={designer.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Ouvrir le profil LinkedIn"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                  >
-                    <FaLinkedin aria-hidden="true" size={18} />
-                  </a>
+                  <IconTooltip label="Ouvrir le profil LinkedIn">
+                    <a
+                      href={designer.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Ouvrir le profil LinkedIn"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                    >
+                      <FaLinkedin aria-hidden="true" size={18} />
+                    </a>
+                  </IconTooltip>
                 )}
                 {designer.twitter && (
-                  <a
-                    href={designer.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Ouvrir le profil X"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                  >
-                    <FaXTwitter aria-hidden="true" size={18} />
-                  </a>
+                  <IconTooltip label="Ouvrir le profil X">
+                    <a
+                      href={designer.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Ouvrir le profil X"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                    >
+                      <FaXTwitter aria-hidden="true" size={18} />
+                    </a>
+                  </IconTooltip>
                 )}
                 {designer.website && (
-                  <a
-                    href={designer.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Visiter le site web de ${designer.fullName}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
-                  >
-                    <Globe aria-hidden="true" size={18} />
-                  </a>
+                  <IconTooltip label={`Visiter le site web de ${designer.fullName}`}>
+                    <a
+                      href={designer.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Visiter le site web de ${designer.fullName}`}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                    >
+                      <Globe aria-hidden="true" size={18} />
+                    </a>
+                  </IconTooltip>
                 )}
               </div>
             </div>
@@ -106,7 +114,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10"
+                  className="inline-flex items-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <Lock aria-hidden="true" size={18} />
                   <span className="text-sm font-bold tracking-wider">
@@ -161,8 +169,9 @@ export function ProfilePage() {
                   <p className="mb-2 text-base text-on-surface">
                     Chargement du calendrier interactif…
                   </p>
-                  <p className="text-xs text-on-surface-variant">
+                  <p className="flex items-center gap-2 text-xs text-on-surface-variant">
                     cal.com/<span className="text-primary">{designer.calUsername}</span>
+                    <ComingSoonBadge />
                   </p>
                 </div>
               </div>

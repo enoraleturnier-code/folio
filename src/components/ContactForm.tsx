@@ -104,13 +104,17 @@ export function ContactForm() {
   const labelCls = "block text-sm font-medium text-on-surface-variant";
 
   function borderClassFor(key: FieldKey) {
-    return showError(key) ? "border-error focus-visible:ring-error" : "border-white/5";
+    return showError(key) ? "border-error focus-visible:ring-error" : "border-outline";
+  }
+
+  function errorHintId(key: FieldKey): string {
+    return `${FIELD_INPUT_IDS[key]}-error`;
   }
 
   function errorHint(key: FieldKey) {
     if (!showError(key)) return null;
     return (
-      <p className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+      <p id={errorHintId(key)} className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
         <CircleAlert aria-hidden="true" size={14} className="shrink-0" />
         {errors[key]}
       </p>
@@ -122,7 +126,7 @@ export function ContactForm() {
       {succeeded && (
         <Alert
           type="success"
-          title="Merci — message reçu."
+          title="Merci • message reçu."
           description="Je reviens vers vous sous 48 heures ouvrées."
         />
       )}
@@ -140,6 +144,8 @@ export function ContactForm() {
             type="text"
             value={form.name}
             onChange={(e) => updateField({ name: e.target.value })}
+            aria-invalid={showError("name")}
+            aria-describedby={showError("name") ? errorHintId("name") : undefined}
             className={cn(inputCls, "mt-2", borderClassFor("name"))}
             placeholder="Prénom Nom"
           />
@@ -155,6 +161,8 @@ export function ContactForm() {
             type="email"
             value={form.email}
             onChange={(e) => updateField({ email: e.target.value })}
+            aria-invalid={showError("email")}
+            aria-describedby={showError("email") ? errorHintId("email") : undefined}
             className={cn(inputCls, "mt-2", borderClassFor("email"))}
             placeholder="vous@entreprise.com"
           />
@@ -170,19 +178,23 @@ export function ContactForm() {
             rows={5}
             value={form.message}
             onChange={(e) => updateField({ message: e.target.value })}
+            aria-invalid={showError("message")}
+            aria-describedby={showError("message") ? errorHintId("message") : undefined}
             className={cn(inputCls, "mt-2 resize-y", borderClassFor("message"))}
             placeholder="Décrivez le contexte et l'échéance."
           />
           {errorHint("message")}
         </div>
 
-        <label className="flex items-start gap-3 text-sm text-on-surface-variant">
+        <div className="flex items-start gap-3">
           <Checkbox
+            id="cf-rgpd"
             checked={form.rgpd}
             onChange={(e) => updateField({ rgpd: e.target.checked })}
+            aria-describedby={submitAttempted && rgpdMissing ? "cf-rgpd-error" : undefined}
             className="mt-0.5"
           />
-          <span>
+          <label htmlFor="cf-rgpd" className="text-sm text-on-surface-variant">
             J'accepte que mes données soient utilisées pour traiter ma demande, conformément à la{" "}
             <Link
               to="/politique-de-confidentialite"
@@ -193,10 +205,10 @@ export function ContactForm() {
               politique de confidentialité
             </Link>
             .
-          </span>
-        </label>
+          </label>
+        </div>
         {submitAttempted && rgpdMissing && (
-          <p className="-mt-3 flex items-center gap-1 text-xs text-error" role="alert">
+          <p id="cf-rgpd-error" className="-mt-3 flex items-center gap-1 text-xs text-error" role="alert">
             <CircleAlert aria-hidden="true" size={14} className="shrink-0" />
             Ce consentement est requis pour envoyer votre message.
           </p>

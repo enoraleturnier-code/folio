@@ -1,6 +1,7 @@
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 
+import { IconTooltip } from "@/components/IconTooltip";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
@@ -19,6 +20,14 @@ function formatPeriod(start: string | null, end: string | null): string {
   if (startYear && endYear && startYear !== endYear) return `${startYear} — ${endYear}`;
   return String(startYear ?? endYear ?? "");
 }
+
+/** Numéro + filet — reprend exactement le style "01"/"02" de ProfilePage.tsx (hero + contact),
+ * "03" ajouté ici en indigo (tag-keywords) pour le 3e bloc narratif. */
+const BLOCK_NUMBER_CLASSES = [
+  { number: "text-primary/90", rule: "bg-on-primary/20" },
+  { number: "text-secondary/90", rule: "bg-secondary/20" },
+  { number: "text-tag-keywords/90", rule: "bg-tag-keywords/20" },
+] as const;
 
 export async function projectDetailLoader({
   params,
@@ -66,17 +75,15 @@ export function ProjectDetailPage() {
     );
   }
 
+  const blocks = [
+    { label: "Problème", content: project.ai_structured_desc?.probleme },
+    { label: "Décisions", content: project.ai_structured_desc?.decisions },
+    { label: "Résultat", content: project.ai_structured_desc?.resultat },
+  ];
+
   return (
     <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-28 md:px-16">
-      <Link
-        to={`/${designer.slug}/projects`}
-        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-background/60 px-4 py-2 text-xs font-medium text-on-surface hover:border-primary hover:text-primary"
-      >
-        <ArrowLeft aria-hidden="true" size={18} />
-        Tous les projets
-      </Link>
-
-      <section className="relative mt-8 aspect-[21/9] overflow-hidden rounded-2xl">
+      <section className="relative aspect-[3/1] overflow-hidden rounded-2xl">
         <img
           src={project.thumbnail_url ?? ""}
           alt={project.title}
@@ -86,94 +93,136 @@ export function ProjectDetailPage() {
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-        <div className="absolute right-6 top-6">
-          <StatusBadge kind={project.status === "confidential" ? "confidential" : "public"} />
+        <div className="absolute left-6 top-6 z-10">
+          <IconTooltip label="Retour à la liste">
+            <Link
+              to={`/${designer.slug}/projects`}
+              aria-label="Retour à la liste"
+              className="glass-card flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:border-primary hover:text-primary"
+            >
+              <ArrowLeft aria-hidden="true" size={18} />
+            </Link>
+          </IconTooltip>
         </div>
-        <div className="absolute bottom-8 left-8 right-8">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">
-            {project.company_name}
-          </p>
-          <h1 className="mt-3 text-4xl font-medium text-on-surface md:text-6xl">{project.title}</h1>
-          <p className="mt-3 max-w-2xl text-lg text-on-surface-variant">{project.short_desc}</p>
-        </div>
+        {project.status === "confidential" && (
+          <div className="absolute right-6 top-6 z-10">
+            <StatusBadge kind="confidential" size="md" />
+          </div>
+        )}
       </section>
 
       <div className="mt-16 grid gap-12 md:grid-cols-12">
         <div className="space-y-14 md:col-span-8">
+          <header className="space-y-4">
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
+              Détails du projet
+            </p>
+            <h1 className="text-5xl font-medium text-on-surface md:text-6xl">{project.title}</h1>
+            {project.client_name && (
+              <p className="font-display-accent text-5xl italic text-primary md:text-6xl">
+                {project.client_name}
+              </p>
+            )}
+            {project.short_desc && (
+              <p className="max-w-2xl text-lg text-on-surface-variant">{project.short_desc}</p>
+            )}
+          </header>
+
           {project.long_desc && (
             <section>
-              <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-primary">
-                Le projet
-              </p>
-              <h2 className="text-3xl font-medium text-on-surface">
-                Une vue <span className="font-display-accent italic text-primary">d'ensemble</span>.
-              </h2>
-              <div className="mt-4">
+              <div className="flex items-end gap-8">
+                <div aria-hidden="true" className="hidden shrink-0 flex-col md:flex">
+                  <span className="text-6xl font-medium opacity-0">01</span>
+                  <div className="mt-2 h-px w-8" />
+                </div>
+                <h2 className="text-4xl font-medium text-on-surface">Vue d'ensemble du projet</h2>
+              </div>
+              <div className="mt-4 md:pl-24">
                 <MarkdownContent content={project.long_desc} />
               </div>
             </section>
           )}
-          <section>
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-[#A78BFA]">
-              01 — Problème
-            </p>
-            <h2 className="text-3xl font-medium text-on-surface">
-              Un défi <span className="font-display-accent italic text-primary">Clair</span>
-            </h2>
-            <div className="mt-4">
-              <MarkdownContent content={project.ai_structured_desc?.probleme} />
-            </div>
-          </section>
-          <section>
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-primary">
-              02 — Décisions
-            </p>
-            <h2 className="text-3xl font-medium text-on-surface">
-              Les choix{" "}
-              <span className="font-display-accent italic text-primary">Structurants</span>
-            </h2>
-            <div className="mt-4">
-              <MarkdownContent content={project.ai_structured_desc?.decisions} />
-            </div>
-          </section>
-          <section>
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-[#A78BFA]">
-              03 — Résultat
-            </p>
-            <h2 className="text-3xl font-medium text-on-surface">
-              L'impact <span className="font-display-accent italic text-primary">Mesuré</span>
-            </h2>
-            <div className="mt-4">
-              <MarkdownContent content={project.ai_structured_desc?.resultat} />
-            </div>
-          </section>
+
+          <div className="space-y-16">
+            {blocks.map((block, i) => (
+              <div key={block.label} className="space-y-4">
+                <div className="flex items-end gap-8">
+                  <div className="hidden shrink-0 flex-col md:flex">
+                    <span className={"text-6xl font-medium " + BLOCK_NUMBER_CLASSES[i].number}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div className={"mt-2 h-px w-8 " + BLOCK_NUMBER_CLASSES[i].rule} />
+                  </div>
+                  <h2 className="text-4xl font-medium text-on-surface">{block.label}</h2>
+                </div>
+                <div className="md:pl-24">
+                  <MarkdownContent content={block.content} />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <aside className="md:col-span-4">
-          <div className="sticky top-28 space-y-5 rounded-2xl border border-white/5 bg-surface-container-low p-6">
-            <MetaRow label="Entreprise" value={project.company_name} />
-            <MetaRow label="Client" value={project.client_name} />
-            <MetaRow label="Rôle" value={project.role} />
-            <MetaRow label="Équipe" value={project.team} />
-            <MetaRow label="Période" value={formatPeriod(project.start_date, project.end_date)} />
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                Étiquettes
-              </p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {project.tags.types.map((l) => (
-                  <TagBadge key={"d" + l} category="designType" label={l} />
-                ))}
-                {project.secteur_activite && (
-                  <TagBadge category="sector" label={formatSecteur(project.secteur_activite)} />
-                )}
-                {project.tags.tools.map((l) => (
-                  <TagBadge key={"t" + l} category="tools" label={l} />
-                ))}
-                {project.tags.keywords.map((l) => (
-                  <TagBadge key={"k" + l} category="keywords" label={l} />
-                ))}
-              </div>
+          <div className="sticky top-28 space-y-8 rounded-2xl border border-white/5 bg-surface-container-low p-6">
+            <div className="divide-y divide-white/5">
+              <MetaRow label="Entreprise" value={project.company_name} />
+              <MetaRow label="Client" value={project.client_name} />
+              <MetaRow label="Rôle" value={project.role} />
+              <MetaRow label="Équipe" value={project.team} />
+              <MetaRow label="Période" value={formatPeriod(project.start_date, project.end_date)} />
+            </div>
+            <div className="space-y-6 border-t border-white/5 pt-8">
+              {project.tags.types.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                    Type
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {project.tags.types.map((l) => (
+                      <TagBadge key={l} category="designType" label={l} size="md" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {project.secteur_activite && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                    Secteur
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <TagBadge
+                      category="sector"
+                      label={formatSecteur(project.secteur_activite)}
+                      size="md"
+                    />
+                  </div>
+                </div>
+              )}
+              {project.tags.tools.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                    Outils
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {project.tags.tools.map((l) => (
+                      <TagBadge key={l} category="tools" label={l} size="md" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {project.tags.keywords.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                    Mots-clés
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {project.tags.keywords.map((l) => (
+                      <TagBadge key={l} category="keywords" label={l} size="md" />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </aside>
@@ -184,7 +233,7 @@ export function ProjectDetailPage() {
 
 function MetaRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div>
+    <div className="py-4 first:pt-0 last:pb-0">
       <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
         {label}
       </p>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/Alert";
+import { IconTooltip } from "@/components/IconTooltip";
 import { designer } from "@/data/designer";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -77,6 +78,7 @@ export function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+              aria-invalid={Boolean(emailInvalid)}
               aria-describedby={emailInvalid ? "auth-email-hint" : undefined}
               className={
                 inputCls + " " + (emailInvalid ? "border-error" : "border-outline focus:border-primary")
@@ -104,6 +106,7 @@ export function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                aria-invalid={Boolean(passwordInvalid)}
                 aria-describedby={passwordInvalid ? "auth-password-hint" : undefined}
                 className={
                   inputCls +
@@ -112,18 +115,20 @@ export function AuthPage() {
                 }
                 placeholder="••••••••"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {showPassword ? (
-                  <EyeOff aria-hidden="true" size={18} />
-                ) : (
-                  <Eye aria-hidden="true" size={18} />
-                )}
-              </button>
+              <IconTooltip label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  {showPassword ? (
+                    <EyeOff aria-hidden="true" size={18} />
+                  ) : (
+                    <Eye aria-hidden="true" size={18} />
+                  )}
+                </button>
+              </IconTooltip>
             </div>
             {passwordInvalid && (
               <p id="auth-password-hint" className="flex items-center gap-1 text-xs text-error" role="alert">
@@ -138,7 +143,7 @@ export function AuthPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
+            className="mt-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {submitting ? "Connexion…" : "Se connecter"}
           </button>

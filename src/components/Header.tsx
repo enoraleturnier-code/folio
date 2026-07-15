@@ -6,6 +6,7 @@ import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { initials } from "@/lib/utils";
+import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
@@ -39,7 +40,11 @@ export function Header() {
             <VisitorLink to={`/${designer.slug}/projects`} label="Projets" />
           </nav>
 
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {session && <NotificationBell />}
+            {session && <AccountMenu fullName={fullName} role={role} roleLoading={roleLoading} />}
+          </div>
 
           {!session && (
             <Link
@@ -50,8 +55,6 @@ export function Header() {
               Se connecter
             </Link>
           )}
-
-          {session && <AccountMenu fullName={fullName} role={role} roleLoading={roleLoading} />}
         </div>
       </div>
     </header>
@@ -175,7 +178,7 @@ function AccountMenu({
               role="menuitem"
               aria-label="Se déconnecter"
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10"
+              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             >
               <LogOut aria-hidden="true" size={18} />
               Se déconnecter

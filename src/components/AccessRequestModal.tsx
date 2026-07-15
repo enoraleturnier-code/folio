@@ -14,6 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { Alert } from "@/components/Alert";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { IconTooltip } from "@/components/IconTooltip";
 import { Checkbox } from "@/components/Checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
 import { designer } from "@/data/designer";
@@ -239,11 +240,18 @@ export function AccessRequestModal({
         }
         userId = data.user.id;
 
-        const { error: profileError } = await supabase
+        const { data: profileRow, error: profileError } = await supabase
           .from("user_profiles")
           .update({ company: form.company, request_message: form.message || null })
-          .eq("id", userId);
+          .eq("id", userId)
+          .select("id")
+          .maybeSingle();
         if (profileError) throw profileError;
+        if (!profileRow) {
+          throw new Error(
+            `handleSubmit: no user_profiles row updated for id=${userId} (not found, or not permitted)`,
+          );
+        }
       }
 
       const requestSessionId = crypto.randomUUID();
@@ -287,14 +295,16 @@ export function AccessRequestModal({
         aria-hidden="true"
       />
       <div className="glass-card relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden !border-primary/10 rounded-2xl shadow-2xl shadow-black/40">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fermer le formulaire"
-          className="absolute right-5 top-5 z-20 rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          <X aria-hidden="true" size={24} />
-        </button>
+        <IconTooltip label="Fermer le formulaire">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer le formulaire"
+            className="absolute right-5 top-5 z-20 rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <X aria-hidden="true" size={24} />
+          </button>
+        </IconTooltip>
 
         {submitted ? (
           <div className="overflow-y-auto p-6 text-center md:p-10">
@@ -345,6 +355,7 @@ export function AccessRequestModal({
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
                           onBlur={() => touch("name")}
                           placeholder="Jean Dupont"
+                          aria-invalid={fieldState("name")?.kind === "error"}
                           aria-describedby={fieldState("name") ? "ar-name-hint" : undefined}
                           className={inputCls + " " + borderClassFor(fieldState("name"))}
                         />
@@ -367,6 +378,7 @@ export function AccessRequestModal({
                           onChange={(e) => setForm({ ...form, company: e.target.value })}
                           onBlur={() => touch("company")}
                           placeholder="Nom de votre structure"
+                          aria-invalid={fieldState("company")?.kind === "error"}
                           aria-describedby={fieldState("company") ? "ar-company-hint" : undefined}
                           className={inputCls + " " + borderClassFor(fieldState("company"))}
                         />
@@ -389,6 +401,7 @@ export function AccessRequestModal({
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                         onBlur={() => touch("email")}
                         placeholder="jean@entreprise.com"
+                        aria-invalid={fieldState("email")?.kind === "error"}
                         aria-describedby={fieldState("email") ? "ar-email-hint" : undefined}
                         className={inputCls + " " + borderClassFor(fieldState("email"))}
                       />
@@ -414,21 +427,24 @@ export function AccessRequestModal({
                             value={form.password}
                             onChange={(e) => setForm({ ...form, password: e.target.value })}
                             onBlur={() => touch("password")}
+                            aria-invalid={fieldState("password")?.kind === "error"}
                             aria-describedby={fieldState("password") ? "ar-password-hint" : undefined}
                             className={inputCls + " pr-12 " + borderClassFor(fieldState("password"))}
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword((v) => !v)}
-                            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          >
-                            {showPassword ? (
-                              <EyeOff aria-hidden="true" size={18} />
-                            ) : (
-                              <Eye aria-hidden="true" size={18} />
-                            )}
-                          </button>
+                          <IconTooltip label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword((v) => !v)}
+                              aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              {showPassword ? (
+                                <EyeOff aria-hidden="true" size={18} />
+                              ) : (
+                                <Eye aria-hidden="true" size={18} />
+                              )}
+                            </button>
+                          </IconTooltip>
                         </div>
                         {fieldState("password") && (
                           <span id="ar-password-hint">
@@ -450,25 +466,32 @@ export function AccessRequestModal({
                             value={form.confirmPassword}
                             onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                             onBlur={() => touch("confirmPassword")}
+                            aria-invalid={fieldState("confirmPassword")?.kind === "error"}
                             aria-describedby={
                               fieldState("confirmPassword") ? "ar-confirm-password-hint" : undefined
                             }
                             className={inputCls + " pr-12 " + borderClassFor(fieldState("confirmPassword"))}
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword((v) => !v)}
-                            aria-label={
+                          <IconTooltip
+                            label={
                               showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
                             }
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
-                            {showConfirmPassword ? (
-                              <EyeOff aria-hidden="true" size={18} />
-                            ) : (
-                              <Eye aria-hidden="true" size={18} />
-                            )}
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword((v) => !v)}
+                              aria-label={
+                                showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                              }
+                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff aria-hidden="true" size={18} />
+                              ) : (
+                                <Eye aria-hidden="true" size={18} />
+                              )}
+                            </button>
+                          </IconTooltip>
                         </div>
                         {fieldState("confirmPassword") && (
                           <span id="ar-confirm-password-hint">
@@ -493,26 +516,28 @@ export function AccessRequestModal({
                       const meta = [formatSecteur(p.secteur_activite), p.company_name]
                         .filter(Boolean)
                         .join(" • ");
+                      const inputId = `ar-project-${p.id}`;
                       return (
-                        <label
+                        <div
                           key={p.id}
-                          className="group flex cursor-pointer items-start gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-white/5"
+                          className="group flex items-start gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-white/5"
                         >
                           <Checkbox
+                            id={inputId}
                             checked={checked}
                             onChange={() => toggleProject(p.id)}
                             size="sm"
                             className="mt-0.5"
                           />
-                          <span className="flex flex-col">
+                          <label htmlFor={inputId} className="flex cursor-pointer flex-col">
                             <span className="text-sm text-on-surface transition-colors group-hover:text-primary">
                               {p.title}
                             </span>
                             {meta && (
                               <span className="text-[11px] text-on-surface-variant">{meta}</span>
                             )}
-                          </span>
-                        </label>
+                          </label>
+                        </div>
                       );
                     })}
                   </div>
@@ -592,7 +617,7 @@ export function AccessRequestModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2.5 text-sm font-medium text-on-surface hover:border-white/30"
+                      className="inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2.5 text-sm font-medium text-on-surface hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       <X aria-hidden="true" size={16} />
                       Annuler
@@ -600,7 +625,7 @@ export function AccessRequestModal({
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       {submitting ? "Envoi..." : "Envoyer ma demande"}
                       <Check aria-hidden="true" size={18} />

@@ -10,6 +10,8 @@ export interface AdminContactMessage {
   message: string | null;
   status: ContactDbStatus;
   createdAt: string;
+  /** Depuis user_profiles.company si ce message est lié à un compte existant (contacts.user_id), sinon null. */
+  company: string | null;
 }
 
 /**
@@ -40,7 +42,7 @@ export async function submitContact(input: {
 export async function getAllContacts(): Promise<AdminContactMessage[]> {
   const { data, error } = await supabase
     .from("contacts")
-    .select("id, name, email, message, status, created_at")
+    .select("id, name, email, message, status, created_at, user:user_profiles ( company )")
     .eq("type", "contact")
     .order("created_at", { ascending: false });
 
@@ -52,6 +54,7 @@ export async function getAllContacts(): Promise<AdminContactMessage[]> {
     message: row.message,
     status: row.status,
     createdAt: row.created_at,
+    company: row.user?.company ?? null,
   }));
 }
 

@@ -12,13 +12,15 @@ export const tagBadgeStyles: Record<TagCategory, string> = {
 interface TagBadgeProps {
   category: TagCategory;
   label: string;
+  size?: "sm" | "md";
 }
 
-export function TagBadge({ category, label }: TagBadgeProps) {
+export function TagBadge({ category, label, size = "sm" }: TagBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-normal tracking-wide",
+        "inline-flex items-center rounded-full border font-normal tracking-wide",
+        size === "md" ? "px-3 py-1 text-xs" : "px-2.5 py-0.5 text-[10px]",
         tagBadgeStyles[category],
       )}
     >

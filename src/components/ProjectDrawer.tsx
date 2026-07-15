@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { IconTooltip } from "@/components/IconTooltip";
 import { TagPicker } from "@/components/TagPicker";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -270,7 +271,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   if (!open) return null;
 
   const inputCls =
-    "w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50";
+    "w-full rounded-xl border border-outline bg-surface-container px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50";
   const labelCls = "block text-sm font-medium text-on-surface-variant";
   const sectionHeadingCls = "text-xs font-semibold uppercase tracking-widest text-primary";
 
@@ -279,6 +280,17 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   /** Contour rouge sur le champ tant qu'il a une erreur -- ajouté à la classe de base via `cn()` (résout le conflit `border-*`). */
   const errorRingCls = (field: ValidationError["field"], base: string) =>
     cn(base, errorFor(field) && "border-error focus-visible:ring-error");
+
+  const errorId = (field: ValidationError["field"]) => `${FIELD_INPUT_IDS[field]}-error`;
+
+  /** aria-invalid + aria-describedby vers le message d'erreur -- à spread sur chaque input/textarea/select validable. */
+  function ariaErrorProps(field: ValidationError["field"]) {
+    const err = errorFor(field);
+    return {
+      "aria-invalid": Boolean(err),
+      "aria-describedby": err ? errorId(field) : undefined,
+    } as const;
+  }
 
   function counter(field: keyof typeof MAX_LENGTHS, value: string | null | undefined) {
     const max = MAX_LENGTHS[field];
@@ -296,7 +308,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const err = errorFor(field);
     if (!err) return null;
     return (
-      <p className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+      <p id={errorId(field)} className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
         <CircleAlert aria-hidden="true" size={14} />
         {err.message}
       </p>
@@ -527,7 +539,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             type="button"
             onClick={() => addSuggestion(category, name)}
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
-            className="animate-in fade-in zoom-in-95 rounded-full border border-dashed border-primary/40 px-3 py-1 text-[11px] font-medium text-primary duration-300 hover:bg-primary-container/10"
+            className="animate-in fade-in zoom-in-95 rounded-full border border-dashed border-primary/40 px-3 py-1 text-[11px] font-medium text-primary duration-300 hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             + {name}
           </button>
@@ -559,7 +571,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const chevronCls =
     "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant";
   const tertiaryBtnCls =
-    "inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30";
+    "inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
   return (
     <div
@@ -584,14 +596,16 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 {draft.title || "Sans titre"}
               </h2>
             </div>
-            <button
-              type="button"
-              onClick={requestClose}
-              aria-label="Fermer"
-              className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
-            >
-              <X aria-hidden="true" size={24} />
-            </button>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={requestClose}
+                aria-label="Fermer"
+                className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
           </div>
           <p className="mt-2 text-xs text-on-surface-variant/70">Tous les champs sont obligatoires.</p>
         </div>
@@ -614,6 +628,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   id="pd-title"
                   value={draft.title}
                   onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                  {...ariaErrorProps("title")}
                   className={errorRingCls("title", inputCls + " mt-2")}
                 />
                 <div className="mt-1 flex items-center">
@@ -623,10 +638,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </div>
 
               <div>
-                <p className={labelCls}>Image</p>
+                <label htmlFor="pd-thumbnail-input" className={labelCls}>
+                  Image
+                </label>
                 <label
                   id="pd-thumbnail-drop"
-                  tabIndex={-1}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDraggingOver(true);
@@ -665,10 +681,12 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     </>
                   )}
                   <input
+                    id="pd-thumbnail-input"
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     className="hidden"
                     onChange={(e) => e.target.files?.[0] && onFileSelected(e.target.files[0])}
+                    {...ariaErrorProps("thumbnail_url")}
                   />
                 </label>
                 {uploading && <p className="mt-1 text-xs text-on-surface-variant">Envoi en cours…</p>}
@@ -749,6 +767,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   maxLength={MAX_LENGTHS.long_desc}
                   value={draft.long_desc ?? ""}
                   onChange={(e) => setDraft({ ...draft, long_desc: e.target.value })}
+                  {...ariaErrorProps("long_desc")}
                   className={errorRingCls("long_desc", inputCls + " mt-2 resize-y")}
                   placeholder="Décris le brief du projet, son contexte, le cadrage, l'approche globale…"
                 />
@@ -765,7 +784,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     type="button"
                     onClick={handleAiStructure}
                     disabled={!draft.long_desc?.trim() || aiLoading}
-                    className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     <Sparkles
                       aria-hidden="true"
@@ -790,6 +809,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     rows={estimateRows(MAX_LENGTHS.short_desc)}
                     value={draft.short_desc ?? ""}
                     onChange={(e) => setShortDesc(e.target.value)}
+                    {...ariaErrorProps("short_desc")}
                     className={errorRingCls("short_desc", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -813,6 +833,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     maxLength={MAX_LENGTHS.probleme}
                     value={draft.ai_structured_desc?.probleme ?? ""}
                     onChange={(e) => setAiStructuredField("probleme", e.target.value)}
+                    {...ariaErrorProps("probleme")}
                     className={errorRingCls("probleme", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -836,6 +857,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     maxLength={MAX_LENGTHS.decisions}
                     value={draft.ai_structured_desc?.decisions ?? ""}
                     onChange={(e) => setAiStructuredField("decisions", e.target.value)}
+                    {...ariaErrorProps("decisions")}
                     className={errorRingCls("decisions", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -859,6 +881,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     maxLength={MAX_LENGTHS.resultat}
                     value={draft.ai_structured_desc?.resultat ?? ""}
                     onChange={(e) => setAiStructuredField("resultat", e.target.value)}
+                    {...ariaErrorProps("resultat")}
                     className={errorRingCls("resultat", inputCls + " mt-2 resize-y")}
                   />
                 )}
@@ -924,6 +947,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                           secteur_activite: (e.target.value || null) as Project["secteur_activite"],
                         })
                       }
+                      {...ariaErrorProps("secteur_activite")}
                       className={errorRingCls("secteur_activite", selectCls)}
                     >
                       <option value="">Sélectionner un secteur</option>
@@ -945,6 +969,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-company"
                     value={draft.company_name ?? ""}
                     onChange={(e) => setDraft({ ...draft, company_name: e.target.value })}
+                    {...ariaErrorProps("company_name")}
                     className={errorRingCls("company_name", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -960,6 +985,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-client"
                     value={draft.client_name ?? ""}
                     onChange={(e) => setDraft({ ...draft, client_name: e.target.value })}
+                    {...ariaErrorProps("client_name")}
                     className={errorRingCls("client_name", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -975,6 +1001,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-role"
                     value={draft.role ?? ""}
                     onChange={(e) => setDraft({ ...draft, role: e.target.value })}
+                    {...ariaErrorProps("role")}
                     className={errorRingCls("role", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -990,6 +1017,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     id="pd-team"
                     value={draft.team ?? ""}
                     onChange={(e) => setDraft({ ...draft, team: e.target.value })}
+                    {...ariaErrorProps("team")}
                     className={errorRingCls("team", inputCls + " mt-2")}
                   />
                   <div className="mt-1 flex items-center">
@@ -1007,6 +1035,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                       type="date"
                       value={draft.start_date ?? ""}
                       onChange={(e) => setDraft({ ...draft, start_date: e.target.value || null })}
+                      {...ariaErrorProps("start_date")}
                       className={errorRingCls(
                         "start_date",
                         inputCls +
@@ -1031,6 +1060,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                       type="date"
                       value={draft.end_date ?? ""}
                       onChange={(e) => setDraft({ ...draft, end_date: e.target.value || null })}
+                      {...ariaErrorProps("end_date")}
                       className={errorRingCls(
                         "end_date",
                         inputCls +
@@ -1059,7 +1089,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 type="button"
                 onClick={() => submitWithStatus("draft", "draft")}
                 disabled={savingAction !== null}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {savingAction === "draft" ? (
                   "Enregistrement…"
@@ -1075,7 +1105,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               type="button"
               onClick={() => submitWithStatus(draft.status, "publish")}
               disabled={savingAction !== null}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {savingAction === "publish" ? (
                 "Enregistrement…"
@@ -1138,7 +1168,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               <button
                 type="button"
                 onClick={() => setPendingSave(null)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface"
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <X aria-hidden="true" size={16} />
                 Annuler
@@ -1150,7 +1180,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   setPendingSave(null);
                   persist(status, action);
                 }}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Check aria-hidden="true" size={16} />
                 Confirmer
@@ -1182,14 +1212,14 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   setConfirmClose(false);
                   onClose();
                 }}
-                className="whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-sm font-medium text-on-surface hover:bg-white/5"
+                className="whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-sm font-medium text-on-surface hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 Quitter sans enregistrer
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmClose(false)}
-                className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98]"
+                className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 Revenir au formulaire
                 <ArrowRight aria-hidden="true" size={18} />

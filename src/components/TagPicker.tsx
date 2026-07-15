@@ -2,6 +2,7 @@ import { Plus, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { tagBadgeStyles, type TagCategory } from "@/components/TagBadge";
+import { IconTooltip } from "@/components/IconTooltip";
 import { ensureRefValue, type RefRow, type RefTable } from "@/data/projectRefs";
 import { cn } from "@/lib/utils";
 
@@ -71,13 +72,14 @@ export function TagPicker({
   };
 
   const unselectedOptions = options.filter((o) => !selected.includes(o.name));
+  const newTagInputId = `tp-new-tag-${category}`;
 
   return (
-    <div className="space-y-2">
-      <p className="flex items-center gap-1.5 text-sm font-medium text-on-surface-variant">
+    <fieldset className="m-0 space-y-2 border-0 p-0">
+      <legend className="flex items-center gap-1.5 p-0 text-sm font-medium text-on-surface-variant">
         <Sparkles aria-hidden="true" size={14} />
         {label}
-      </p>
+      </legend>
       <div className="flex flex-wrap items-center gap-2">
         {selected.map((name) => (
           <span
@@ -88,26 +90,30 @@ export function TagPicker({
             )}
           >
             {name}
-            <button
-              type="button"
-              onClick={() => remove(name)}
-              aria-label={`Retirer ${name}`}
-              className="rounded-full p-0.5 hover:bg-white/10"
-            >
-              <X aria-hidden="true" size={11} />
-            </button>
+            <IconTooltip label="Retirer">
+              <button
+                type="button"
+                onClick={() => remove(name)}
+                aria-label={`Retirer ${name}`}
+                className="rounded-full p-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <X aria-hidden="true" size={11} />
+              </button>
+            </IconTooltip>
           </span>
         ))}
 
         <div className="relative" ref={ref}>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={`Ajouter ${label.toLowerCase()}`}
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10"
-          >
-            <Plus aria-hidden="true" size={14} />
-          </button>
+          <IconTooltip label="Ajouter">
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={`Ajouter ${label.toLowerCase()}`}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Plus aria-hidden="true" size={14} />
+            </button>
+          </IconTooltip>
 
           {open && (
             <div className="absolute left-0 top-8 z-20 w-56 rounded-xl border border-white/10 bg-surface-container-lowest p-3 shadow-2xl">
@@ -118,7 +124,7 @@ export function TagPicker({
                       key={o.id}
                       type="button"
                       onClick={() => addExisting(o.name)}
-                      className="rounded-lg px-2 py-1.5 text-left text-xs text-on-surface hover:bg-white/5"
+                      className="rounded-lg px-2 py-1.5 text-left text-xs text-on-surface hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
                     >
                       {o.name}
                     </button>
@@ -126,27 +132,33 @@ export function TagPicker({
                 </div>
               )}
               <div className="flex items-center gap-1 border-t border-white/5 pt-2">
+                <label htmlFor={newTagInputId} className="sr-only">
+                  Nouveau tag pour {label.toLowerCase()}
+                </label>
                 <input
+                  id={newTagInputId}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addNew())}
                   placeholder="Nouveau tag..."
                   className="min-w-0 flex-1 rounded-lg border border-white/5 bg-surface-container px-2 py-1.5 text-xs text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 />
-                <button
-                  type="button"
-                  onClick={addNew}
-                  disabled={!input.trim() || busy}
-                  aria-label="Créer ce tag"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50"
-                >
-                  <Plus aria-hidden="true" size={14} />
-                </button>
+                <IconTooltip label="Créer">
+                  <button
+                    type="button"
+                    onClick={addNew}
+                    disabled={!input.trim() || busy}
+                    aria-label="Créer ce tag"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <Plus aria-hidden="true" size={14} />
+                  </button>
+                </IconTooltip>
               </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </fieldset>
   );
 }

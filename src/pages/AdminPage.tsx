@@ -2,7 +2,9 @@ import {
   ArchiveRestore,
   ArrowLeftRight,
   ArrowRight,
+  Ban,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
@@ -32,7 +34,11 @@ import type { Session } from "@supabase/supabase-js";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Alert } from "@/components/Alert";
+import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { ComingSoonBadge } from "@/components/ComingSoonBadge";
+import { IconTooltip } from "@/components/IconTooltip";
+import { NotificationCountBadge } from "@/components/NotificationCountBadge";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
@@ -289,6 +295,7 @@ export function AdminPage() {
               accessRequests={accessRequests}
               contacts={contacts}
               designWatchEntries={designWatchEntries}
+              veilleNewCount={veilleNewCount}
             />
           )}
           {tab === "projets" && (
@@ -303,10 +310,16 @@ export function AdminPage() {
               items={accessRequests}
               loading={accessRequestsLoading}
               onItemsChange={setAccessRequests}
+              projects={projects}
             />
           )}
           {tab === "contacts" && (
-            <ContactsTab items={contacts} loading={contactsLoading} onItemsChange={setContacts} />
+            <ContactsTab
+              items={contacts}
+              loading={contactsLoading}
+              onItemsChange={setContacts}
+              accessRequests={accessRequests}
+            />
           )}
           {tab === "veille" && (
             <VeilleDesignTab
@@ -329,10 +342,10 @@ export function AdminPage() {
 
 /* ---------- Sidebar ---------- */
 
-/** Couleur active par section de nav (cf. DESIGN.md). `badgeBg`/`badgeText`
- * sont la paire "conteneur solide" utilisée par le badge de notification de
- * cette même catégorie — jamais un dérivé de `bg`/`icon` (souvent une teinte
- * translucide, pas assez de contraste pour porter un chiffre en petit texte).
+/** Couleur active par section de nav (cf. DESIGN.md). Le badge de notification de
+ * chaque item de nav ne suit plus cette couleur -- un seul style partagé
+ * (`NotificationCountBadge`, bg-secondary/text-on-secondary) pour toutes les sections,
+ * identique à celui de la cloche Notifications du header (15/07).
  * ⚠️ Depuis la redéfinition du 13/07, ces couleurs ne correspondent plus
  * forcément à celle du halo `SectionAurora` de la même section (ex. Contacts :
  * nav en tertiary-container, halo toujours cyan) — décision explicite,
@@ -341,38 +354,26 @@ const NAV_ACTIVE_CLASSES = {
   teal: {
     bg: "bg-primary-container/10",
     icon: "text-primary",
-    badgeBg: "bg-primary-container",
-    badgeText: "text-on-primary-container",
   },
   fuchsia: {
     bg: "bg-tag-design-type/15",
     icon: "text-tag-design-type",
-    badgeBg: "bg-tag-design-type",
-    badgeText: "text-background",
   },
   violet: {
     bg: "bg-secondary/10",
     icon: "text-secondary",
-    badgeBg: "bg-secondary-container",
-    badgeText: "text-on-secondary-container",
   },
   cyan: {
     bg: "bg-tag-sector/10",
     icon: "text-tag-sector",
-    badgeBg: "bg-tag-sector",
-    badgeText: "text-on-primary",
   },
   nouveau: {
     bg: "bg-indigo-500/10",
     icon: "text-tag-keywords",
-    badgeBg: "bg-indigo-500",
-    badgeText: "text-black",
   },
   indigo: {
     bg: "bg-tag-keywords/10",
     icon: "text-tag-keywords",
-    badgeBg: "bg-tag-keywords",
-    badgeText: "text-on-primary",
   },
 } as const;
 
@@ -429,7 +430,7 @@ function AdminSidebar({
       badgeLabel: "nouvelles entrées",
       color: "cyan",
     },
-    { key: "parametres", icon: Settings, label: "Paramètres", color: "indigo" },
+    { key: "parametres", icon: Settings, label: "Paramètres", color: "teal" },
   ];
   return (
     <aside
@@ -447,7 +448,7 @@ function AdminSidebar({
             ? "text-2xl font-black tracking-tighter text-primary"
             : "text-2xl font-black tracking-tighter text-primary md:text-xl md:font-medium md:text-on-surface"
         }
-        aria-label="Folio+ — Accéder au dashboard"
+        aria-label="Folio+ • Accède à la page d'accueil"
       >
         {collapsed ? (
           <>
@@ -469,20 +470,22 @@ function AdminSidebar({
        * `absolute` — pas besoin d'un wrapper `relative` supplémentaire. Ancré sur
        * la bordure droite du panneau (`right-0 translate-x-1/2`, à cheval sur le
        * `border-r` de l'aside), indépendant de la largeur collapsed/expanded. */}
-      <button
-        type="button"
-        onClick={onToggleCollapsed}
-        aria-label={
-          collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"
-        }
-        className="absolute right-0 top-10 flex h-[30px] w-[30px] -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        {collapsed ? (
-          <ChevronRight aria-hidden="true" size={16} />
-        ) : (
-          <ChevronLeft aria-hidden="true" size={16} />
-        )}
-      </button>
+      <IconTooltip label={collapsed ? "Ouvrir" : "Fermer"}>
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          aria-label={
+            collapsed ? "Agrandir la barre de navigation" : "Réduire la barre de navigation"
+          }
+          className="absolute right-0 top-10 flex h-[30px] w-[30px] -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-white/5 text-on-surface transition-all hover:bg-primary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {collapsed ? (
+            <ChevronRight aria-hidden="true" size={16} />
+          ) : (
+            <ChevronLeft aria-hidden="true" size={16} />
+          )}
+        </button>
+      </IconTooltip>
 
       <nav
         aria-label="Navigation du dashboard"
@@ -502,7 +505,7 @@ function AdminSidebar({
               onClick={() => setTab(it.key)}
               aria-label={
                 it.badge && it.badge > 0
-                  ? `${it.label} — ${it.badge} ${it.badgeLabel ?? "nouveaux éléments"}`
+                  ? `${it.label} • ${it.badge} ${it.badgeLabel ?? "nouveaux éléments"}`
                   : it.label
               }
               aria-current={active ? "page" : undefined}
@@ -530,20 +533,10 @@ function AdminSidebar({
               >
                 {it.label}
               </span>
-              {it.badge && it.badge > 0 ? (
-                <span
-                  aria-hidden="true"
-                  className={
-                    "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold " +
-                    activeStyle.badgeBg +
-                    " " +
-                    activeStyle.badgeText +
-                    (collapsed ? "" : " md:static md:ml-auto md:h-5 md:w-5")
-                  }
-                >
-                  {it.badge}
-                </span>
-              ) : null}
+              <NotificationCountBadge
+                count={it.badge ?? 0}
+                className={"absolute -right-1 -top-1" + (collapsed ? "" : " md:static md:ml-auto")}
+              />
             </button>
           );
         })}
@@ -553,18 +546,101 @@ function AdminSidebar({
 }
 /* ---------- Dashboard Tab ---------- */
 
+const CONTACTS_UNIFIED_KIND_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "message", label: "Message" },
+  { value: "demande", label: "Demande d'accès" },
+];
+
+/** Date au format homogène des cartes de listes (Accès/Messages/Veille) -- capitales, cf. DESIGN.md. */
+function formatDateCaps(iso: string): string {
+  return new Date(iso)
+    .toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+    .toUpperCase();
+}
+
+/** Ligne d'identité unifiée des cartes de listes (Accès/Messages) -- Nom Prénom, puis
+ * entreprise si renseignée, puis email en style lien, tout sur une seule ligne. */
+function ContactSummaryLine({
+  name,
+  company,
+  email,
+}: {
+  name: string;
+  company?: string | null;
+  email?: string | null;
+}) {
+  return (
+    <p className="truncate text-sm">
+      <span className="font-medium text-on-surface">{name}</span>
+      {company && <span className="text-on-surface-variant"> • {company}</span>}
+      {email && (
+        <span className="text-on-surface-variant">
+          {" "}
+          •{" "}
+          <a href={`mailto:${email}`} className={textLinkClass()}>
+            {email}
+          </a>
+        </span>
+      )}
+    </p>
+  );
+}
+
+/** Une carte "accès rapide" du dashboard -- reprend la couleur nav de l'onglet ciblé (NAV_ACTIVE_CLASSES), pas une teinte unique partagée. */
+function QuickAccessCard({
+  icon: Icon,
+  color,
+  count,
+  label,
+  hint,
+  onClick,
+}: {
+  icon: LucideIcon;
+  color: keyof typeof NAV_ACTIVE_CLASSES;
+  count: number;
+  label: string;
+  hint: string;
+  onClick: () => void;
+}) {
+  const classes = NAV_ACTIVE_CLASSES[color];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
+      <div className={cn("flex h-11 w-11 items-center justify-center rounded-xl", classes.bg)}>
+        <Icon aria-hidden="true" className={classes.icon} size={22} />
+      </div>
+      <span className="mt-4 text-3xl font-bold text-on-surface">{count}</span>
+      <span className="mt-1 text-sm text-on-surface-variant">{label}</span>
+      <span className={"mt-2 text-xs " + classes.icon}>{hint}</span>
+      <ArrowRight
+        aria-hidden="true"
+        size={18}
+        className={cn(
+          "absolute right-5 top-5 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100",
+          classes.icon,
+        )}
+      />
+    </button>
+  );
+}
+
 function DashboardTab({
   setTab,
   projects,
   accessRequests,
   contacts,
   designWatchEntries,
+  veilleNewCount,
 }: {
   setTab: (t: TabKey) => void;
   projects: Project[];
   accessRequests: AdminAccessRequest[];
   contacts: AdminContactMessage[];
   designWatchEntries: DesignWatchEntry[];
+  veilleNewCount: number;
 }) {
   const pendingRequests = accessRequests.filter((r) => r.status === "pending");
   const newMessages = contacts.filter((c) => c.status === "new");
@@ -599,98 +675,126 @@ function DashboardTab({
         subtitle="Récapitulatif de tes projets, demandes d'accès et messages en un coup d'œil."
       />
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <button
-          type="button"
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <QuickAccessCard
+          icon={Folder}
+          color="fuchsia"
+          count={activeProjects.length}
+          label="Projets"
+          hint={`${publishedProjects.length} publiés • ${draftProjects.length} brouillon`}
           onClick={() => setTab("projets")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <Folder aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">{activeProjects.length}</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Projets</span>
-          <span className="mt-2 text-xs text-primary">
-            {publishedProjects.length} publiés · {draftProjects.length} brouillon
-          </span>
-        </button>
-
-        <button
-          type="button"
+        />
+        <QuickAccessCard
+          icon={KeyRound}
+          color="violet"
+          count={pendingRequests.length}
+          label="Demandes en attente"
+          hint="À valider ou refuser"
           onClick={() => setTab("demandes")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <KeyRound aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">{pendingRequests.length}</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Demandes en attente</span>
-          <span className="mt-2 text-xs text-primary">À valider ou refuser</span>
-        </button>
-
-        <button
-          type="button"
+        />
+        <QuickAccessCard
+          icon={Mail}
+          color="nouveau"
+          count={newMessages.length}
+          label="Nouveaux messages"
+          hint="À traiter"
           onClick={() => setTab("contacts")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <Mail aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">{newMessages.length}</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Messages nouveaux</span>
-          <span className="mt-2 text-xs text-primary">À traiter</span>
-        </button>
-
-        <button
-          type="button"
+        />
+        <QuickAccessCard
+          icon={Newspaper}
+          color="cyan"
+          count={veilleNewCount}
+          label="Veille Hebdo"
+          hint="Nouveaux contenus"
+          onClick={() => setTab("veille")}
+        />
+        <QuickAccessCard
+          icon={Settings}
+          color="teal"
+          count={1}
+          label="Paramètres"
+          hint="Profil public"
           onClick={() => setTab("parametres")}
-          className="flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-colors hover:border-primary/20"
-        >
-          <Settings aria-hidden="true" className="text-primary" size={24} />
-          <span className="mt-4 text-3xl font-bold text-on-surface">1</span>
-          <span className="mt-1 text-sm text-on-surface-variant">Paramètres</span>
-          <span className="mt-2 text-xs text-primary">Profil public</span>
-        </button>
+        />
       </div>
 
       {(pendingRequests.length > 0 || newMessages.length > 0) && (
         <div className="mt-10">
           <h2 className="text-xl font-bold text-on-surface">Actions en attente</h2>
-          <div className="mt-4 space-y-3">
-            {pendingRequests.map((r) => (
-              <div
-                key={r.id}
-                className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-on-surface">
-                    {r.visitor?.fullName ?? r.visitor?.email ?? "Visiteur"}
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+                Nouveaux messages
+              </h3>
+              <div className="mt-3 space-y-3">
+                {newMessages.length === 0 ? (
+                  <p className="rounded-2xl border border-white/5 bg-surface-container-low p-4 text-sm text-on-surface-variant">
+                    Aucun nouveau message.
                   </p>
-                  <p className="text-sm text-on-surface-variant">
-                    {r.visitor?.company ?? "—"} — Demande d'accès
+                ) : (
+                  newMessages.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
+                    >
+                      <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] tracking-widest text-on-surface-variant">
+                          {formatDateCaps(m.createdAt)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setTab("contacts")}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Afficher
+                          <ArrowRight aria-hidden="true" size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+                Demandes d'accès
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pendingRequests.length === 0 ? (
+                  <p className="rounded-2xl border border-white/5 bg-surface-container-low p-4 text-sm text-on-surface-variant">
+                    Aucune demande en attente.
                   </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setTab("demandes")}
-                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
-                >
-                  Traiter
-                </button>
+                ) : (
+                  pendingRequests.map((r) => (
+                    <div
+                      key={r.id}
+                      className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
+                    >
+                      <ContactSummaryLine
+                        name={r.visitor?.fullName ?? "Visiteur"}
+                        company={r.visitor?.company}
+                        email={r.visitor?.email}
+                      />
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] tracking-widest text-on-surface-variant">
+                          {formatDateCaps(r.createdAt)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setTab("demandes")}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Traiter
+                          <ArrowRight aria-hidden="true" size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            ))}
-            {newMessages.map((m) => (
-              <div
-                key={m.id}
-                className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4 sm:flex-row sm:items-center"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-on-surface">{m.name}</p>
-                  <p className="text-sm text-on-surface-variant">{m.email} — Nouveau message</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setTab("contacts")}
-                  className="shrink-0 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
-                >
-                  Lire
-                </button>
-              </div>
-            ))}
+            </div>
           </div>
         </div>
       )}
@@ -769,6 +873,7 @@ function DashboardTab({
           </div>
         </div>
       )}
+
     </>
   );
 }
@@ -781,6 +886,17 @@ function formatPeriod(start: string | null, end: string | null): string {
   if (startYear && endYear && startYear !== endYear) return `${startYear} — ${endYear}`;
   return String(startYear ?? endYear ?? "");
 }
+
+const PROJETS_NIVEAU_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "public", label: "Public" },
+  { value: "confidentiel_sensible", label: "Confidentiel-Sensible" },
+  { value: "confidentiel_critique", label: "Confidentiel-Critique" },
+];
+
+const PROJETS_STATUT_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "publie", label: "Publié" },
+  { value: "brouillon", label: "Brouillon" },
+];
 
 function ProjetsTab({
   projects,
@@ -795,6 +911,26 @@ function ProjetsTab({
   const [editing, setEditing] = useState<Project | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({ niveau: "", statut: "" });
+
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "niveau", label: "Niveau", primary: true, options: PROJETS_NIVEAU_OPTIONS },
+    { key: "statut", label: "Statut", options: PROJETS_STATUT_OPTIONS },
+  ];
+
+  const filteredProjects = projects
+    .filter((p) => {
+      if (!filters.niveau) return true;
+      if (filters.niveau === "public") return p.status === "public";
+      if (filters.niveau === "confidentiel_sensible")
+        return p.status === "confidential" && p.sensitivity_level === "sensible";
+      return p.status === "confidential" && p.sensitivity_level === "tres_sensible";
+    })
+    .filter((p) => {
+      if (!filters.statut) return true;
+      const published = p.status === "public" || p.status === "confidential";
+      return filters.statut === "publie" ? published : !published;
+    });
 
   const openNew = () => {
     setEditing(null);
@@ -851,24 +987,33 @@ function ProjetsTab({
     <div className="relative">
       <SectionAurora color="teal" />
       <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
-        <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
-          Mon catalogue <span className="font-display-accent italic text-primary">Projets</span>
-        </h1>
+        <div>
+          <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
+            Mon catalogue <span className="font-display-accent italic text-primary">Projets</span>
+          </h1>
+          <p className="mt-2 text-sm text-on-surface-variant">
+            Crée tes projets publics et confidentiels en un clin d'œil à l'aide de l'IA.
+          </p>
+        </div>
         <button
           type="button"
           onClick={openNew}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Plus aria-hidden="true" size={18} />
           Créer un nouveau projet
         </button>
       </header>
 
+      <div className="mt-8">
+        <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
+      </div>
+
       {loading ? (
         <p className="mt-10 text-sm text-on-surface-variant">Chargement des projets…</p>
       ) : (
         <ul className="mt-10 space-y-6">
-          {projects.map((p, i) => {
+          {filteredProjects.map((p, i) => {
             const deleted = Boolean(p.deleted_at);
             const num = String(i + 1).padStart(2, "0");
             const statusKind = deleted
@@ -900,13 +1045,7 @@ function ProjetsTab({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3
-                    className={
-                      "truncate text-xl font-bold text-on-surface " + (deleted ? "opacity-60" : "")
-                    }
-                  >
-                    {p.title}
-                  </h3>
+                  <h3 className="truncate text-xl font-bold text-on-surface">{p.title}</h3>
                   <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
                     {deleted && p.deleted_at
                       ? `Supprimé le ${new Date(p.deleted_at).toLocaleDateString("fr-FR")}`
@@ -927,35 +1066,41 @@ function ProjetsTab({
 
                 <div className="flex shrink-0 items-center gap-2">
                   {deleted ? (
-                    <button
-                      type="button"
-                      onClick={() => restore(p.id)}
-                      disabled={busyId === p.id}
-                      aria-label={`Restaurer le projet ${p.title}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
-                    >
-                      <ArchiveRestore aria-hidden="true" size={16} />
-                    </button>
-                  ) : (
-                    <>
+                    <IconTooltip label="Restaurer">
                       <button
                         type="button"
-                        onClick={() => openEdit(p)}
+                        onClick={() => restore(p.id)}
                         disabled={busyId === p.id}
-                        aria-label={`Éditer ${p.title}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50"
+                        aria-label={`Restaurer le projet ${p.title}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
-                        <Pencil aria-hidden="true" size={16} />
+                        <ArchiveRestore aria-hidden="true" size={16} />
                       </button>
+                    </IconTooltip>
+                  ) : (
+                    <>
+                      <IconTooltip label="Éditer">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(p)}
+                          disabled={busyId === p.id}
+                          aria-label={`Éditer ${p.title}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          <Pencil aria-hidden="true" size={16} />
+                        </button>
+                      </IconTooltip>
+                      <IconTooltip label="Supprimer">
                       <button
                         type="button"
                         onClick={() => setConfirmDelete(p.id)}
                         disabled={busyId === p.id}
                         aria-label={`Supprimer ${p.title}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <Trash2 aria-hidden="true" size={18} />
                       </button>
+                      </IconTooltip>
                     </>
                   )}
                 </div>
@@ -989,7 +1134,7 @@ function ProjetsTab({
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface"
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <X aria-hidden="true" size={16} />
                 Annuler
@@ -1001,7 +1146,7 @@ function ProjetsTab({
                   setConfirmDelete(null);
                   softDelete(id);
                 }}
-                className="inline-flex items-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171]"
+                className="inline-flex items-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Trash2 aria-hidden="true" size={16} />
                 Supprimer
@@ -1016,19 +1161,59 @@ function ProjetsTab({
 
 /* ---------- Demandes Tab ---------- */
 
+const DEMANDES_STATUS_OPTIONS: AdminFilterGroup["options"] = [
+  { value: "pending", label: "En attente" },
+  { value: "approved", label: "Validées" },
+  { value: "rejected", label: "Refusées" },
+];
+
 function DemandesTab({
   items,
   loading,
   onItemsChange,
+  projects,
 }: {
   items: AdminAccessRequest[];
   loading: boolean;
   onItemsChange: (items: AdminAccessRequest[]) => void;
+  projects: Project[];
 }) {
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [accesDrawerOpen, setAccesDrawerOpen] = useState(false);
+  const [filters, setFilters] = useState<Record<string, string>>({
+    status: "",
+    period: "",
+    person: "",
+  });
+
+  const periodOptions = useMemo(
+    () =>
+      Array.from(new Set(items.map((r) => r.createdAt.slice(0, 7))))
+        .sort((a, b) => (a < b ? 1 : -1))
+        .map((key) => ({
+          value: key,
+          label: new Date(`${key}-01`).toLocaleDateString("fr-FR", {
+            month: "long",
+            year: "numeric",
+          }),
+        })),
+    [items],
+  );
+  const personOptions = useMemo(
+    () =>
+      Array.from(new Set(items.map((r) => r.visitor?.fullName).filter((n): n is string => !!n)))
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [items],
+  );
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "status", label: "Statut", primary: true, options: DEMANDES_STATUS_OPTIONS },
+    { key: "period", label: "Date", options: periodOptions },
+    { key: "person", label: "Personne", options: personOptions },
+  ];
 
   const update = (id: string, patch: Partial<AdminAccessRequest>) =>
     onItemsChange(items.map((x) => (x.id === id ? { ...x, ...patch } : x)));
@@ -1066,7 +1251,11 @@ function DemandesTab({
     }
   };
 
-  const sorted = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const sorted = [...items]
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .filter((r) => !filters.status || r.status === filters.status)
+    .filter((r) => !filters.period || r.createdAt.slice(0, 7) === filters.period)
+    .filter((r) => !filters.person || r.visitor?.fullName === filters.person);
 
   return (
     <div className="relative">
@@ -1075,12 +1264,24 @@ function DemandesTab({
         title="Demandes d'"
         emphasis="accès"
         subtitle="Valide ou refuse l'accès aux projets confidentiels — chaque refus doit être motivé."
+        cta={
+          <button
+            type="button"
+            onClick={() => setAccesDrawerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Suivi accès confidentiels par projet
+          </button>
+        }
       />
       {error && (
         <div className="mt-6">
           <Alert type="error" title="Une erreur est survenue" description={error} />
         </div>
       )}
+      <div className="mt-6">
+        <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
+      </div>
       {loading ? (
         <p className="mt-10 text-sm text-on-surface-variant">Chargement des demandes…</p>
       ) : sorted.length === 0 ? (
@@ -1097,13 +1298,11 @@ function DemandesTab({
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-base font-medium text-on-surface">
-                    {r.visitor?.fullName ?? "Visiteur"}
-                  </p>
-                  <p className="text-sm text-on-surface-variant">
-                    {r.visitor?.company ?? "—"} ·{" "}
-                    <span className="text-primary">{r.visitor?.email ?? "—"}</span>
-                  </p>
+                  <ContactSummaryLine
+                    name={r.visitor?.fullName ?? "Visiteur"}
+                    company={r.visitor?.company}
+                    email={r.visitor?.email}
+                  />
                   <p className="mt-2 text-sm text-on-surface-variant">
                     <span className="text-on-surface">Projet :</span>{" "}
                     {r.project?.title ?? "Projet supprimé"}
@@ -1113,12 +1312,8 @@ function DemandesTab({
                       <span className="text-on-surface">Message :</span> {r.message}
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-on-surface-variant/70">
-                    {new Date(r.createdAt).toLocaleDateString("fr-FR", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                  <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
+                    {formatDateCaps(r.createdAt)}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
@@ -1129,7 +1324,7 @@ function DemandesTab({
               {r.status === "pending" && (
                 <div className="flex flex-col gap-3">
                   {rejecting === r.id ? (
-                    <div className="rounded-xl border border-[#F87171]/30 bg-[#F87171]/5 p-4">
+                    <div className="rounded-xl border border-white/5 bg-surface-container p-4">
                       <label
                         htmlFor={`reason-${r.id}`}
                         className="block text-sm font-medium text-on-surface-variant"
@@ -1152,7 +1347,7 @@ function DemandesTab({
                             setRejecting(null);
                             setReason("");
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           <X aria-hidden="true" size={14} />
                           Annuler
@@ -1161,8 +1356,9 @@ function DemandesTab({
                           type="button"
                           onClick={() => reject(r.id)}
                           disabled={!reason.trim() || busyId === r.id}
-                          className="rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
+                          <Ban aria-hidden="true" size={14} />
                           Confirmer le refus
                         </button>
                       </div>
@@ -1173,16 +1369,18 @@ function DemandesTab({
                         type="button"
                         onClick={() => setRejecting(r.id)}
                         disabled={busyId === r.id}
-                        className="rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
+                        <Ban aria-hidden="true" size={14} />
                         Refuser
                       </button>
                       <button
                         type="button"
                         onClick={() => approve(r.id)}
                         disabled={busyId === r.id}
-                        className="rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
+                        <Check aria-hidden="true" size={14} />
                         Valider
                       </button>
                     </div>
@@ -1192,7 +1390,7 @@ function DemandesTab({
 
               {r.status === "rejected" && r.rejectionReason && (
                 <p className="rounded-xl border border-white/5 bg-surface-container p-3 text-xs text-on-surface-variant">
-                  <span className="font-medium text-[#F87171]">Motif du refus :</span>{" "}
+                  <span className="font-medium text-on-surface-variant">Motif du refus :</span>{" "}
                   {r.rejectionReason}
                 </p>
               )}
@@ -1200,6 +1398,162 @@ function DemandesTab({
           ))}
         </div>
       )}
+
+      {accesDrawerOpen && (
+        <AccesConfidentielsDrawer
+          projects={projects}
+          accessRequests={items}
+          onClose={() => setAccesDrawerOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Suivi des accès confidentiels accordés, projet par projet -- exclut les projets publics
+ * (aucune notion d'accès accordé pour eux). Ouvert depuis un bouton de l'onglet Accès. */
+function AccesConfidentielsDrawer({
+  projects,
+  accessRequests,
+  onClose,
+}: {
+  projects: Project[];
+  accessRequests: AdminAccessRequest[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = original;
+      document.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const confidentialRows = useMemo(
+    () =>
+      projects
+        .filter((p) => !p.deleted_at && p.status === "confidential")
+        .map((p) => {
+          const grantees = accessRequests
+            .filter((r) => r.project?.id === p.id && r.status === "approved")
+            .map((r) => ({
+              name: r.visitor?.fullName ?? r.visitor?.email ?? "Visiteur",
+              requestedAt: r.createdAt,
+              validatedAt: r.validatedAt,
+            }));
+          return { project: p, grantees };
+        }),
+    [projects, accessRequests],
+  );
+
+  const [personFilter, setPersonFilter] = useState("");
+  const personOptions = useMemo(
+    () =>
+      Array.from(new Set(confidentialRows.flatMap((r) => r.grantees.map((g) => g.name))))
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [confidentialRows],
+  );
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "person", label: "Personne", primary: true, options: personOptions },
+  ];
+
+  const filteredRows = confidentialRows.filter(
+    (r) => !personFilter || r.grantees.some((g) => g.name === personFilter),
+  );
+
+  const totalGranted = confidentialRows.reduce((sum, r) => sum + r.grantees.length, 0);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Suivi des accès confidentiels accordés"
+    >
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+        <div className="border-b border-white/5 px-10 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-medium text-on-surface">
+              Suivi des accès confidentiels accordés
+              <span className="ml-2 text-sm font-normal text-on-surface-variant">
+                • {totalGranted} accès accordé{totalGranted > 1 ? "s" : ""}
+              </span>
+            </h2>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer"
+                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-10 py-6">
+          {personOptions.length > 0 && (
+            <div className="mb-4">
+              <AdminFilterBar
+                groups={filterGroups}
+                value={{ person: personFilter }}
+                onChange={(v) => setPersonFilter(v.person ?? "")}
+              />
+            </div>
+          )}
+          {filteredRows.length === 0 ? (
+            <p className="rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
+              Aucun projet confidentiel pour ce filtre.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {filteredRows.map(({ project: p, grantees }) => (
+                <li
+                  key={p.id}
+                  className="rounded-2xl border border-white/5 bg-surface-container-low p-5"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="font-medium text-on-surface">{p.title}</p>
+                    <div className="flex items-center gap-3">
+                      <StatusBadge kind="confidential" suffix={SENSITIVITY_LABELS[p.sensitivity_level]} />
+                      <span className="text-xs text-on-surface-variant">
+                        {grantees.length} accès accordé{grantees.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  </div>
+                  {grantees.length > 0 && (
+                    <ul className="mt-3 space-y-1.5 border-t border-white/5 pt-3">
+                      {grantees.map((g, i) => (
+                        <li
+                          key={i}
+                          className="flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant"
+                        >
+                          <span className="font-medium text-on-surface">{g.name}</span>
+                          <span>
+                            Demandé le {new Date(g.requestedAt).toLocaleDateString("fr-FR")}
+                            {g.validatedAt &&
+                              ` • Validé le ${new Date(g.validatedAt).toLocaleDateString("fr-FR")}`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
@@ -1218,8 +1572,7 @@ const CONTACT_STATUS_KIND: Record<ContactDbStatus, "nouveau" | "traite" | "archi
   archived: "archive",
 };
 
-const CONTACT_STATUS_FILTERS: { value: ContactDbStatus | "all"; label: string }[] = [
-  { value: "all", label: "Tous" },
+const CONTACT_STATUS_OPTIONS: AdminFilterGroup["options"] = [
   { value: "new", label: "Nouveau" },
   { value: "treated", label: "Traité" },
   { value: "archived", label: "Archivé" },
@@ -1229,17 +1582,24 @@ function ContactsTab({
   items,
   loading,
   onItemsChange,
+  accessRequests,
 }: {
   items: AdminContactMessage[];
   loading: boolean;
   onItemsChange: (items: AdminContactMessage[]) => void;
+  accessRequests: AdminAccessRequest[];
 }) {
-  const [statusFilter, setStatusFilter] = useState<ContactDbStatus | "all">("all");
+  const [filters, setFilters] = useState<Record<string, string>>({ status: "" });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [contactsDrawerOpen, setContactsDrawerOpen] = useState(false);
+
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "status", label: "Statut", primary: true, options: CONTACT_STATUS_OPTIONS },
+  ];
 
   const sorted = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  const filtered = sorted.filter((m) => statusFilter === "all" || m.status === statusFilter);
+  const filtered = sorted.filter((m) => !filters.status || m.status === filters.status);
 
   const cycle = async (m: AdminContactMessage) => {
     const next = nextContactStatus[m.status];
@@ -1263,6 +1623,15 @@ function ContactsTab({
         title="Messages"
         emphasis="reçus"
         subtitle="Traite, archive, reviens-y. Le statut se met à jour d'un clic."
+        cta={
+          <button
+            type="button"
+            onClick={() => setContactsDrawerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Mes contacts
+          </button>
+        }
       />
 
       {error && (
@@ -1271,17 +1640,8 @@ function ContactsTab({
         </div>
       )}
 
-      <div className="mt-10 flex flex-wrap gap-2">
-        {CONTACT_STATUS_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => setStatusFilter(f.value)}
-            className={veillePillCls(statusFilter === f.value, "keywords")}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="mt-10">
+        <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
       </div>
 
       {loading ? (
@@ -1303,10 +1663,7 @@ function ContactsTab({
                 className="glass-panel flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:flex-row md:items-center md:justify-between"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-base font-medium text-on-surface">{m.name}</p>
-                    <span className="text-sm text-on-surface-variant">{m.email}</span>
-                  </div>
+                  <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
                   <p
                     className="mt-2 text-sm font-light text-on-surface-variant"
                     style={{
@@ -1319,27 +1676,23 @@ function ContactsTab({
                     {m.message}
                   </p>
                   <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
-                    {new Date(m.createdAt)
-                      .toLocaleDateString("fr-FR", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      })
-                      .toUpperCase()}
+                    {formatDateCaps(m.createdAt)}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3" aria-live="polite">
                   <StatusBadge kind={CONTACT_STATUS_KIND[m.status]} />
                   {next && (
-                    <button
-                      type="button"
-                      onClick={() => cycle(m)}
-                      disabled={busyId === m.id}
-                      aria-label={`Changer le statut du message de ${m.name}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50"
-                    >
-                      <ArrowLeftRight aria-hidden="true" size={16} />
-                    </button>
+                    <IconTooltip label="Changer">
+                      <button
+                        type="button"
+                        onClick={() => cycle(m)}
+                        disabled={busyId === m.id}
+                        aria-label={`Changer le statut du message de ${m.name}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
+                        <ArrowLeftRight aria-hidden="true" size={16} />
+                      </button>
+                    </IconTooltip>
                   )}
                 </div>
               </li>
@@ -1347,6 +1700,163 @@ function ContactsTab({
           })}
         </ul>
       )}
+
+      {contactsDrawerOpen && (
+        <MesContactsDrawer
+          contacts={items}
+          accessRequests={accessRequests}
+          onClose={() => setContactsDrawerOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Vue unifiée messages + demandes d'accès -- ouverte depuis un bouton dédié de l'onglet Messages. */
+function MesContactsDrawer({
+  contacts,
+  accessRequests,
+  onClose,
+}: {
+  contacts: AdminContactMessage[];
+  accessRequests: AdminAccessRequest[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = original;
+      document.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [kindFilter, setKindFilter] = useState("");
+  const [personFilter, setPersonFilter] = useState("");
+
+  const unifiedContacts = useMemo(() => {
+    const fromMessages = contacts.map((c) => ({
+      id: `msg-${c.id}`,
+      name: c.name,
+      email: c.email,
+      company: c.company,
+      kind: "message" as const,
+      status: CONTACT_STATUS_KIND[c.status],
+      createdAt: c.createdAt,
+    }));
+    const fromRequests = accessRequests.map((r) => ({
+      id: `req-${r.id}`,
+      name: r.visitor?.fullName ?? "Visiteur",
+      email: r.visitor?.email ?? null,
+      company: r.visitor?.company ?? null,
+      kind: "demande" as const,
+      status: r.status,
+      createdAt: r.createdAt,
+    }));
+    return [...fromMessages, ...fromRequests].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  }, [contacts, accessRequests]);
+
+  const personOptions = useMemo(
+    () => Array.from(new Set(unifiedContacts.map((r) => r.name))).sort(),
+    [unifiedContacts],
+  );
+
+  const filterGroups: AdminFilterGroup[] = [
+    { key: "kind", label: "Type", primary: true, options: CONTACTS_UNIFIED_KIND_OPTIONS },
+  ];
+
+  const filtered = unifiedContacts
+    .filter((r) => !kindFilter || r.kind === kindFilter)
+    .filter((r) => !personFilter || r.name === personFilter);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mes contacts Folio+"
+    >
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+        <div className="border-b border-white/5 px-10 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-medium text-on-surface">Mes contacts Folio+</h2>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer"
+                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-10 py-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+            <AdminFilterBar
+              groups={filterGroups}
+              value={{ kind: kindFilter }}
+              onChange={(v) => setKindFilter(v.kind ?? "")}
+            />
+            <div className="relative">
+              <select
+                value={personFilter}
+                onChange={(e) => setPersonFilter(e.target.value)}
+                aria-label="Filtrer par nom d'utilisateur"
+                className="appearance-none rounded-full border border-outline bg-surface-container py-1.5 pl-4 pr-9 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <option value="">Tous les contacts</option>
+                {personOptions.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                aria-hidden="true"
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+              />
+            </div>
+          </div>
+          {filtered.length === 0 ? (
+            <p className="rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
+              Aucun contact pour ce filtre.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {filtered.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <ContactSummaryLine name={r.name} company={r.company} email={r.email} />
+                    <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
+                      {formatDateCaps(r.createdAt)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-on-surface-variant">
+                      {r.kind === "message" ? "Message" : "Demande d'accès"}
+                    </span>
+                    <StatusBadge kind={r.status} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
@@ -1534,7 +2044,7 @@ function ParametresTab() {
 
   return (
     <div className="relative">
-      <SectionAurora color="indigo" />
+      <SectionAurora color="teal" />
       <TabHeader
         title="Mes"
         emphasis="paramètres"
@@ -1569,9 +2079,10 @@ function ParametresTab() {
       ) : (
         <form onSubmit={handleSave} className="mt-10 space-y-6">
           <div>
-            <p className={labelCls}>Photo de profil</p>
+            <label htmlFor="s-photo-input" className={labelCls}>
+              Photo de profil
+            </label>
             <label
-              tabIndex={editing ? -1 : undefined}
               onDragOver={(e) => {
                 if (!editing) return;
                 e.preventDefault();
@@ -1606,6 +2117,7 @@ function ParametresTab() {
                 </>
               )}
               <input
+                id="s-photo-input"
                 type="file"
                 disabled={!editing}
                 accept="image/png,image/jpeg,image/webp"
@@ -1700,9 +2212,12 @@ function ParametresTab() {
               {fieldError("website")}
             </div>
             <div>
-              <label htmlFor="s-cal" className={labelCls}>
-                Nom d'utilisateur Cal.com
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="s-cal" className={labelCls}>
+                  Nom d'utilisateur Cal.com
+                </label>
+                <ComingSoonBadge />
+              </div>
               <input
                 id="s-cal"
                 disabled={!editing}
@@ -1729,18 +2244,20 @@ function ParametresTab() {
                 value={publicUrl}
                 className={inputCls + " cursor-default text-on-surface-variant"}
               />
-              <button
-                type="button"
-                onClick={copy}
-                aria-label="Copier le lien du profil"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                {copied ? (
-                  <Check aria-hidden="true" size={18} />
-                ) : (
-                  <Copy aria-hidden="true" size={18} />
-                )}
-              </button>
+              <IconTooltip label="Copier">
+                <button
+                  type="button"
+                  onClick={copy}
+                  aria-label="Copier le lien du profil"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  {copied ? (
+                    <Check aria-hidden="true" size={18} />
+                  ) : (
+                    <Copy aria-hidden="true" size={18} />
+                  )}
+                </button>
+              </IconTooltip>
             </div>
             <p className="mt-2 text-xs text-on-surface-variant/70">
               Le slug est en lecture seule pour cette version.{" "}
@@ -1782,13 +2299,16 @@ function ParametresTab() {
 
 /* ---------- Veille Design Tab ---------- */
 
+// Meme forme pill que les tags categorie (TagBadge) plutot qu'un style ad hoc --
+// statut est un miroir Notion, valeurs ouvertes, d'ou le fallback sur tag-keywords.
 const VEILLE_STATUT_STYLES: Record<string, string> = {
-  Publié: "border-primary/40 bg-primary/15 text-primary",
-  Brouillon: "border-outline text-on-surface-variant",
+  Publié: "border-tag-sector/30 bg-tag-sector/10 text-tag-sector",
+  Nouveau: "border-tag-tools/30 bg-tag-tools/10 text-tag-tools",
+  Brouillon: "border-tag-keywords/30 bg-tag-keywords/10 text-tag-keywords",
 };
 
 function veilleStatutClass(statut: string): string {
-  return VEILLE_STATUT_STYLES[statut] ?? "border-outline text-on-surface-variant";
+  return VEILLE_STATUT_STYLES[statut] ?? "border-tag-keywords/30 bg-tag-keywords/10 text-tag-keywords";
 }
 
 /** Formate periode_debut → periode_fin en français, ex. "3 – 9 juillet 2026". */
@@ -1826,15 +2346,17 @@ function VeilleDesignTab({
   onSynced: () => Promise<void> | void;
 }) {
   const [searchParams] = useSearchParams();
-  const [statutFilter, setStatutFilter] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
+  const [filters, setFilters] = useState<Record<string, string>>({ statut: "", tag: "" });
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncSuccess, setSyncSuccess] = useState(false);
   // Deep-link depuis le tableau "Veille Hebdo" du Dashboard (?entry=<notion_page_id>) --
   // ouvre directement le drawer de contenu de l'entrée visée.
   const [openEntryId, setOpenEntryId] = useState<string | null>(() => searchParams.get("entry"));
   const openEntry = entries.find((e) => e.notion_page_id === openEntryId) ?? null;
 
+  // statut est un miroir direct du select Notion (valeurs vues en prod : Brouillon, Nouveau) --
+  // liste dynamique, pas une énumération figée côté app (cf. commentaire migration table).
   const statutOptions = useMemo(
     () => Array.from(new Set(entries.map((e) => e.statut))).sort(),
     [entries],
@@ -1844,9 +2366,23 @@ function VeilleDesignTab({
     [entries],
   );
 
+  const filterGroups: AdminFilterGroup[] = [
+    {
+      key: "statut",
+      label: "Statut",
+      primary: true,
+      options: statutOptions.map((s) => ({ value: s, label: s })),
+    },
+    {
+      key: "tag",
+      label: "Tags",
+      options: tagOptions.map((t) => ({ value: t, label: t })),
+    },
+  ];
+
   const filtered = entries
-    .filter((e) => !statutFilter || e.statut === statutFilter)
-    .filter((e) => !tagFilter || e.tags.includes(tagFilter));
+    .filter((e) => !filters.statut || e.statut === filters.statut)
+    .filter((e) => !filters.tag || e.tags.includes(filters.tag));
 
   const lastSync = useMemo(() => {
     if (entries.length === 0) return null;
@@ -1860,9 +2396,15 @@ function VeilleDesignTab({
     if (!session) return;
     setSyncing(true);
     setSyncError(null);
+    setSyncSuccess(false);
     try {
       await triggerNotionSync(session.access_token);
       await onSynced();
+      // Le contenu synchronisé peut être identique d'une synchro à l'autre (rien de nouveau
+      // côté Notion) -- la seule confirmation visible serait sinon la légère mise à jour de
+      // la légende "dernière synchronisation", facile à manquer. D'où ce message explicite.
+      setSyncSuccess(true);
+      setTimeout(() => setSyncSuccess(false), 4000);
     } catch (err) {
       setSyncError(err instanceof Error ? err.message : "La synchronisation a échoué. Réessaie.");
     } finally {
@@ -1882,7 +2424,7 @@ function VeilleDesignTab({
               type="button"
               onClick={handleSync}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <RefreshCw aria-hidden="true" size={16} className={syncing ? "animate-spin" : ""} />
               {syncing ? "Synchronisation…" : "Synchroniser à nouveau"}
@@ -1903,64 +2445,16 @@ function VeilleDesignTab({
           <Alert type="error" title="Échec de la synchronisation" description={syncError} />
         </div>
       )}
+      {syncSuccess && (
+        <div className="mt-4">
+          <Alert type="success" title="Synchronisation réussie" description="La veille est à jour." />
+        </div>
+      )}
 
       <div className="mt-8 rounded-2xl bg-aurora-cyan p-6">
-        {(statutOptions.length > 0 || tagOptions.length > 0) && (
-          <div className="mb-6 flex flex-wrap gap-x-10 gap-y-4 border-b border-white/10 pb-6">
-            {statutOptions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-on-surface-variant/65">
-                  Statut
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setStatutFilter("")}
-                    className={veillePillCls(statutFilter === "", "sector")}
-                  >
-                    Tous
-                  </button>
-                  {statutOptions.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setStatutFilter(statutFilter === s ? "" : s)}
-                      className={veillePillCls(statutFilter === s, "sector")}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {tagOptions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-on-surface-variant/65">
-                  Tags
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTagFilter("")}
-                    className={veillePillCls(tagFilter === "", "keywords")}
-                  >
-                    Tous
-                  </button>
-                  {tagOptions.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTagFilter(tagFilter === t ? "" : t)}
-                      className={veillePillCls(tagFilter === t, "keywords")}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        <div className="mb-6">
+          <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
+        </div>
 
         {loading ? (
           <p className="text-sm text-on-surface-variant">Chargement de la veille…</p>
@@ -1981,21 +2475,10 @@ function VeilleDesignTab({
                 className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-base font-medium text-on-surface">{e.titre}</p>
-                    <p className="mt-1 text-xs text-on-surface-variant/70">
-                      {formatPeriode(e.periode_debut, e.periode_fin)}
-                      {typeof e.nb_sources === "number" && (
-                        <span>
-                          {" "}
-                          · {e.nb_sources} source{e.nb_sources > 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </p>
-                  </div>
+                  <p className="min-w-0 text-base font-medium text-on-surface">{e.titre}</p>
                   <span
                     className={
-                      "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest " +
+                      "inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-wide " +
                       veilleStatutClass(e.statut)
                     }
                   >
@@ -2014,20 +2497,31 @@ function VeilleDesignTab({
                     ))}
                   </div>
                 )}
-                {e.contenu ? (
-                  <button
-                    type="button"
-                    onClick={() => setOpenEntryId(e.notion_page_id)}
-                    className="inline-flex w-fit items-center gap-1.5 rounded-full border border-violet-text/40 px-4 py-1.5 text-xs font-bold text-violet-text transition-colors hover:bg-violet-text/10"
-                  >
-                    Voir le contenu
-                    <ArrowRight aria-hidden="true" size={14} />
-                  </button>
-                ) : (
-                  <p className="text-xs text-on-surface-variant/70">
-                    Contenu indisponible — relance une synchro.
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-[10px] tracking-widest text-on-surface-variant">
+                    {formatPeriode(e.periode_debut, e.periode_fin).toUpperCase()}
+                    {typeof e.nb_sources === "number" && (
+                      <span>
+                        {" "}
+                        • {e.nb_sources} SOURCE{e.nb_sources > 1 ? "S" : ""}
+                      </span>
+                    )}
                   </p>
-                )}
+                  {e.contenu ? (
+                    <button
+                      type="button"
+                      onClick={() => setOpenEntryId(e.notion_page_id)}
+                      className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      Voir le contenu
+                      <ArrowRight aria-hidden="true" size={14} />
+                    </button>
+                  ) : (
+                    <p className="text-xs text-on-surface-variant/70">
+                      Contenu indisponible — relance une synchro.
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -2077,14 +2571,16 @@ function VeilleContentDrawer({
               </p>
               <h2 className="mt-1 text-xl font-medium text-on-surface">{entry.titre}</h2>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer"
-              className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface"
-            >
-              <X aria-hidden="true" size={24} />
-            </button>
+            <IconTooltip label="Fermer">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer"
+                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <X aria-hidden="true" size={24} />
+              </button>
+            </IconTooltip>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-10 py-6">

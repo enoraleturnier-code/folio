@@ -1,6 +1,7 @@
 import { CircleAlert, CircleCheckBig, Info, TriangleAlert, X, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { IconTooltip } from "@/components/IconTooltip";
 import { cn } from "@/lib/utils";
 
 export type AlertType = "info" | "success" | "warning" | "error";
@@ -53,14 +54,16 @@ export function Alert({ type, title, description, dismissible, onClose, icon }: 
         )}
       </div>
       {dismissible && (
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fermer l'alerte"
-          className="shrink-0 rounded-full p-1 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface"
-        >
-          <X aria-hidden="true" size={16} />
-        </button>
+        <IconTooltip label="Fermer l'alerte">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer l'alerte"
+            className="shrink-0 rounded-full p-1 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface"
+          >
+            <X aria-hidden="true" size={16} />
+          </button>
+        </IconTooltip>
       )}
     </div>
   );

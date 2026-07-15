@@ -1,6 +1,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
+import { IconTooltip } from "@/components/IconTooltip";
 import { formatSecteur } from "@/lib/secteurLabels";
 
 export interface FilterState {
@@ -46,10 +47,12 @@ const secondaryCategories: { key: keyof FilterState; label: string }[] = [
 
 function pillClass(key: keyof FilterState, active: boolean) {
   return (
-    "rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
+    "rounded-full border px-4 py-1.5 text-sm transition-colors " +
     focusRing +
     " " +
-    (active ? activeClasses[key] : `border-outline text-on-surface-variant ${hoverClasses[key]}`)
+    (active
+      ? `font-semibold ${activeClasses[key]}`
+      : `font-normal border-outline text-on-surface-variant ${hoverClasses[key]}`)
   );
 }
 
@@ -72,28 +75,29 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
         <div className="flex flex-wrap items-center gap-4 border-b border-white/5 pb-6">
           {visibleSecondaryCategories.length > 0 && (
             <>
-              <button
-                type="button"
-                onClick={() => setExpanded((v) => !v)}
-                aria-expanded={expanded}
-                aria-label="Plus de filtres"
-                className={
-                  "flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-normal transition-colors " +
-                  focusRing +
-                  " " +
-                  (expanded || activeSecondaryCount > 0
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
-                }
-              >
-                <SlidersHorizontal aria-hidden="true" size={14} />
-                Filtrer
-                {activeSecondaryCount > 0 && (
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">
-                    {activeSecondaryCount}
-                  </span>
-                )}
-              </button>
+              <IconTooltip label="Filtrer">
+                <button
+                  type="button"
+                  onClick={() => setExpanded((v) => !v)}
+                  aria-expanded={expanded}
+                  aria-label="Filtrer"
+                  className={
+                    "relative flex h-10 w-10 items-center justify-center rounded-full border transition-colors " +
+                    focusRing +
+                    " " +
+                    (expanded || activeSecondaryCount > 0
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
+                  }
+                >
+                  <SlidersHorizontal aria-hidden="true" size={16} />
+                  {activeSecondaryCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">
+                      {activeSecondaryCount}
+                    </span>
+                  )}
+                </button>
+              </IconTooltip>
               <div className="h-8 w-px bg-white/10" />
             </>
           )}
@@ -103,6 +107,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
               <button
                 type="button"
                 onClick={() => onChange({ ...value, designType: "" })}
+                aria-pressed={value.designType === ""}
                 className={pillClass("designType", value.designType === "")}
               >
                 Tous les types
@@ -114,6 +119,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                     key={opt}
                     type="button"
                     onClick={() => onChange({ ...value, designType: active ? "" : opt })}
+                    aria-pressed={active}
                     className={pillClass("designType", active)}
                   >
                     {opt}
@@ -136,6 +142,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                 <button
                   type="button"
                   onClick={() => onChange({ ...value, [c.key]: "" })}
+                  aria-pressed={value[c.key] === ""}
                   className={pillClass(c.key, value[c.key] === "")}
                 >
                   Tous
@@ -147,6 +154,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                       key={opt}
                       type="button"
                       onClick={() => onChange({ ...value, [c.key]: active ? "" : opt })}
+                      aria-pressed={active}
                       className={pillClass(c.key, active)}
                     >
                       {optionLabel(c.key, opt)}
