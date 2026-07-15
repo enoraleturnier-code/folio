@@ -240,11 +240,18 @@ export function AccessRequestModal({
         }
         userId = data.user.id;
 
-        const { error: profileError } = await supabase
+        const { data: profileRow, error: profileError } = await supabase
           .from("user_profiles")
           .update({ company: form.company, request_message: form.message || null })
-          .eq("id", userId);
+          .eq("id", userId)
+          .select("id")
+          .maybeSingle();
         if (profileError) throw profileError;
+        if (!profileRow) {
+          throw new Error(
+            `handleSubmit: no user_profiles row updated for id=${userId} (not found, or not permitted)`,
+          );
+        }
       }
 
       const requestSessionId = crypto.randomUUID();
