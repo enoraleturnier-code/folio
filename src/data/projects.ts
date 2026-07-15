@@ -222,20 +222,49 @@ async function syncProjectTags(projectId: string, tags: ProjectTags): Promise<vo
   ]);
   for (const { error } of deletions) if (error) throw error;
 
-  const insertions = await Promise.all([
+  const [toolsResult, keywordsResult, typesResult] = await Promise.all([
     toolIds.length
-      ? supabase.from("project_tools").insert(toolIds.map((tool_id) => ({ project_id: projectId, tool_id })))
-      : Promise.resolve({ error: null }),
+      ? supabase
+          .from("project_tools")
+          .insert(toolIds.map((tool_id) => ({ project_id: projectId, tool_id })))
+          .select("tool_id")
+      : Promise.resolve({ data: [] as unknown[], error: null }),
     keywordIds.length
       ? supabase
           .from("project_keywords")
           .insert(keywordIds.map((keyword_id) => ({ project_id: projectId, keyword_id })))
-      : Promise.resolve({ error: null }),
+          .select("keyword_id")
+      : Promise.resolve({ data: [] as unknown[], error: null }),
     typeIds.length
-      ? supabase.from("project_types").insert(typeIds.map((type_id) => ({ project_id: projectId, type_id })))
-      : Promise.resolve({ error: null }),
+      ? supabase
+          .from("project_types")
+          .insert(typeIds.map((type_id) => ({ project_id: projectId, type_id })))
+          .select("type_id")
+      : Promise.resolve({ data: [] as unknown[], error: null }),
   ]);
-  for (const { error } of insertions) if (error) throw error;
+
+  // RLS peut filtrer silencieusement les lignes d'un insert multi-lignes sans lever
+  // d'erreur (comme pour un UPDATE) -- on connait le nombre exact de lignes attendues
+  // ici (toolIds/keywordIds/typeIds), donc un ecart signale un insert partiellement
+  // bloque plutot qu'un faux succes silencieux.
+  if (toolsResult.error) throw toolsResult.error;
+  if ((toolsResult.data?.length ?? 0) !== toolIds.length) {
+    throw new Error(
+      `syncProjectTags: expected ${toolIds.length} project_tools row(s), got ${toolsResult.data?.length ?? 0} (project ${projectId})`,
+    );
+  }
+  if (keywordsResult.error) throw keywordsResult.error;
+  if ((keywordsResult.data?.length ?? 0) !== keywordIds.length) {
+    throw new Error(
+      `syncProjectTags: expected ${keywordIds.length} project_keywords row(s), got ${keywordsResult.data?.length ?? 0} (project ${projectId})`,
+    );
+  }
+  if (typesResult.error) throw typesResult.error;
+  if ((typesResult.data?.length ?? 0) !== typeIds.length) {
+    throw new Error(
+      `syncProjectTags: expected ${typeIds.length} project_types row(s), got ${typesResult.data?.length ?? 0} (project ${projectId})`,
+    );
+  }
 }
 
 /**
