@@ -216,7 +216,7 @@ export function ContactForm() {
 
         <button
           type="submit"
-          disabled={rgpdMissing || submitting}
+          disabled={submitting}
           className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
         >
           {submitting ? (
