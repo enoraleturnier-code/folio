@@ -78,10 +78,10 @@ export function AuthPage() {
       </Link>
 
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-surface-container-lowest p-8 shadow-2xl shadow-black/40">
-        <h1 className="mb-2 text-2xl font-medium tracking-tight text-on-surface">
+        <p className="mb-2 text-2xl font-medium tracking-tight text-on-surface">
           Folio<span className="text-primary">+</span>
-        </h1>
-        <h2 className="mb-2 text-xl font-medium text-on-surface">Content de vous revoir</h2>
+        </p>
+        <h1 className="mb-2 text-xl font-medium text-on-surface">Content de vous revoir</h1>
         <p className="mb-8 text-sm text-on-surface-variant">
           Connectez-vous pour accéder à votre espace — administration ou projets confidentiels
           validés.

@@ -131,14 +131,14 @@ export function ProjectCard({
 
       <div className="flex flex-1 flex-col gap-3 p-6">
         <div className="flex items-start justify-between gap-3">
-          <h3
+          <h2
             className={
               "line-clamp-2 min-h-[3.5rem] text-xl font-medium leading-tight text-on-surface" +
               (isInteractive ? " transition-colors group-hover:text-primary" : "")
             }
           >
             {project.title}
-          </h3>
+          </h2>
           {duration && (
             <span className="shrink-0 whitespace-nowrap text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
               {duration}

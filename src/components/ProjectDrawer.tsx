@@ -297,7 +297,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const len = (value ?? "").length;
     return (
       <span
-        className={"ml-auto text-[10px] " + (len > max ? "text-error" : "text-on-surface-variant/60")}
+        className={"ml-auto text-[10px] " + (len > max ? "text-error" : "text-on-surface-variant/70")}
       >
         {len}/{max}
       </span>

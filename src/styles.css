@@ -172,6 +172,18 @@
   }
 }
 
+/* `transition-all` casse le ring focus-visible : le box-shadow composé par les utilitaires
+ * ring et ring-offset (via var()) reste figé sur ses calques transparents dès que box-shadow
+ * fait partie des propriétés transitionnées -- reproductible sur un élément isolé, indépendant
+ * de tout composant, persiste indéfiniment (pas un artefact de timing). transition-colors et
+ * transition-transform n'incluent pas box-shadow et ne sont pas affectés. Règle hors @layer
+ * (gagne sur la couche utilities de Tailwind) plutôt que 37 usages à corriger un par un.
+ * Aucun composant ne dépend d'une transition douce du box-shadow lui-même (vérifié). */
+.transition-all {
+  transition-property: color, background-color, border-color, text-decoration-color, fill,
+    stroke, opacity, transform, filter, backdrop-filter;
+}
+
 /* Aurora background — CSS-only radial + conic gradients */
 .aurora-bg {
   position: fixed;
