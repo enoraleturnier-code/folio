@@ -10,6 +10,7 @@ import { getMyAccessRequests, type MyAccessRequest } from "@/data/accessRequests
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 import { useAuth } from "@/hooks/useAuth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Project } from "@/types/project";
 
 export async function catalogueLoader({ params }: LoaderFunctionArgs) {
@@ -24,6 +25,7 @@ function uniq(xs: string[]) {
 
 export function CataloguePage() {
   const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof catalogueLoader>>;
+  useDocumentTitle("Projets");
   const { role, session } = useAuth();
   const [searchParams] = useSearchParams();
   const notifProjectId = searchParams.get("notif");
@@ -111,7 +113,7 @@ export function CataloguePage() {
   return (
     <>
       <AuroraBackground variant="catalogue" />
-      <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
+      <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
         <header className="mb-16 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">

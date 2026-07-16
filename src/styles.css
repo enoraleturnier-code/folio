@@ -348,3 +348,10 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
 }
+
+/* #main-content reçoit le focus programmatiquement à chaque changement de
+   route (RouteAnnouncer, RootLayout.tsx) -- jamais atteint au clavier via Tab,
+   donc pas de bague de focus visible à faire apparaître ici. */
+#main-content:focus {
+  outline: none;
+}

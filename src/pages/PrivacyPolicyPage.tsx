@@ -1,6 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const CONTENT = `## 1. Qui traite vos données ?
 
@@ -60,10 +61,11 @@ L'accès à vos données est protégé par des règles de sécurité au niveau d
 Cette politique peut être mise à jour. La date de dernière modification est indiquée en haut de cette page.`;
 
 export function PrivacyPolicyPage() {
+  useDocumentTitle("Politique de confidentialité");
   return (
     <div className="relative min-h-screen bg-background">
       <Header />
-      <main className="mx-auto max-w-3xl px-5 pb-24 pt-32 md:px-16">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-5 pb-24 pt-32 md:px-16">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
           Confidentialité
         </p>

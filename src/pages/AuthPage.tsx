@@ -6,6 +6,7 @@ import { Alert } from "@/components/Alert";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { IconTooltip } from "@/components/IconTooltip";
 import { designer } from "@/data/designer";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { textLinkClass } from "@/lib/linkStyles";
 
@@ -21,6 +22,7 @@ async function redirectByRole(userId: string, navigate: (path: string) => void) 
 }
 
 export function AuthPage() {
+  useDocumentTitle("Connexion");
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,7 +62,11 @@ export function AuthPage() {
     "rounded-full border bg-transparent px-5 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none";
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12"
+    >
       <AuroraBackground variant="modal" />
 
       <Link
@@ -172,6 +178,6 @@ export function AuthPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }

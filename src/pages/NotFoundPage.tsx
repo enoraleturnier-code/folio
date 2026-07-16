@@ -1,8 +1,15 @@
 import { Link } from "react-router-dom";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
 export function NotFoundPage() {
+  useDocumentTitle("Page introuvable");
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="flex min-h-screen items-center justify-center bg-background px-4"
+    >
       <div className="max-w-md text-center">
         <p className="text-xs font-medium tracking-[0.2em] text-primary uppercase">404</p>
         <h1 className="mt-4 text-4xl font-medium text-on-surface">
@@ -20,6 +27,6 @@ export function NotFoundPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

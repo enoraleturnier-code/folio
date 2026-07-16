@@ -32,6 +32,7 @@ import { fr } from "date-fns/locale";
 import type { Session } from "@supabase/supabase-js";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 import { Alert } from "@/components/Alert";
 import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
@@ -98,6 +99,15 @@ function parseTab(value: string | null): TabKey {
     : "dashboard";
 }
 
+const TAB_TITLES: Record<TabKey, string> = {
+  dashboard: "Dashboard",
+  projets: "Catalogue projets",
+  demandes: "Demandes d'accès",
+  contacts: "Messages",
+  veille: "Veille Hebdo",
+  parametres: "Paramètres",
+};
+
 // Convention identique à ThemeToggle.tsx (readStoredMode) : clé plate préfixée,
 // valeur string simple (pas de JSON), guard SSR + try/catch.
 const VEILLE_LAST_VIEWED_KEY = "folio-veille-last-viewed";
@@ -127,6 +137,7 @@ export function AdminPage() {
   const navigate = useNavigate();
   const { session, loading, role, roleLoading } = useAuth();
   const tab: TabKey = parseTab(searchParams.get("tab"));
+  useDocumentTitle(`Admin — ${TAB_TITLES[tab]}`);
   const [collapsed, setCollapsed] = useState(readStoredSidebarCollapsed);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -282,6 +293,8 @@ export function AdminPage() {
         veilleCount={veilleNewCount}
       />
       <main
+        id="main-content"
+        tabIndex={-1}
         className={
           "flex-1 pb-16 pt-[80px] transition-[margin] " +
           (collapsed ? "ml-16 md:ml-20" : "ml-20 md:ml-56")
@@ -832,14 +845,16 @@ function DashboardTab({
             <table className="w-full border-collapse text-left text-sm">
               <thead className="text-on-surface-variant">
                 <tr>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">Titre</th>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
+                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
+                    Titre
+                  </th>
+                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
                     Période
                   </th>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
+                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
                     Sources
                   </th>
-                  <th className="px-5 py-3" />
+                  <th scope="col" className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">

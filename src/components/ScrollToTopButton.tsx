@@ -2,6 +2,7 @@ import { ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { IconTooltip } from "@/components/IconTooltip";
+import { prefersReducedMotion } from "@/lib/utils";
 
 /** Bouton flottant "retour en haut" -- monté une seule fois dans RootLayout.tsx pour apparaître sur toutes les pages. */
 export function ScrollToTopButton() {
@@ -20,7 +21,9 @@ export function ScrollToTopButton() {
     <IconTooltip label="Retour en haut">
       <button
         type="button"
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        onClick={() =>
+          window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" })
+        }
         aria-label="Retour en haut"
         className="glass-card fixed right-5 top-1/2 z-40 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-on-surface shadow-xl shadow-black/40 transition-all hover:scale-105 hover:border-primary hover:text-primary active:scale-95 md:right-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >

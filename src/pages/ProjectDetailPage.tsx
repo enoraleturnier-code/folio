@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
 import { designer } from "@/data/designer";
 import { getProjectById } from "@/data/projects";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { formatSecteur } from "@/lib/secteurLabels";
 
@@ -50,10 +51,11 @@ export async function projectDetailLoader({
 
 export function ProjectDetailPage() {
   const { deleted, title, project } = useLoaderData() as ProjectDetailLoaderData;
+  useDocumentTitle(deleted ? title : project.title);
 
   if (deleted) {
     return (
-      <main className="relative z-10 mx-auto flex max-w-2xl flex-col items-center px-5 pb-24 pt-40 text-center md:px-16">
+      <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto flex max-w-2xl flex-col items-center px-5 pb-24 pt-40 text-center md:px-16">
         <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
           <Trash2 aria-hidden="true" className="text-error" size={28} />
         </div>
@@ -82,7 +84,7 @@ export function ProjectDetailPage() {
   ];
 
   return (
-    <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-28 md:px-16">
+    <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-28 md:px-16">
       <section className="relative aspect-[3/1] overflow-hidden rounded-2xl">
         <img
           src={project.thumbnail_url ?? ""}

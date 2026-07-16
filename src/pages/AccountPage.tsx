@@ -6,9 +6,11 @@ import { Alert } from "@/components/Alert";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 
 export function AccountPage() {
+  useDocumentTitle("Mon compte");
   const navigate = useNavigate();
   const { session, loading, role, roleLoading, fullName, user } = useAuth();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -62,7 +64,7 @@ export function AccountPage() {
   return (
     <div className="relative min-h-screen bg-background">
       <Header />
-      <main className="mx-auto max-w-2xl px-5 pb-24 pt-32 md:px-16">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-2xl px-5 pb-24 pt-32 md:px-16">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
           Information du profil
         </p>
