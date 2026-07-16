@@ -547,6 +547,12 @@ Une passe d'audit RGAA complète sur toute l'application est prévue séparémen
 - Labels de formulaire : jamais `uppercase`, toujours Sentence case
 - Contraste : seuil 4.5:1 texte, 3:1 composants UI/bordures — déjà vérifié pour tous les tokens de ce document
 
+### ⚠️ `transition-all` casse le ring `focus-visible` (piège CSS, 16/07)
+
+Repéré lors de la vérification en conditions réelles (DevTools, pas juste lecture du code) : sur tout élément combinant `transition-all` et `focus-visible:ring-2 ring-primary ring-offset-*`, le `box-shadow` composé par les utilitaires ring restait figé sur ses calques transparents — anneau de focus invisible en pratique, alors que le code semblait correct (classes présentes, `:focus-visible` bien actif, variables `--tw-ring-shadow`/`--tw-ring-offset-shadow` correctement calculées). Reproduit sur un élément DOM isolé, hors de tout composant — pas un bug applicatif ponctuel, ni un artefact de timing (persiste indéfiniment, pas seulement pendant la transition). `transition-colors`/`transition-transform` n'incluent pas `box-shadow` et ne sont pas affectés.
+
+**Corrigé une fois pour toutes** via une règle globale hors `@layer` dans `styles.css` (gagne sur la couche `utilities` de Tailwind sans toucher les 37 usages de `transition-all` dispersés dans 22 fichiers) : `.transition-all` exclut désormais `box-shadow`/`background-image` de ses propriétés transitionnées. Aucun composant ne dépendait d'une transition douce du box-shadow lui-même (vérifié avant correctif). **Ne pas réintroduire** un `transition-shadow`/`transition` (raccourci Tailwind, inclut aussi `box-shadow`) sur un élément portant un `focus-visible:ring-*` sans re-tester le rendu réel du ring au clavier.
+
 ---
 
 ## ✅ État & checklist
