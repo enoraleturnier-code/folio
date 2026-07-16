@@ -34,8 +34,10 @@ export function NotificationBell() {
   const { session, role } = useAuth();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
+  const previousUnreadCount = useRef<number | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -63,9 +65,19 @@ export function NotificationBell() {
     };
   }, [open]);
 
-  if (!session) return null;
-
   const unreadCount = items.filter((n) => !n.readAt).length;
+
+  // Annonce l'arrivée de nouvelle(s) notification(s) pour un lecteur d'écran --
+  // le badge visuel seul (NotificationCountBadge) ne signale rien de dynamique.
+  useEffect(() => {
+    if (previousUnreadCount.current !== null && unreadCount > previousUnreadCount.current) {
+      const delta = unreadCount - previousUnreadCount.current;
+      setAnnouncement(delta === 1 ? "1 nouvelle notification" : `${delta} nouvelles notifications`);
+    }
+    previousUnreadCount.current = unreadCount;
+  }, [unreadCount]);
+
+  if (!session) return null;
 
   const groups = items.reduce<Record<string, AppNotification[]>>((acc, n) => {
     (acc[n.type] ??= []).push(n);
@@ -94,6 +106,9 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={ref}>
+      <div aria-live="polite" role="status" className="sr-only">
+        {announcement}
+      </div>
       <IconTooltip label="Notifications">
         <button
           type="button"

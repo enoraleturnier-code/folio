@@ -6,7 +6,7 @@ import { Alert } from "@/components/Alert";
 import { Checkbox } from "@/components/Checkbox";
 import { submitContact } from "@/data/contacts";
 import { textLinkClass } from "@/lib/linkStyles";
-import { cn } from "@/lib/utils";
+import { cn, prefersReducedMotion } from "@/lib/utils";
 
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -61,7 +61,7 @@ export function ContactForm() {
         target = el;
       }
     }
-    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    target?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
     target?.focus({ preventScroll: true });
   };
 
@@ -142,6 +142,7 @@ export function ContactForm() {
           <input
             id="cf-name"
             type="text"
+            autoComplete="name"
             value={form.name}
             onChange={(e) => updateField({ name: e.target.value })}
             aria-invalid={showError("name")}
@@ -159,6 +160,7 @@ export function ContactForm() {
           <input
             id="cf-email"
             type="email"
+            autoComplete="email"
             value={form.email}
             onChange={(e) => updateField({ email: e.target.value })}
             aria-invalid={showError("email")}

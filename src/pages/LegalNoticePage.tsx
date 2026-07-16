@@ -1,6 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const CONTENT = `## Éditeur du site
 
@@ -40,10 +41,11 @@ Ce site utilise uniquement un cookie technique de session, strictement nécessai
 Pour toute question relative à ce site, contactez enoraleturnier@gmail.com.`;
 
 export function LegalNoticePage() {
+  useDocumentTitle("Mentions légales");
   return (
     <div className="relative min-h-screen bg-background">
       <Header />
-      <main className="mx-auto max-w-3xl px-5 pb-24 pt-32 md:px-16">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-5 pb-24 pt-32 md:px-16">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">Légal</p>
         <h1 className="mb-2 text-4xl font-medium text-on-surface md:text-5xl">Mentions légales</h1>
         <p className="mb-10 text-sm text-on-surface-variant">

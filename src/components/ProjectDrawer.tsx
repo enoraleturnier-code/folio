@@ -25,7 +25,7 @@ import {
 } from "@/data/projectRefs";
 import type { ProjectInput } from "@/data/projects";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
+import { cn, prefersReducedMotion } from "@/lib/utils";
 import { SECTEUR_LABELS } from "@/lib/secteurLabels";
 import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
 import { uploadProjectThumbnail } from "@/lib/storage";
@@ -115,7 +115,7 @@ function focusFirstError(errs: ValidationError[]) {
       target = el;
     }
   }
-  target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  target?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
   target?.focus({ preventScroll: true });
 }
 

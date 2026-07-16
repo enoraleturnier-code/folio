@@ -10,6 +10,8 @@ import { ContactForm } from "@/components/ContactForm";
 import { IconTooltip } from "@/components/IconTooltip";
 import { designer, getDesignerProfile } from "@/data/designer";
 import { getProjects } from "@/data/projects";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { prefersReducedMotion } from "@/lib/utils";
 
 export async function profileLoader({ params }: LoaderFunctionArgs) {
   if (params.slug !== designer.slug) throw new Response("Not Found", { status: 404 });
@@ -19,6 +21,7 @@ export async function profileLoader({ params }: LoaderFunctionArgs) {
 
 export function ProfilePage() {
   const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof profileLoader>>;
+  useDocumentTitle(designer.fullName);
   const [modalOpen, setModalOpen] = useState(false);
   const hasConfidential = projects.some((p) => p.status === "confidential");
   const { hash } = useLocation();
@@ -29,13 +32,13 @@ export function ProfilePage() {
   useEffect(() => {
     if (!hash) return;
     const el = document.querySelector(hash);
-    el?.scrollIntoView({ behavior: "smooth" });
+    el?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, [hash]);
 
   return (
     <>
       <AuroraBackground variant="profile" />
-      <main className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
+      <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
         {/* HERO — 01 */}
         <section className="mb-32 grid grid-cols-1 items-center gap-6 md:grid-cols-12">
           <div className="hidden md:col-span-1 md:block">

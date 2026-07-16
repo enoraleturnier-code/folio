@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { isRouteErrorResponse, useRevalidator, useRouteError } from "react-router-dom";
 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -8,6 +9,7 @@ export function RouteError() {
   const error = useRouteError();
   const revalidator = useRevalidator();
   const is404 = isRouteErrorResponse(error) && error.status === 404;
+  useDocumentTitle(is404 ? "Page introuvable" : "Erreur");
 
   useEffect(() => {
     if (is404) return;
@@ -18,7 +20,11 @@ export function RouteError() {
   if (is404) return <NotFoundPage />;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="flex min-h-screen items-center justify-center bg-background px-4"
+    >
       <div className="max-w-md text-center">
         <h1 className="text-xl font-medium text-on-surface">Cette page n'a pas pu se charger</h1>
         <p className="mt-2 text-sm text-on-surface-variant">
@@ -39,6 +45,6 @@ export function RouteError() {
           </a>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

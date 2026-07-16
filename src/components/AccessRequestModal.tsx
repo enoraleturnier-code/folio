@@ -8,7 +8,7 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -38,6 +38,10 @@ interface AccessRequestModalProps {
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // 8 caractères min., au moins une lettre et un chiffre.
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
+/** Piège à focus (priorité 3, audit accessibilité) : seul vrai dialog modal du site. */
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 type FieldKey = "name" | "company" | "email" | "password" | "confirmPassword";
 type FieldState = { kind: "valid" | "warning" | "error"; message: string };
@@ -146,6 +150,8 @@ export function AccessRequestModal({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -167,12 +173,47 @@ export function AccessRequestModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialProject]);
 
+  // Piège à focus + Escape : Tab ne doit jamais faire sortir le focus vers le
+  // reste de la page pendant que la modale est ouverte (audit accessibilité,
+  // priorité 3 -- avant ce correctif, seul le calque de fond visuel était
+  // aria-hidden, pas le header/footer derrière, donc Tab pouvait s'y échapper).
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !dialogRef.current) return;
+      const focusables = dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  // Focus initial sur le premier champ à l'ouverture, restitué au déclencheur
+  // (le bouton "Demander l'accès") à la fermeture -- l'élément actif juste
+  // avant ouverture est le déclencheur par construction (clic ou Entrée dessus).
+  useEffect(() => {
+    if (!open) return;
+    triggerRef.current = document.activeElement as HTMLElement | null;
+    // Le ref du dialog est déjà attaché à ce stade (React commit les refs avant
+    // les effets) : pas besoin de différer via requestAnimationFrame.
+    dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus();
+    return () => {
+      triggerRef.current?.focus();
+    };
+  }, [open]);
 
   // Un seul scroll actif pendant que la modale est ouverte : celui de son
   // propre corps, jamais celui de la page derrière.
@@ -313,7 +354,10 @@ export function AccessRequestModal({
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="glass-card relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden !border-primary/10 rounded-2xl shadow-2xl shadow-black/40">
+      <div
+        ref={dialogRef}
+        className="glass-card relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden !border-primary/10 rounded-2xl shadow-2xl shadow-black/40"
+      >
         <IconTooltip label="Fermer le formulaire">
           <button
             type="button"
@@ -370,6 +414,7 @@ export function AccessRequestModal({
                         </label>
                         <input
                           id="ar-name"
+                          autoComplete="name"
                           value={form.name}
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
                           onBlur={() => touch("name")}
@@ -393,6 +438,7 @@ export function AccessRequestModal({
                         </label>
                         <input
                           id="ar-company"
+                          autoComplete="organization"
                           value={form.company}
                           onChange={(e) => setForm({ ...form, company: e.target.value })}
                           onBlur={() => touch("company")}
@@ -416,6 +462,7 @@ export function AccessRequestModal({
                       <input
                         id="ar-email"
                         type="email"
+                        autoComplete="email"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                         onBlur={() => touch("email")}
@@ -443,6 +490,7 @@ export function AccessRequestModal({
                           <input
                             id="ar-password"
                             type={showPassword ? "text" : "password"}
+                            autoComplete="new-password"
                             value={form.password}
                             onChange={(e) => setForm({ ...form, password: e.target.value })}
                             onBlur={() => touch("password")}
@@ -482,6 +530,7 @@ export function AccessRequestModal({
                           <input
                             id="ar-confirm-password"
                             type={showConfirmPassword ? "text" : "password"}
+                            autoComplete="new-password"
                             value={form.confirmPassword}
                             onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                             onBlur={() => touch("confirmPassword")}
