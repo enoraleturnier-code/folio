@@ -3,41 +3,12 @@ import { useEffect, useRef, useState } from "react";
 
 import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { IconTooltip } from "@/components/IconTooltip";
-
-type ThemeMode = "dark" | "light" | "system";
-
-function applyTheme(mode: ThemeMode) {
-  const c = document.documentElement.classList;
-  c.remove("dark", "light");
-  if (mode === "system") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    c.add(prefersDark ? "dark" : "light");
-  } else {
-    c.add(mode);
-  }
-}
-
-// TEMPORAIRE (C.1) : "Clair" et "Système" sont désactivés dans le menu --
-// le mode reste forcé sur "dark" quelle que soit la préférence stockée ou
-// le matchMedia système, pour rester cohérent avec THEME_INIT (index.html).
-// Ne touche pas à applyTheme()/choose() : la logique light reste en place,
-// seule l'activation est coupée -- à retirer ici avec la réactivation complète.
-function readStoredMode(): ThemeMode {
-  return "dark";
-}
+import { useThemeMode, type ThemeMode } from "@/hooks/useThemeMode";
 
 export function ThemeToggle() {
-  const [mode, setMode] = useState<ThemeMode>(readStoredMode);
+  const { mode, choose: chooseMode } = useThemeMode();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (mode !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const listener = () => applyTheme("system");
-    mq.addEventListener("change", listener);
-    return () => mq.removeEventListener("change", listener);
-  }, [mode]);
 
   useEffect(() => {
     if (!open) return;
@@ -56,13 +27,7 @@ export function ThemeToggle() {
   }, [open]);
 
   const choose = (next: ThemeMode) => {
-    setMode(next);
-    try {
-      localStorage.setItem("folio-theme", next);
-    } catch {
-      /* ignore */
-    }
-    applyTheme(next);
+    chooseMode(next);
     setOpen(false);
   };
 

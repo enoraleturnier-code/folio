@@ -11,6 +11,7 @@ import {
   getMyNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  notificationLabel,
   type AppNotification,
 } from "@/data/notifications";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,15 +20,6 @@ const TYPE_LABELS: Record<AppNotification["type"], string> = {
   access_request_received: "Nouvelles demandes",
   access_request_resolved: "Demandes traitées",
 };
-
-/** Libellé de la notification -- pour une demande traitée, distingue accordé/refusé via le statut joint. */
-function notificationLabel(n: AppNotification): string {
-  if (n.type === "access_request_received") {
-    return `Nouvelle demande d'accès${n.projectTitle ? ` • ${n.projectTitle}` : ""}`;
-  }
-  const outcome = n.accessRequestStatus === "rejected" ? "refusé" : "accordé";
-  return `Accès ${outcome}${n.projectTitle ? ` • ${n.projectTitle}` : ""}`;
-}
 
 /** Cloche de notifications partagée admin/visiteur -- même composant, contenu filtré par RLS selon qui est connecté. */
 export function NotificationBell() {

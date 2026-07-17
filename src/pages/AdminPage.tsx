@@ -36,6 +36,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 import { Alert } from "@/components/Alert";
 import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
+import { AdminMobileBottomNav } from "@/components/AdminMobileBottomNav";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { IconTooltip } from "@/components/IconTooltip";
@@ -293,12 +294,19 @@ export function AdminPage() {
         contactsCount={newContactsCount}
         veilleCount={veilleNewCount}
       />
+      <AdminMobileBottomNav
+        tab={tab}
+        setTab={setTab}
+        pendingCount={pendingCount}
+        contactsCount={newContactsCount}
+        veilleCount={veilleNewCount}
+      />
       <main
         id="main-content"
         tabIndex={-1}
         className={
-          "flex-1 pb-16 pt-[80px] transition-[margin] " +
-          (collapsed ? "ml-16 md:ml-20" : "ml-20 md:ml-56")
+          "flex-1 pb-24 pt-[80px] transition-[margin] md:pb-16 " +
+          (collapsed ? "md:ml-20" : "md:ml-56")
         }
       >
         <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
@@ -452,10 +460,8 @@ function AdminSidebar({
   return (
     <aside
       className={
-        "fixed left-0 top-0 z-[70] flex h-screen flex-col border-r border-white/5 bg-background py-10 transition-[width] " +
-        (collapsed
-          ? "w-16 items-center md:w-20"
-          : "w-20 items-center px-3 md:w-56 md:items-stretch md:px-5")
+        "fixed left-0 top-0 z-[70] hidden h-screen flex-col border-r border-white/5 bg-background py-10 transition-[width] md:flex " +
+        (collapsed ? "md:w-20 md:items-center" : "md:w-56 md:items-stretch md:px-5")
       }
     >
       <Link
@@ -577,6 +583,14 @@ function formatDateCaps(iso: string): string {
 
 /** Ligne d'identité unifiée des cartes de listes (Accès/Messages) -- Nom Prénom, puis
  * entreprise si renseignée, puis email en style lien, tout sur une seule ligne. */
+/** Mobile uniquement : l'email a sa propre ligne pleine largeur mais reste sur
+ * une carte étroite -- une troncature CSS seule (largeur) ne suffit pas
+ * toujours (police proportionnelle, adresses très longues), on coupe donc
+ * aussi au nombre de caractères. Adresse complète conservée dans `title`. */
+function truncateEmail(email: string, maxLength = 28): string {
+  return email.length > maxLength ? `${email.slice(0, maxLength)}…` : email;
+}
+
 function ContactSummaryLine({
   name,
   company,
@@ -587,19 +601,31 @@ function ContactSummaryLine({
   email?: string | null;
 }) {
   return (
-    <p className="truncate text-sm">
-      <span className="font-medium text-on-surface">{name}</span>
-      {company && <span className="text-on-surface-variant"> • {company}</span>}
+    <div>
+      <p className="truncate text-sm">
+        <span className="font-medium text-on-surface">{name}</span>
+        {company && <span className="text-on-surface-variant"> • {company}</span>}
+        {/* Desktop : email inline comme avant. Mobile : sa propre ligne juste en dessous (cf. lien dupliqué). */}
+        {email && (
+          <span className="hidden text-on-surface-variant md:inline">
+            {" "}
+            •{" "}
+            <a href={`mailto:${email}`} className={textLinkClass()}>
+              {email}
+            </a>
+          </span>
+        )}
+      </p>
       {email && (
-        <span className="text-on-surface-variant">
-          {" "}
-          •{" "}
-          <a href={`mailto:${email}`} className={textLinkClass()}>
-            {email}
-          </a>
-        </span>
+        <a
+          href={`mailto:${email}`}
+          title={email}
+          className={cn("mt-0.5 block truncate text-sm md:hidden", textLinkClass())}
+        >
+          {truncateEmail(email)}
+        </a>
       )}
-    </p>
+    </div>
   );
 }
 
@@ -626,17 +652,41 @@ function QuickAccessCard({
       onClick={onClick}
       className="group relative flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      <div className={cn("flex h-11 w-11 items-center justify-center rounded-xl", classes.bg)}>
+      {/* Mobile uniquement : icône + compteur côte à côte, flèche à droite toujours
+       * visible (pas d'équivalent au survol sur tactile). Desktop inchangé, cf. plus bas. */}
+      <div className="flex w-full items-center gap-3 md:hidden">
+        <div
+          className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", classes.bg)}
+        >
+          <Icon aria-hidden="true" className={classes.icon} size={22} />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-3xl font-bold text-on-surface">{count}</span>
+          <span className="text-sm text-on-surface-variant">{label}</span>
+        </div>
+      </div>
+      <span className={cn("mt-3 text-xs md:hidden", classes.icon)}>{hint}</span>
+      <ArrowRight
+        aria-hidden="true"
+        size={24}
+        className={cn(
+          "absolute right-5 top-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:translate-x-0.5 md:hidden",
+          classes.icon,
+        )}
+      />
+
+      {/* Desktop : disposition d'origine (icône puis texte empilés, flèche révélée au survol). */}
+      <div className={cn("hidden h-11 w-11 items-center justify-center rounded-xl md:flex", classes.bg)}>
         <Icon aria-hidden="true" className={classes.icon} size={22} />
       </div>
-      <span className="mt-4 text-3xl font-bold text-on-surface">{count}</span>
-      <span className="mt-1 text-sm text-on-surface-variant">{label}</span>
-      <span className={"mt-2 text-xs " + classes.icon}>{hint}</span>
+      <span className="mt-4 hidden text-3xl font-bold text-on-surface md:block">{count}</span>
+      <span className="mt-1 hidden text-sm text-on-surface-variant md:block">{label}</span>
+      <span className={cn("mt-2 hidden text-xs md:block", classes.icon)}>{hint}</span>
       <ArrowRight
         aria-hidden="true"
         size={18}
         className={cn(
-          "absolute right-5 top-5 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100",
+          "absolute right-5 top-5 hidden opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100 md:block",
           classes.icon,
         )}
       />
@@ -765,7 +815,7 @@ function DashboardTab({
                         company={r.visitor?.company}
                         email={r.visitor?.email}
                       />
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <p className="text-[10px] tracking-widest text-on-surface-variant">
                           {formatDateCaps(r.createdAt)}
                         </p>
@@ -801,7 +851,7 @@ function DashboardTab({
                       className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
                     >
                       <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <p className="text-[10px] tracking-widest text-on-surface-variant">
                           {formatDateCaps(m.createdAt)}
                         </p>
