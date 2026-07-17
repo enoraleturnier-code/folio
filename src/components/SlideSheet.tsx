@@ -12,6 +12,9 @@ interface SlideSheetProps {
   /** Ferme au clic sur l'overlay -- seul le tiroir gauche (burger) l'utilise,
    * les feuilles pleine page n'ont pas de zone visible "à l'extérieur". */
   closeOnBackdropClick?: boolean;
+  /** Classe additionnelle sur le conteneur racine (ex. `md:hidden` pour un
+   * tiroir mobile-only doublé d'une variante desktop distincte). */
+  className?: string;
   children: ReactNode;
 }
 
@@ -24,6 +27,7 @@ export function SlideSheet({
   from,
   ariaLabel,
   closeOnBackdropClick = false,
+  className,
   children,
 }: SlideSheetProps) {
   const [mounted, setMounted] = useState(false);
@@ -69,7 +73,12 @@ export function SlideSheet({
         : "-translate-x-full";
 
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label={ariaLabel} className="fixed inset-0 z-[1000]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={ariaLabel}
+      className={"fixed inset-0 z-[1000]" + (className ? " " + className : "")}
+    >
       <div
         className={
           "absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity duration-[250ms] " +

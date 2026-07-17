@@ -1209,11 +1209,11 @@ function ProjetsTab({
             <p className="mt-2 text-sm text-on-surface-variant">
               Le projet sera masqué du catalogue public. Tu pourras le restaurer plus tard.
             </p>
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-end">
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:w-auto"
               >
                 <X aria-hidden="true" size={16} />
                 Annuler
@@ -1225,7 +1225,7 @@ function ProjetsTab({
                   setConfirmDelete(null);
                   softDelete(id);
                 }}
-                className="inline-flex items-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:w-auto"
               >
                 <Trash2 aria-hidden="true" size={16} />
                 Supprimer
@@ -1562,7 +1562,7 @@ function AccesConfidentielsDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+      <aside className="absolute inset-x-4 top-0 bottom-0 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l">
         <div className="border-b border-white/5 px-10 py-4">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-xl font-medium text-on-surface">
@@ -1871,7 +1871,7 @@ function MesContactsDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+      <aside className="absolute inset-x-4 top-0 bottom-0 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l">
         <div className="border-b border-white/5 px-10 py-4">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-xl font-medium text-on-surface">Mes contacts Folio+</h2>
@@ -2636,7 +2636,7 @@ function VeilleContentDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
+      <aside className="absolute inset-x-4 top-0 bottom-0 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l">
         <div className="border-b border-white/5 px-10 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">

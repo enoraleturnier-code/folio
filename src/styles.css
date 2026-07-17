@@ -373,6 +373,15 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
 }
+/* Pills de filtre en scroll horizontal sur mobile (FilterBar/AdminFilterBar) --
+   scrollbar masquée, le scroll reste fonctionnel au doigt/à la molette. */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
 /* #main-content reçoit le focus programmatiquement à chaque changement de
    route (RouteAnnouncer, RootLayout.tsx) -- jamais atteint au clavier via Tab,
