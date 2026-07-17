@@ -17,7 +17,11 @@ import { AuroraBackground } from "@/components/AuroraBackground";
 import { IconTooltip } from "@/components/IconTooltip";
 import { Checkbox } from "@/components/Checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
-import { clearPendingAccessRequest, savePendingAccessRequest } from "@/data/accessRequests";
+import {
+  clearPendingAccessRequest,
+  savePendingAccessRequest,
+  takePendingAccessRequest,
+} from "@/data/accessRequests";
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 import { useAuth } from "@/hooks/useAuth";
@@ -266,10 +270,17 @@ export function AccessRequestModal({
     const requestSessionId = crypto.randomUUID();
     const consentGivenAt = form.consentGivenAt ?? new Date().toISOString();
     try {
-      let userId: string;
-
       if (isAuthenticated) {
-        userId = session!.user.id;
+        const userId = session!.user.id;
+        const rows = form.projectIds.map((projectId) => ({
+          user_id: userId,
+          project_id: projectId,
+          request_session_id: requestSessionId,
+          consent_given_at: consentGivenAt,
+          message: form.message || null,
+        }));
+        const { error: insertError } = await supabase.from("access_requests").insert(rows);
+        if (insertError) throw insertError;
       } else {
         // Sauvegardée avant le signUp() : si le projet exige la confirmation
         // d'email, la session n'arrive pas tout de suite et cette demande
@@ -296,12 +307,26 @@ export function AccessRequestModal({
             "Compte créé — confirmez votre email pour finaliser votre demande d'accès.",
           );
         }
-        clearPendingAccessRequest();
-        userId = data.user.id;
+        const userId = data.user.id;
+
+        // signUp() ci-dessus déclenche l'événement SIGNED_IN, écouté globalement
+        // par RootLayout (submitPendingAccessRequest) -- selon l'ordre d'exécution
+        // interne du SDK, ce listener peut avoir déjà traité la demande avant
+        // qu'on arrive ici. takePendingAccessRequest() (lecture + suppression
+        // atomique, JS étant mono-thread) arbitre : le premier appelant reçoit
+        // le payload et fait le travail, l'autre reçoit `null` et n'a plus rien
+        // à faire -- élimine la double tentative d'INSERT (upsert concurrent
+        // sur la même contrainte unique, auparavant seulement tolérée après coup).
+        const pending = takePendingAccessRequest();
+        if (!pending) {
+          setSubmitted(true);
+          onSuccess?.();
+          return;
+        }
 
         const { data: profileRow, error: profileError } = await supabase
           .from("user_profiles")
-          .update({ company: form.company, request_message: form.message || null })
+          .update({ company: pending.company, request_message: pending.message })
           .eq("id", userId)
           .select("id")
           .maybeSingle();
@@ -311,20 +336,17 @@ export function AccessRequestModal({
             `handleSubmit: no user_profiles row updated for id=${userId} (not found, or not permitted)`,
           );
         }
-      }
 
-      const rows = form.projectIds.map((projectId) => ({
-        user_id: userId,
-        project_id: projectId,
-        request_session_id: requestSessionId,
-        consent_given_at: consentGivenAt,
-        message: form.message || null,
-      }));
-      const { error: insertError } = await supabase.from("access_requests").insert(rows);
-      // 23505 : RootLayout a deja insere cette meme ligne via sa reprise
-      // SIGNED_IN (declenchee par le meme signUp(), cf. submitPendingAccessRequest)
-      // avant qu'on arrive ici -- la demande existe bien, ce n'est pas un echec.
-      if (insertError && insertError.code !== "23505") throw insertError;
+        const rows = pending.projectIds.map((projectId) => ({
+          user_id: userId,
+          project_id: projectId,
+          request_session_id: pending.requestSessionId,
+          consent_given_at: pending.consentGivenAt,
+          message: pending.message,
+        }));
+        const { error: insertError } = await supabase.from("access_requests").insert(rows);
+        if (insertError) throw insertError;
+      }
 
       setSubmitted(true);
       onSuccess?.();

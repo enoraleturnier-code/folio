@@ -61,6 +61,11 @@ export function PersonaSwitcher() {
   const switchTo = async (persona: Persona) => {
     setBusy(persona.email);
     setError(null);
+    // Déconnexion explicite avant de basculer -- laisser signInWithPassword()
+    // écraser une session déjà active peut laisser un refresh token orphelin
+    // dans le storage d'un autre onglet resté ouvert sur l'ancien persona,
+    // provoquant un 400 (refresh_token invalide) au prochain retour de focus.
+    await supabase.auth.signOut();
     const { error: err } = await supabase.auth.signInWithPassword({
       email: persona.email,
       password: persona.password,
