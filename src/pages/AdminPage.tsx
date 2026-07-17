@@ -269,6 +269,7 @@ export function AdminPage() {
   }
 
   const setTab = (t: TabKey) => setSearchParams({ tab: t });
+  const setTabWithStatusFilter = (t: TabKey, statut: string) => setSearchParams({ tab: t, statut });
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -304,6 +305,7 @@ export function AdminPage() {
           {tab === "dashboard" && (
             <DashboardTab
               setTab={setTab}
+              setTabWithStatusFilter={setTabWithStatusFilter}
               projects={projects}
               accessRequests={accessRequests}
               contacts={contacts}
@@ -324,6 +326,7 @@ export function AdminPage() {
               loading={accessRequestsLoading}
               onItemsChange={setAccessRequests}
               projects={projects}
+              initialStatusFilter={searchParams.get("statut") ?? ""}
             />
           )}
           {tab === "contacts" && (
@@ -332,6 +335,7 @@ export function AdminPage() {
               loading={contactsLoading}
               onItemsChange={setContacts}
               accessRequests={accessRequests}
+              initialStatusFilter={searchParams.get("statut") ?? ""}
             />
           )}
           {tab === "veille" && (
@@ -642,6 +646,7 @@ function QuickAccessCard({
 
 function DashboardTab({
   setTab,
+  setTabWithStatusFilter,
   projects,
   accessRequests,
   contacts,
@@ -649,6 +654,7 @@ function DashboardTab({
   veilleNewCount,
 }: {
   setTab: (t: TabKey) => void;
+  setTabWithStatusFilter: (t: TabKey, statut: string) => void;
   projects: Project[];
   accessRequests: AdminAccessRequest[];
   contacts: AdminContactMessage[];
@@ -733,45 +739,14 @@ function DashboardTab({
 
       {(pendingRequests.length > 0 || newMessages.length > 0) && (
         <div className="mt-10">
-          <h2 className="text-xl font-bold text-on-surface">Actions en attente</h2>
+          <h2 className="flex items-center gap-2 text-xl font-bold text-on-surface">
+            Actions en attente
+            <NotificationCountBadge count={pendingRequests.length + newMessages.length} />
+          </h2>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
-                Nouveaux messages
-              </h3>
-              <div className="mt-3 space-y-3">
-                {newMessages.length === 0 ? (
-                  <p className="rounded-2xl border border-white/5 bg-surface-container-low p-4 text-sm text-on-surface-variant">
-                    Aucun nouveau message.
-                  </p>
-                ) : (
-                  newMessages.map((m) => (
-                    <div
-                      key={m.id}
-                      className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
-                    >
-                      <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-[10px] tracking-widest text-on-surface-variant">
-                          {formatDateCaps(m.createdAt)}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setTab("contacts")}
-                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                        >
-                          Afficher
-                          <ArrowRight aria-hidden="true" size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+                <KeyRound aria-hidden="true" size={14} />
                 Demandes d'accès
               </h3>
               <div className="mt-3 space-y-3">
@@ -796,10 +771,46 @@ function DashboardTab({
                         </p>
                         <button
                           type="button"
-                          onClick={() => setTab("demandes")}
+                          onClick={() => setTabWithStatusFilter("demandes", "pending")}
                           className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           Traiter
+                          <ArrowRight aria-hidden="true" size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+                <Mail aria-hidden="true" size={14} />
+                Nouveaux messages
+              </h3>
+              <div className="mt-3 space-y-3">
+                {newMessages.length === 0 ? (
+                  <p className="rounded-2xl border border-white/5 bg-surface-container-low p-4 text-sm text-on-surface-variant">
+                    Aucun nouveau message.
+                  </p>
+                ) : (
+                  newMessages.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
+                    >
+                      <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] tracking-widest text-on-surface-variant">
+                          {formatDateCaps(m.createdAt)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setTabWithStatusFilter("contacts", "new")}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Afficher
                           <ArrowRight aria-hidden="true" size={14} />
                         </button>
                       </div>
@@ -1004,7 +1015,10 @@ function ProjetsTab({
       <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
         <div>
           <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
-            Mon catalogue <span className="font-display-accent italic text-primary">Projets</span>
+            Mon catalogue{" "}
+            <span className="font-display-accent text-5xl italic text-primary md:text-6xl">
+              Projets
+            </span>
           </h1>
           <p className="mt-2 text-sm text-on-surface-variant">
             Crée tes projets publics et confidentiels en un clin d'œil à l'aide de l'IA.
@@ -1187,11 +1201,13 @@ function DemandesTab({
   loading,
   onItemsChange,
   projects,
+  initialStatusFilter,
 }: {
   items: AdminAccessRequest[];
   loading: boolean;
   onItemsChange: (items: AdminAccessRequest[]) => void;
   projects: Project[];
+  initialStatusFilter?: string;
 }) {
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
@@ -1199,7 +1215,7 @@ function DemandesTab({
   const [error, setError] = useState<string | null>(null);
   const [accesDrawerOpen, setAccesDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<Record<string, string>>({
-    status: "",
+    status: initialStatusFilter ?? "",
     period: "",
     person: "",
   });
@@ -1286,6 +1302,7 @@ function DemandesTab({
             className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Suivi accès confidentiels par projet
+            <ArrowRight aria-hidden="true" size={16} />
           </button>
         }
       />
@@ -1598,13 +1615,17 @@ function ContactsTab({
   loading,
   onItemsChange,
   accessRequests,
+  initialStatusFilter,
 }: {
   items: AdminContactMessage[];
   loading: boolean;
   onItemsChange: (items: AdminContactMessage[]) => void;
   accessRequests: AdminAccessRequest[];
+  initialStatusFilter?: string;
 }) {
-  const [filters, setFilters] = useState<Record<string, string>>({ status: "" });
+  const [filters, setFilters] = useState<Record<string, string>>({
+    status: initialStatusFilter ?? "",
+  });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [contactsDrawerOpen, setContactsDrawerOpen] = useState(false);
@@ -1645,6 +1666,7 @@ function ContactsTab({
             className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Mes contacts
+            <ArrowRight aria-hidden="true" size={16} />
           </button>
         }
       />
@@ -2361,7 +2383,7 @@ function VeilleDesignTab({
   onSynced: () => Promise<void> | void;
 }) {
   const [searchParams] = useSearchParams();
-  const [filters, setFilters] = useState<Record<string, string>>({ statut: "", tag: "" });
+  const [filters, setFilters] = useState<Record<string, string>>({ tag: "" });
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncSuccess, setSyncSuccess] = useState(false);
@@ -2370,12 +2392,6 @@ function VeilleDesignTab({
   const [openEntryId, setOpenEntryId] = useState<string | null>(() => searchParams.get("entry"));
   const openEntry = entries.find((e) => e.notion_page_id === openEntryId) ?? null;
 
-  // statut est un miroir direct du select Notion (valeurs vues en prod : Brouillon, Nouveau) --
-  // liste dynamique, pas une énumération figée côté app (cf. commentaire migration table).
-  const statutOptions = useMemo(
-    () => Array.from(new Set(entries.map((e) => e.statut))).sort(),
-    [entries],
-  );
   const tagOptions = useMemo(
     () => Array.from(new Set(entries.flatMap((e) => e.tags))).sort(),
     [entries],
@@ -2383,21 +2399,14 @@ function VeilleDesignTab({
 
   const filterGroups: AdminFilterGroup[] = [
     {
-      key: "statut",
-      label: "Statut",
-      primary: true,
-      options: statutOptions.map((s) => ({ value: s, label: s })),
-    },
-    {
       key: "tag",
       label: "Tags",
+      primary: true,
       options: tagOptions.map((t) => ({ value: t, label: t })),
     },
   ];
 
-  const filtered = entries
-    .filter((e) => !filters.statut || e.statut === filters.statut)
-    .filter((e) => !filters.tag || e.tags.includes(filters.tag));
+  const filtered = entries.filter((e) => !filters.tag || e.tags.includes(filters.tag));
 
   const lastSync = useMemo(() => {
     if (entries.length === 0) return null;
@@ -2432,7 +2441,7 @@ function VeilleDesignTab({
       <TabHeader
         title="Veille "
         emphasis="Hebdo"
-        subtitle="Synthèses hebdomadaires Design/Art/IA agrégées automatiquement depuis Notion."
+        subtitle="Synthèses hebdomadaires Design/Art/IA agrégées automatiquement le lundi depuis Notion."
         cta={
           <div className="flex flex-col items-end gap-2">
             <button
@@ -2445,7 +2454,7 @@ function VeilleDesignTab({
               {syncing ? "Synchronisation…" : "Synchroniser à nouveau"}
             </button>
             <p className="max-w-xs text-right text-xs text-on-surface-variant/70">
-              Synchronisation automatique hebdomadaire — dernière synchronisation :{" "}
+              Dernière synchronisation :{" "}
               {lastSync
                 ? formatDistanceToNow(new Date(lastSync), { addSuffix: true, locale: fr })
                 : "jamais"}
@@ -2466,7 +2475,7 @@ function VeilleDesignTab({
         </div>
       )}
 
-      <div className="mt-8 rounded-2xl bg-aurora-cyan p-6">
+      <div className="mt-8 rounded-2xl bg-tag-sector/10 p-6">
         <div className="mb-6">
           <AdminFilterBar groups={filterGroups} value={filters} onChange={setFilters} />
         </div>

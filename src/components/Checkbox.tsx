@@ -12,7 +12,7 @@ export function Checkbox({ className, size = "md", ...props }: CheckboxProps) {
   const boxCls = size === "sm" ? "h-4 w-4" : "h-5 w-5";
   const iconSize = size === "sm" ? 11 : 14;
   return (
-    <span className={cn("relative inline-flex shrink-0", boxCls)}>
+    <span className={cn("relative inline-flex shrink-0 items-center justify-center", boxCls)}>
       <input
         type="checkbox"
         className={cn(

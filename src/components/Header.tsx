@@ -67,9 +67,9 @@ function VisitorLink({ to, label, end }: { to: string; label: string; end?: bool
       to={to}
       end={end}
       className={({ isActive }) =>
-        "rounded-full px-3 py-1.5 text-sm transition-colors " +
+        "rounded-full px-3 py-1.5 text-sm transition-all active:scale-95 " +
         (isActive
-          ? "bg-primary/10 font-bold text-primary"
+          ? "bg-white/10 font-bold text-primary"
           : "font-medium text-on-surface-variant hover:text-primary")
       }
     >

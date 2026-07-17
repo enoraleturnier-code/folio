@@ -82,7 +82,14 @@ export function StatusBadge({
         styles[kind],
       )}
     >
-      {Icon && <Icon aria-hidden="true" size={size === "md" ? 16 : 14} />}
+      {Icon &&
+        (kind === "confidential" ? (
+          <span className="flex items-center justify-center rounded-full bg-[#7C3AED]/10 p-0.5">
+            <Icon aria-hidden="true" size={size === "md" ? 16 : 14} />
+          </span>
+        ) : (
+          <Icon aria-hidden="true" size={size === "md" ? 16 : 14} />
+        ))}
       {labels[kind]}
       {suffix && <span className="normal-case">&nbsp;• {suffix}</span>}
     </span>
