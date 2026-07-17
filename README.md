@@ -1,3 +1,5 @@
+README (Folio+)
+
 # 📦 Folio+
 
 Portfolio privé à accès conditionnel pour designer freelance : projets publics visibles par tous, projets confidentiels réservés aux visiteurs validés manuellement, sans partage de PDF ni risque légal.
