@@ -1,3 +1,4 @@
+import { CircleHelp } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Footer() {
@@ -19,6 +20,13 @@ export function Footer() {
             </Link>
             <Link to="/mentions-legales" className="hover:text-primary transition-colors">
               Mentions légales
+            </Link>
+            <Link
+              to="/aide"
+              className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+            >
+              <CircleHelp aria-hidden="true" size={16} />
+              Aide
             </Link>
           </div>
         </div>
