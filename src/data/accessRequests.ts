@@ -63,11 +63,7 @@ export async function submitPendingAccessRequest(
     message: pending.message,
   }));
   const { error: insertError } = await supabase.from("access_requests").insert(rows);
-  // 23505 (unique_violation sur access_requests_one_pending_per_user_project) :
-  // AccessRequestModal.handleSubmit a deja insere cette meme ligne avant que
-  // ce listener SIGNED_IN (declenche par le meme signUp()) n'ait le temps de
-  // le faire -- pas une vraie erreur, juste l'autre chemin qui a gagne la course.
-  if (insertError && insertError.code !== "23505") throw insertError;
+  if (insertError) throw insertError;
 }
 
 export type MyAccessRequest = Pick<
