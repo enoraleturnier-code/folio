@@ -83,7 +83,7 @@ export function AuthPage() {
         </p>
         <h1 className="mb-2 text-xl font-medium text-on-surface">Content de vous revoir</h1>
         <p className="mb-8 text-sm text-on-surface-variant">
-          Connectez-vous pour accéder à votre espace — administration ou projets confidentiels
+          Connectez-vous pour accéder à votre espace • administration ou projets confidentiels
           validés.
         </p>
 

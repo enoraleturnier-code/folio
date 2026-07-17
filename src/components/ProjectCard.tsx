@@ -2,6 +2,7 @@ import { KeyRound, Loader2, Lock, LockOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { designer } from "@/data/designer";
+import { textLinkClass } from "@/lib/linkStyles";
 import { formatSecteur } from "@/lib/secteurLabels";
 import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
 import type { Project } from "@/types/project";
@@ -123,7 +124,9 @@ export function ProjectCard({
             {mode === "pending" ? (
               <Loader2 aria-hidden="true" className="animate-spin text-[#A78BFA]" size={45} />
             ) : (
-              <Lock aria-hidden="true" className="text-[#A78BFA]" size={45} />
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#7C3AED]/10">
+                <Lock aria-hidden="true" className="text-[#A78BFA]" size={45} />
+              </div>
             )}
           </div>
         )}
@@ -201,12 +204,12 @@ export function ProjectCard({
               description={
                 <>
                   {rejectionReason}
-                  {rejectionReason && " "}
                   <Link
                     to={resolvedContactHref}
-                    className="rounded text-on-surface-variant no-underline underline-offset-2 transition-colors
-                      group-hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2
-                      focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className={
+                      "mt-1 block w-fit rounded font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
+                      textLinkClass("alert")
+                    }
                   >
                     Contacter l'administrateur ?
                   </Link>

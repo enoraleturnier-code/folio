@@ -67,9 +67,10 @@ function VisitorLink({ to, label, end }: { to: string; label: string; end?: bool
       to={to}
       end={end}
       className={({ isActive }) =>
-        isActive
-          ? "text-sm font-bold text-primary"
-          : "text-sm font-medium text-on-surface-variant transition-colors hover:text-primary"
+        "rounded-full px-3 py-1.5 text-sm transition-all active:scale-95 " +
+        (isActive
+          ? "bg-white/10 font-bold text-primary"
+          : "font-medium text-on-surface-variant hover:text-primary")
       }
     >
       {label}
@@ -103,7 +104,26 @@ function AccountMenu({
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      e.preventDefault();
+      const items = Array.from(
+        ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
+      );
+      if (items.length === 0) return;
+      const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+      const nextIndex =
+        currentIndex === -1
+          ? e.key === "ArrowDown"
+            ? 0
+            : items.length - 1
+          : e.key === "ArrowDown"
+            ? (currentIndex + 1) % items.length
+            : (currentIndex - 1 + items.length) % items.length;
+      items[nextIndex].focus();
     };
     document.addEventListener("mousedown", onClick);
     document.addEventListener("keydown", onKey);

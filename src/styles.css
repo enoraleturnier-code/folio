@@ -153,6 +153,19 @@
   input[type="radio"] {
     cursor: pointer;
   }
+  /* Filet de sécurité : tout lien/bouton qui n'a pas explicitement le anneau
+   * focus-visible:ring-2 ring-primary hérite sinon du contour natif du
+   * navigateur (souvent orange/bleu selon le navigateur) au lieu du teal de
+   * marque. Dans @layer base, donc perd systématiquement face à
+   * focus-visible:outline-none des éléments déjà stylés — s'applique
+   * seulement là où rien n'est défini. */
+  a[href]:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
   /* Toutes les icônes Lucide portent la classe .lucide — surcharge globale
    * de l'attribut stroke-width (2 par défaut) sans toucher chaque usage. */
   .lucide {
