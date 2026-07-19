@@ -14,7 +14,7 @@ export function Footer() {
               © 2026 Folio+. Midnight gallery edition.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-6 text-sm text-on-surface-variant">
+          <div className="flex w-full flex-col items-center gap-4 text-center text-sm text-on-surface-variant md:w-auto md:flex-row md:flex-wrap md:gap-6 md:text-left">
             <Link to="/politique-de-confidentialite" className="hover:text-primary transition-colors">
               Politique de confidentialité
             </Link>

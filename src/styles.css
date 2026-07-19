@@ -171,6 +171,19 @@
   .lucide {
     stroke-width: 1.5;
   }
+  /* Filet de sécurité mobile : retour visuel au toucher (pressed state) sur tout
+   * bouton/lien cliquable qui n'a pas déjà son propre active:* Tailwind — la
+   * spécificité plus faible d'un sélecteur d'élément cède face à une classe
+   * .active\:scale-95:active existante, donc ne fait que combler les endroits
+   * sans effet dédié. Desktop non concerné (hover suffit déjà). */
+  @media (max-width: 767px) {
+    button:not(:disabled):active,
+    [role="button"]:not([aria-disabled="true"]):active,
+    a[href]:active {
+      transform: scale(0.96);
+      opacity: 0.75;
+    }
+  }
   html,
   body {
     background-color: var(--background);

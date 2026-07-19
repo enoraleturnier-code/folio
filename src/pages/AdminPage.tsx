@@ -595,10 +595,12 @@ function ContactSummaryLine({
   name,
   company,
   email,
+  emailMaxLength,
 }: {
   name: string;
   company?: string | null;
   email?: string | null;
+  emailMaxLength?: number;
 }) {
   return (
     <div>
@@ -622,7 +624,7 @@ function ContactSummaryLine({
           title={email}
           className={cn("mt-0.5 block truncate text-sm md:hidden", textLinkClass())}
         >
-          {truncateEmail(email)}
+          {truncateEmail(email, emailMaxLength)}
         </a>
       )}
     </div>
@@ -1385,6 +1387,7 @@ function DemandesTab({
                     name={r.visitor?.fullName ?? "Visiteur"}
                     company={r.visitor?.company}
                     email={r.visitor?.email}
+                    emailMaxLength={33}
                   />
                   <p className="mt-2 text-sm text-on-surface-variant">
                     <span className="text-on-surface">Projet :</span>{" "}
@@ -1755,16 +1758,13 @@ function ContactsTab({
                 className="glass-panel flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:flex-row md:items-center md:justify-between"
               >
                 <div className="min-w-0 flex-1">
-                  <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
-                  <p
-                    className="mt-2 text-sm font-light text-on-surface-variant"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitBoxOrient: "vertical",
-                      WebkitLineClamp: 2,
-                      overflow: "hidden",
-                    }}
-                  >
+                  <ContactSummaryLine
+                    name={m.name}
+                    company={m.company}
+                    email={m.email}
+                    emailMaxLength={33}
+                  />
+                  <p className="mt-2 text-sm font-light text-on-surface-variant md:line-clamp-2">
                     {m.message}
                   </p>
                   <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
