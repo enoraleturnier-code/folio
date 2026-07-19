@@ -72,3 +72,13 @@ export async function markAllNotificationsRead(ids: string[]): Promise<void> {
 
   if (error) throw error;
 }
+
+/** Libelle partage NotificationBell (desktop) / MobileNotificationsView -- pour une
+ * demande traitee, distingue accorde/refuse via le statut joint. */
+export function notificationLabel(n: AppNotification): string {
+  if (n.type === "access_request_received") {
+    return `Nouvelle demande d'accès${n.projectTitle ? ` • ${n.projectTitle}` : ""}`;
+  }
+  const outcome = n.accessRequestStatus === "rejected" ? "refusé" : "accordé";
+  return `Accès ${outcome}${n.projectTitle ? ` • ${n.projectTitle}` : ""}`;
+}

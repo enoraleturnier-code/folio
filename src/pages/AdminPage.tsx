@@ -36,6 +36,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 import { Alert } from "@/components/Alert";
 import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
+import { AdminMobileBottomNav } from "@/components/AdminMobileBottomNav";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { IconTooltip } from "@/components/IconTooltip";
@@ -293,12 +294,19 @@ export function AdminPage() {
         contactsCount={newContactsCount}
         veilleCount={veilleNewCount}
       />
+      <AdminMobileBottomNav
+        tab={tab}
+        setTab={setTab}
+        pendingCount={pendingCount}
+        contactsCount={newContactsCount}
+        veilleCount={veilleNewCount}
+      />
       <main
         id="main-content"
         tabIndex={-1}
         className={
-          "flex-1 pb-16 pt-[80px] transition-[margin] " +
-          (collapsed ? "ml-16 md:ml-20" : "ml-20 md:ml-56")
+          "flex-1 pb-24 pt-[80px] transition-[margin] md:pb-16 " +
+          (collapsed ? "md:ml-20" : "md:ml-56")
         }
       >
         <div className="mx-auto max-w-6xl px-6 pt-10 md:px-10">
@@ -452,10 +460,8 @@ function AdminSidebar({
   return (
     <aside
       className={
-        "fixed left-0 top-0 z-[70] flex h-screen flex-col border-r border-white/5 bg-background py-10 transition-[width] " +
-        (collapsed
-          ? "w-16 items-center md:w-20"
-          : "w-20 items-center px-3 md:w-56 md:items-stretch md:px-5")
+        "fixed left-0 top-0 z-[70] hidden h-screen flex-col border-r border-white/5 bg-background py-10 transition-[width] md:flex " +
+        (collapsed ? "md:w-20 md:items-center" : "md:w-56 md:items-stretch md:px-5")
       }
     >
       <Link
@@ -577,29 +583,51 @@ function formatDateCaps(iso: string): string {
 
 /** Ligne d'identité unifiée des cartes de listes (Accès/Messages) -- Nom Prénom, puis
  * entreprise si renseignée, puis email en style lien, tout sur une seule ligne. */
+/** Mobile uniquement : l'email a sa propre ligne pleine largeur mais reste sur
+ * une carte étroite -- une troncature CSS seule (largeur) ne suffit pas
+ * toujours (police proportionnelle, adresses très longues), on coupe donc
+ * aussi au nombre de caractères. Adresse complète conservée dans `title`. */
+function truncateEmail(email: string, maxLength = 28): string {
+  return email.length > maxLength ? `${email.slice(0, maxLength)}…` : email;
+}
+
 function ContactSummaryLine({
   name,
   company,
   email,
+  emailMaxLength,
 }: {
   name: string;
   company?: string | null;
   email?: string | null;
+  emailMaxLength?: number;
 }) {
   return (
-    <p className="truncate text-sm">
-      <span className="font-medium text-on-surface">{name}</span>
-      {company && <span className="text-on-surface-variant"> • {company}</span>}
+    <div>
+      <p className="truncate text-sm">
+        <span className="font-medium text-on-surface">{name}</span>
+        {company && <span className="text-on-surface-variant"> • {company}</span>}
+        {/* Desktop : email inline comme avant. Mobile : sa propre ligne juste en dessous (cf. lien dupliqué). */}
+        {email && (
+          <span className="hidden text-on-surface-variant md:inline">
+            {" "}
+            •{" "}
+            <a href={`mailto:${email}`} className={textLinkClass()}>
+              {email}
+            </a>
+          </span>
+        )}
+      </p>
       {email && (
-        <span className="text-on-surface-variant">
-          {" "}
-          •{" "}
-          <a href={`mailto:${email}`} className={textLinkClass()}>
-            {email}
-          </a>
-        </span>
+        <a
+          href={`mailto:${email}`}
+          title={email}
+          className={cn("mt-0.5 block truncate text-sm md:hidden", textLinkClass())}
+        >
+          {truncateEmail(email, emailMaxLength)}
+        </a>
       )}
-    </p>
+    </div>
   );
 }
 
@@ -626,17 +654,42 @@ function QuickAccessCard({
       onClick={onClick}
       className="group relative flex flex-col items-start rounded-2xl border border-white/5 bg-surface-container-low p-5 text-left transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      <div className={cn("flex h-11 w-11 items-center justify-center rounded-xl", classes.bg)}>
+      {/* Mobile uniquement : icône taille fixe 75.99x75.99px, tout le texte aligné à
+       * gauche, flèche à droite toujours visible (pas d'équivalent au survol sur
+       * tactile). Desktop inchangé, cf. plus bas. */}
+      <div className="flex w-full items-center gap-3 md:hidden">
+        <div
+          className={cn("flex h-[75.99px] w-[75.99px] shrink-0 items-center justify-center rounded-xl", classes.bg)}
+        >
+          <Icon aria-hidden="true" className={classes.icon} size={22} />
+        </div>
+        <div className="flex flex-1 flex-col items-start justify-center gap-0.5 pr-8 text-left">
+          <span className="text-3xl font-bold text-on-surface">{count}</span>
+          <span className="text-sm text-on-surface-variant">{label}</span>
+          <span className={cn("text-xs", classes.icon)}>{hint}</span>
+        </div>
+      </div>
+      <ArrowRight
+        aria-hidden="true"
+        size={24}
+        className={cn(
+          "absolute right-5 top-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:translate-x-0.5 md:hidden",
+          classes.icon,
+        )}
+      />
+
+      {/* Desktop : disposition d'origine (icône puis texte empilés, flèche révélée au survol). */}
+      <div className={cn("hidden h-11 w-11 items-center justify-center rounded-xl md:flex", classes.bg)}>
         <Icon aria-hidden="true" className={classes.icon} size={22} />
       </div>
-      <span className="mt-4 text-3xl font-bold text-on-surface">{count}</span>
-      <span className="mt-1 text-sm text-on-surface-variant">{label}</span>
-      <span className={"mt-2 text-xs " + classes.icon}>{hint}</span>
+      <span className="mt-4 hidden text-3xl font-bold text-on-surface md:block">{count}</span>
+      <span className="mt-1 hidden text-sm text-on-surface-variant md:block">{label}</span>
+      <span className={cn("mt-2 hidden text-xs md:block", classes.icon)}>{hint}</span>
       <ArrowRight
         aria-hidden="true"
         size={18}
         className={cn(
-          "absolute right-5 top-5 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100",
+          "absolute right-5 top-5 hidden opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100 md:block",
           classes.icon,
         )}
       />
@@ -765,14 +818,14 @@ function DashboardTab({
                         company={r.visitor?.company}
                         email={r.visitor?.email}
                       />
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <p className="text-[10px] tracking-widest text-on-surface-variant">
                           {formatDateCaps(r.createdAt)}
                         </p>
                         <button
                           type="button"
                           onClick={() => setTabWithStatusFilter("demandes", "pending")}
-                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
                         >
                           Traiter
                           <ArrowRight aria-hidden="true" size={14} />
@@ -801,14 +854,14 @@ function DashboardTab({
                       className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-surface-container-low p-4"
                     >
                       <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <p className="text-[10px] tracking-widest text-on-surface-variant">
                           {formatDateCaps(m.createdAt)}
                         </p>
                         <button
                           type="button"
                           onClick={() => setTabWithStatusFilter("contacts", "new")}
-                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
                         >
                           Afficher
                           <ArrowRight aria-hidden="true" size={14} />
@@ -1027,7 +1080,7 @@ function ProjetsTab({
         <button
           type="button"
           onClick={openNew}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
         >
           <Plus aria-hidden="true" size={18} />
           Créer un nouveau projet
@@ -1093,7 +1146,7 @@ function ProjetsTab({
                   />
                 </div>
 
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex shrink-0 items-center justify-end gap-2">
                   {deleted ? (
                     <IconTooltip label="Restaurer">
                       <button
@@ -1101,7 +1154,7 @@ function ProjetsTab({
                         onClick={() => restore(p.id)}
                         disabled={busyId === p.id}
                         aria-label={`Restaurer le projet ${p.title}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
                       >
                         <ArchiveRestore aria-hidden="true" size={16} />
                       </button>
@@ -1114,7 +1167,7 @@ function ProjetsTab({
                           onClick={() => openEdit(p)}
                           disabled={busyId === p.id}
                           aria-label={`Éditer ${p.title}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
                         >
                           <Pencil aria-hidden="true" size={16} />
                         </button>
@@ -1125,7 +1178,7 @@ function ProjetsTab({
                         onClick={() => setConfirmDelete(p.id)}
                         disabled={busyId === p.id}
                         aria-label={`Supprimer ${p.title}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
                       >
                         <Trash2 aria-hidden="true" size={18} />
                       </button>
@@ -1159,11 +1212,11 @@ function ProjetsTab({
             <p className="mt-2 text-sm text-on-surface-variant">
               Le projet sera masqué du catalogue public. Tu pourras le restaurer plus tard.
             </p>
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-end">
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 <X aria-hidden="true" size={16} />
                 Annuler
@@ -1175,7 +1228,7 @@ function ProjetsTab({
                   setConfirmDelete(null);
                   softDelete(id);
                 }}
-                className="inline-flex items-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-2 text-sm font-bold text-[#F87171] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 <Trash2 aria-hidden="true" size={16} />
                 Supprimer
@@ -1299,7 +1352,7 @@ function DemandesTab({
           <button
             type="button"
             onClick={() => setAccesDrawerOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
           >
             Suivi accès confidentiels par projet
             <ArrowRight aria-hidden="true" size={16} />
@@ -1334,6 +1387,7 @@ function DemandesTab({
                     name={r.visitor?.fullName ?? "Visiteur"}
                     company={r.visitor?.company}
                     email={r.visitor?.email}
+                    emailMaxLength={33}
                   />
                   <p className="mt-2 text-sm text-on-surface-variant">
                     <span className="text-on-surface">Projet :</span>{" "}
@@ -1372,14 +1426,14 @@ function DemandesTab({
                         className="mt-2 w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         placeholder="Explique brièvement le refus."
                       />
-                      <div className="mt-3 flex items-center justify-end gap-2">
+                      <div className="mt-3 flex flex-col-reverse gap-2 md:flex-row md:items-center md:justify-end">
                         <button
                           type="button"
                           onClick={() => {
                             setRejecting(null);
                             setReason("");
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-[34px] max-md:w-full"
                         >
                           <X aria-hidden="true" size={14} />
                           Annuler
@@ -1388,7 +1442,7 @@ function DemandesTab({
                           type="button"
                           onClick={() => reject(r.id)}
                           disabled={!reason.trim() || busyId === r.id}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-1.5 text-xs font-bold text-[#F87171] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-[34px] max-md:w-full"
                         >
                           <Ban aria-hidden="true" size={14} />
                           Confirmer le refus
@@ -1396,12 +1450,12 @@ function DemandesTab({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-wrap items-center justify-end gap-2">
+                    <div className="flex flex-col-reverse gap-2 md:flex-row md:flex-wrap md:items-center md:justify-end">
                       <button
                         type="button"
                         onClick={() => setRejecting(r.id)}
                         disabled={busyId === r.id}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#F87171]/30 px-4 py-1.5 text-sm font-medium text-[#F87171] hover:bg-[#F87171]/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-[34px] max-md:w-full"
                       >
                         <Ban aria-hidden="true" size={14} />
                         Refuser
@@ -1410,7 +1464,7 @@ function DemandesTab({
                         type="button"
                         onClick={() => approve(r.id)}
                         disabled={busyId === r.id}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
                       >
                         <Check aria-hidden="true" size={14} />
                         Valider
@@ -1512,8 +1566,8 @@ function AccesConfidentielsDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
-        <div className="border-b border-white/5 px-10 py-4">
+      <aside className="absolute inset-x-4 top-0 bottom-0 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l">
+        <div className="border-b border-white/5 px-5 py-4 md:px-10">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-xl font-medium text-on-surface">
               Suivi des accès confidentiels accordés
@@ -1526,14 +1580,14 @@ function AccesConfidentielsDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="Fermer"
-                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="flex shrink-0 items-center justify-center rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
               >
                 <X aria-hidden="true" size={24} />
               </button>
             </IconTooltip>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-10 py-6">
+        <div className="flex-1 overflow-y-auto px-5 py-6 md:px-10">
           {personOptions.length > 0 && (
             <div className="mb-4">
               <AdminFilterBar
@@ -1556,8 +1610,12 @@ function AccesConfidentielsDrawer({
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="font-medium text-on-surface">{p.title}</p>
-                    <div className="flex items-center gap-3">
-                      <StatusBadge kind="confidential" suffix={SENSITIVITY_LABELS[p.sensitivity_level]} />
+                    <div className="flex flex-col items-end gap-1 md:flex-row md:items-center md:gap-3">
+                      <StatusBadge
+                        kind="confidential"
+                        suffix={SENSITIVITY_LABELS[p.sensitivity_level]}
+                        className="max-md:gap-1 max-md:px-2 max-md:py-0.5 max-md:text-[9px]"
+                      />
                       <span className="text-xs text-on-surface-variant">
                         {grantees.length} accès accordé{grantees.length > 1 ? "s" : ""}
                       </span>
@@ -1663,7 +1721,7 @@ function ContactsTab({
           <button
             type="button"
             onClick={() => setContactsDrawerOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
           >
             Mes contacts
             <ArrowRight aria-hidden="true" size={16} />
@@ -1700,16 +1758,13 @@ function ContactsTab({
                 className="glass-panel flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:flex-row md:items-center md:justify-between"
               >
                 <div className="min-w-0 flex-1">
-                  <ContactSummaryLine name={m.name} company={m.company} email={m.email} />
-                  <p
-                    className="mt-2 text-sm font-light text-on-surface-variant"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitBoxOrient: "vertical",
-                      WebkitLineClamp: 2,
-                      overflow: "hidden",
-                    }}
-                  >
+                  <ContactSummaryLine
+                    name={m.name}
+                    company={m.company}
+                    email={m.email}
+                    emailMaxLength={33}
+                  />
+                  <p className="mt-2 text-sm font-light text-on-surface-variant md:line-clamp-2">
                     {m.message}
                   </p>
                   <p className="mt-2 text-[10px] tracking-widest text-on-surface-variant">
@@ -1725,7 +1780,7 @@ function ContactsTab({
                         onClick={() => cycle(m)}
                         disabled={busyId === m.id}
                         aria-label={`Changer le statut du message de ${m.name}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
                       >
                         <ArrowLeftRight aria-hidden="true" size={16} />
                       </button>
@@ -1821,8 +1876,8 @@ function MesContactsDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
-        <div className="border-b border-white/5 px-10 py-4">
+      <aside className="absolute inset-x-4 top-0 bottom-0 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l">
+        <div className="border-b border-white/5 px-5 py-4 md:px-10">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-xl font-medium text-on-surface">Mes contacts Folio+</h2>
             <IconTooltip label="Fermer">
@@ -1830,14 +1885,14 @@ function MesContactsDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="Fermer"
-                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="flex shrink-0 items-center justify-center rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
               >
                 <X aria-hidden="true" size={24} />
               </button>
             </IconTooltip>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-10 py-6">
+        <div className="flex-1 overflow-y-auto px-5 py-6 md:px-10">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
             <AdminFilterBar
               groups={filterGroups}
@@ -2286,7 +2341,7 @@ function ParametresTab() {
                   type="button"
                   onClick={copy}
                   aria-label="Copier le lien du profil"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-on-surface hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
                 >
                   {copied ? (
                     <Check aria-hidden="true" size={18} />
@@ -2305,19 +2360,19 @@ function ParametresTab() {
           </div>
 
           {editing && (
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-end">
               <button
                 type="button"
                 onClick={cancelEditing}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 Annuler
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 {saving ? (
                   <Loader2 aria-hidden="true" className="animate-spin" size={18} />
@@ -2366,7 +2421,7 @@ function formatPeriode(debut: string | null, fin: string | null): string {
 }
 
 const veillePillCls = (active: boolean, color: "sector" | "keywords") =>
-  "rounded-full border px-4 py-1.5 text-sm font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
+  "inline-flex items-center justify-center rounded-full border px-4 py-1.5 text-sm font-normal transition-colors max-md:min-h-[34px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
   (active
     ? `border-tag-${color}/40 bg-tag-${color}/15 text-tag-${color}`
     : `border-outline text-on-surface-variant hover:border-tag-${color}/40 hover:bg-tag-${color}/15 hover:text-tag-${color}`);
@@ -2443,12 +2498,12 @@ function VeilleDesignTab({
         emphasis="Hebdo"
         subtitle="Synthèses hebdomadaires Design/Art/IA agrégées automatiquement le lundi depuis Notion."
         cta={
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-stretch gap-2 md:items-end">
             <button
               type="button"
               onClick={handleSync}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
             >
               <RefreshCw aria-hidden="true" size={16} className={syncing ? "animate-spin" : ""} />
               {syncing ? "Synchronisation…" : "Synchroniser à nouveau"}
@@ -2535,7 +2590,7 @@ function VeilleDesignTab({
                     <button
                       type="button"
                       onClick={() => setOpenEntryId(e.notion_page_id)}
-                      className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="inline-flex w-fit shrink-0 items-center justify-center gap-1.5 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-[34px] max-md:w-full"
                     >
                       Voir le contenu
                       <ArrowRight aria-hidden="true" size={14} />
@@ -2586,8 +2641,8 @@ function VeilleContentDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest">
-        <div className="border-b border-white/5 px-10 py-4">
+      <aside className="absolute inset-x-4 top-0 bottom-0 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l">
+        <div className="border-b border-white/5 px-5 py-4 md:px-10">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-widest text-primary">
@@ -2600,14 +2655,14 @@ function VeilleContentDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="Fermer"
-                className="shrink-0 rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="flex shrink-0 items-center justify-center rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
               >
                 <X aria-hidden="true" size={24} />
               </button>
             </IconTooltip>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-10 py-6">
+        <div className="flex-1 overflow-y-auto px-5 py-6 md:px-10">
           <MarkdownContent content={entry.contenu} />
         </div>
       </aside>

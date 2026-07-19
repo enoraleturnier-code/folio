@@ -1,9 +1,14 @@
-import { LayoutDashboard, LogOut, Settings, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Moon, Settings, User } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
+import { BurgerMenu } from "@/components/BurgerMenu";
+import { MobileAccountSheet } from "@/components/MobileAccountSheet";
+import { MobileThemeSheet } from "@/components/MobileThemeSheet";
+import { NotificationCountBadge } from "@/components/NotificationCountBadge";
 import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { supabase } from "@/integrations/supabase/client";
 import { initials } from "@/lib/utils";
 import { NotificationBell } from "./NotificationBell";
@@ -12,12 +17,19 @@ import { ThemeToggle } from "./ThemeToggle";
 export function Header() {
   const location = useLocation();
   const { session, role, roleLoading, fullName } = useAuth();
+  const unreadCount = useUnreadNotificationCount();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const [burgerOpen, setBurgerOpen] = useState(false);
+  const [themeSheetOpen, setThemeSheetOpen] = useState(false);
+  const [accountSheetOpen, setAccountSheetOpen] = useState(false);
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 md:px-16">
-        <div className={`flex items-center gap-4 md:gap-6 ${isAdminRoute ? "ml-20 md:ml-24" : ""}`}>
+        {/* Desktop */}
+        <div
+          className={`hidden items-center gap-4 md:flex md:gap-6 ${isAdminRoute ? "md:ml-24" : ""}`}
+        >
           {!isAdminRoute && (
             <>
               <Link
@@ -34,8 +46,8 @@ export function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-4 md:gap-8">
-          <nav className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-4 md:flex md:gap-8">
+          <nav className="flex items-center gap-6">
             <VisitorLink to={`/${designer.slug}`} label="Profil" end />
             <VisitorLink to={`/${designer.slug}/projects`} label="Projets" />
           </nav>
@@ -56,7 +68,75 @@ export function Header() {
             </Link>
           )}
         </div>
+
+        {/* Mobile -- pages publiques et dashboard admin (le burger y contient les mêmes
+         * liens Profil/Projets, seul le centre change : titre fixe "Dashboard"). */}
+        <div className="flex w-full items-center justify-between md:hidden">
+          <button
+            type="button"
+            onClick={() => setBurgerOpen(true)}
+            aria-label="Ouvrir le menu"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+          >
+            <Menu aria-hidden="true" size={24} />
+          </button>
+
+          {isAdminRoute ? (
+            <span className="text-lg font-medium text-on-surface">Dashboard</span>
+          ) : (
+            <Link
+              to={`/${designer.slug}`}
+              className="text-xl font-medium tracking-tight text-on-surface"
+            >
+              Folio<span className="text-primary">+</span>
+            </Link>
+          )}
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setThemeSheetOpen(true)}
+              aria-label="Choisir le thème d'affichage"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+            >
+              <Moon aria-hidden="true" size={22} />
+            </button>
+
+            {session ? (
+              <button
+                type="button"
+                onClick={() => setAccountSheetOpen(true)}
+                aria-label="Mon compte"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+              >
+                {fullName ? initials(fullName) : "?"}
+                <NotificationCountBadge count={unreadCount} className="absolute -right-0.5 -top-0.5" />
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                aria-label="Se connecter"
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary"
+              >
+                Connexion
+              </Link>
+            )}
+          </div>
+        </div>
       </div>
+
+      <BurgerMenu open={burgerOpen} onClose={() => setBurgerOpen(false)} />
+      <MobileThemeSheet open={themeSheetOpen} onClose={() => setThemeSheetOpen(false)} />
+      {session && (
+        <MobileAccountSheet
+          open={accountSheetOpen}
+          onClose={() => setAccountSheetOpen(false)}
+          fullName={fullName}
+          role={role}
+          roleLoading={roleLoading}
+          unreadCount={unreadCount}
+        />
+      )}
     </header>
   );
 }

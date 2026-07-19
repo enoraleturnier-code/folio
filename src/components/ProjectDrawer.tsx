@@ -539,7 +539,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             type="button"
             onClick={() => addSuggestion(category, name)}
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
-            className="animate-in fade-in zoom-in-95 rounded-full border border-dashed border-primary/40 px-3 py-1 text-[11px] font-medium text-primary duration-300 hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="animate-in fade-in zoom-in-95 inline-flex items-center justify-center rounded-full border border-dashed border-primary/40 px-3 py-1 text-[11px] font-medium text-primary duration-300 hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-[34px]"
           >
             + {name}
           </button>
@@ -571,7 +571,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   const chevronCls =
     "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant";
   const tertiaryBtnCls =
-    "inline-flex items-center gap-2 rounded-full border border-transparent px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+    "inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11";
 
   return (
     <div
@@ -585,8 +585,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           seuls les boutons explicites (Fermer, Annuler, Enregistrer) peuvent
           fermer la modale. */}
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" aria-hidden="true" />
-      <aside className="absolute right-0 top-0 flex h-screen w-[54vw] flex-col border-l border-white/10 bg-surface-container-lowest shadow-2xl shadow-black/40">
-        <div className="border-b border-white/5 px-10 py-4">
+      <aside className="absolute inset-x-4 top-0 bottom-0 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-container-lowest shadow-2xl shadow-black/40 md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l">
+        <div className="border-b border-white/5 px-5 py-4 md:px-10">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium uppercase tracking-widest text-primary">
@@ -601,7 +601,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 type="button"
                 onClick={requestClose}
                 aria-label="Fermer"
-                className="rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="flex items-center justify-center rounded-full p-2 text-on-surface-variant hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
               >
                 <X aria-hidden="true" size={24} />
               </button>
@@ -611,7 +611,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-8 overflow-y-auto px-10 py-6">
+          <div className="flex-1 space-y-8 overflow-y-auto px-5 py-6 md:px-10">
             {saveError && (
               <Alert type="error" title="Échec de l'enregistrement" description={saveError} />
             )}
@@ -784,7 +784,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     type="button"
                     onClick={handleAiStructure}
                     disabled={!draft.long_desc?.trim() || aiLoading}
-                    className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary-container/5 px-5 py-2.5 text-sm font-medium text-primary hover:bg-primary-container/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
                   >
                     <Sparkles
                       aria-hidden="true"
@@ -1079,8 +1079,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-white/5 px-10 py-4">
-            <button type="button" onClick={requestClose} className={tertiaryBtnCls}>
+          <div className="flex flex-col-reverse gap-3 border-t border-white/5 px-5 py-4 md:flex-row md:items-center md:justify-end md:px-10">
+            <button type="button" onClick={requestClose} className={"w-full justify-center md:w-auto " + tertiaryBtnCls}>
               <X aria-hidden="true" size={16} />
               Annuler
             </button>
@@ -1089,7 +1089,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 type="button"
                 onClick={() => submitWithStatus("draft", "draft")}
                 disabled={savingAction !== null}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:w-auto"
               >
                 {savingAction === "draft" ? (
                   "Enregistrement…"
@@ -1105,7 +1105,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               type="button"
               onClick={() => submitWithStatus(draft.status, "publish")}
               disabled={savingAction !== null}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
             >
               {savingAction === "publish" ? (
                 "Enregistrement…"
@@ -1164,11 +1164,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 </>
               );
             })()}
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-end">
               <button
                 type="button"
                 onClick={() => setPendingSave(null)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 <X aria-hidden="true" size={16} />
                 Annuler
@@ -1180,7 +1180,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                   setPendingSave(null);
                   persist(status, action);
                 }}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 <Check aria-hidden="true" size={16} />
                 Confirmer
@@ -1205,21 +1205,21 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
             <p className="mt-2 text-sm text-on-surface-variant">
               Es-tu sûr de vouloir quitter sans enregistrer ? Tes données seront perdues.
             </p>
-            <div className="mt-6 flex items-center justify-center gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-center">
               <button
                 type="button"
                 onClick={() => {
                   setConfirmClose(false);
                   onClose();
                 }}
-                className="whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-sm font-medium text-on-surface hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-sm font-medium text-on-surface hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 Quitter sans enregistrer
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmClose(false)}
-                className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
               >
                 Revenir au formulaire
                 <ArrowRight aria-hidden="true" size={18} />

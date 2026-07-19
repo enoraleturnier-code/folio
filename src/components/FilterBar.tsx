@@ -1,7 +1,8 @@
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
 
 import { IconTooltip } from "@/components/IconTooltip";
+import { SlideSheet } from "@/components/SlideSheet";
 import { formatSecteur } from "@/lib/secteurLabels";
 
 export interface FilterState {
@@ -47,7 +48,7 @@ const secondaryCategories: { key: keyof FilterState; label: string }[] = [
 
 function pillClass(key: keyof FilterState, active: boolean) {
   return (
-    "rounded-full border px-4 py-1.5 text-sm transition-colors " +
+    "inline-flex items-center justify-center rounded-full border px-4 py-1.5 text-sm transition-colors max-md:min-h-[34px] " +
     focusRing +
     " " +
     (active
@@ -69,10 +70,42 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
 
   const hasTypeOptions = options.designType.length > 0;
 
+  const secondaryCategoriesFields = visibleSecondaryCategories.map((c) => (
+    <div key={c.key} className="flex flex-col gap-3">
+      <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-on-surface-variant/65">
+        {c.label}
+      </span>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => onChange({ ...value, [c.key]: "" })}
+          aria-pressed={value[c.key] === ""}
+          className={pillClass(c.key, value[c.key] === "")}
+        >
+          Tous
+        </button>
+        {options[c.key].map((opt) => {
+          const active = value[c.key] === opt;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onChange({ ...value, [c.key]: active ? "" : opt })}
+              aria-pressed={active}
+              className={pillClass(c.key, active)}
+            >
+              {optionLabel(c.key, opt)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ));
+
   return (
     <div className="space-y-4">
       {(visibleSecondaryCategories.length > 0 || hasTypeOptions) && (
-        <div className="flex flex-wrap items-center gap-4 border-b border-white/5 pb-6">
+        <div className="scrollbar-hide flex items-center gap-4 overflow-x-auto whitespace-nowrap border-b border-white/5 pb-6 max-md:-mr-5 max-md:pr-5 md:flex-wrap md:overflow-visible md:whitespace-normal">
           {visibleSecondaryCategories.length > 0 && (
             <>
               <IconTooltip label="Filtrer">
@@ -82,7 +115,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                   aria-expanded={expanded}
                   aria-label="Filtrer"
                   className={
-                    "relative flex h-10 w-10 items-center justify-center rounded-full border transition-colors " +
+                    "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors max-md:h-11 max-md:w-11 " +
                     focusRing +
                     " " +
                     (expanded || activeSecondaryCount > 0
@@ -98,17 +131,17 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                   )}
                 </button>
               </IconTooltip>
-              <div className="h-8 w-px bg-white/10" />
+              <div className="h-8 w-px shrink-0 bg-white/10" />
             </>
           )}
 
           {hasTypeOptions && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex shrink-0 gap-2 md:flex-wrap">
               <button
                 type="button"
                 onClick={() => onChange({ ...value, designType: "" })}
                 aria-pressed={value.designType === ""}
-                className={pillClass("designType", value.designType === "")}
+                className={"shrink-0 " + pillClass("designType", value.designType === "")}
               >
                 Tous les types
               </button>
@@ -120,7 +153,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                     type="button"
                     onClick={() => onChange({ ...value, designType: active ? "" : opt })}
                     aria-pressed={active}
-                    className={pillClass("designType", active)}
+                    className={"shrink-0 " + pillClass("designType", active)}
                   >
                     {opt}
                   </button>
@@ -131,41 +164,53 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
         </div>
       )}
 
+      {/* Desktop : panneau inline sous la barre. Mobile : SlideSheet plein-hauteur ci-dessous. */}
       {expanded && visibleSecondaryCategories.length > 0 && (
-        <div className="flex flex-wrap gap-x-12 gap-y-5 border-b border-white/5 pb-6 pt-2">
-          {visibleSecondaryCategories.map((c) => (
-            <div key={c.key} className="flex flex-col gap-3">
-              <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-on-surface-variant/65">
-                {c.label}
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => onChange({ ...value, [c.key]: "" })}
-                  aria-pressed={value[c.key] === ""}
-                  className={pillClass(c.key, value[c.key] === "")}
-                >
-                  Tous
-                </button>
-                {options[c.key].map((opt) => {
-                  const active = value[c.key] === opt;
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => onChange({ ...value, [c.key]: active ? "" : opt })}
-                      aria-pressed={active}
-                      className={pillClass(c.key, active)}
-                    >
-                      {optionLabel(c.key, opt)}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        <div className="hidden border-b border-white/5 pb-6 pt-2 md:flex md:flex-wrap md:gap-x-12 md:gap-y-5">
+          {secondaryCategoriesFields}
         </div>
       )}
+
+      <SlideSheet
+        open={expanded && visibleSecondaryCategories.length > 0}
+        onClose={() => setExpanded(false)}
+        from="left"
+        ariaLabel="Filtrer les projets"
+        closeOnBackdropClick
+        className="md:hidden"
+      >
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+          <span className="text-sm font-semibold uppercase tracking-widest text-on-surface">
+            Filtrer
+          </span>
+          <IconTooltip label="Fermer">
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              aria-label="Fermer"
+              className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
+            >
+              <X aria-hidden="true" size={20} />
+            </button>
+          </IconTooltip>
+        </div>
+        <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
+          {secondaryCategoriesFields}
+        </div>
+        <div className="shrink-0 border-t border-white/10 px-6 py-4">
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className={
+              "inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] max-md:min-h-11 " +
+              focusRing
+            }
+          >
+            <SlidersHorizontal aria-hidden="true" size={16} />
+            Filtrer{activeSecondaryCount > 0 ? ` (${activeSecondaryCount})` : ""}
+          </button>
+        </div>
+      </SlideSheet>
     </div>
   );
 }

@@ -142,7 +142,7 @@ export function AuthPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
                 >
                   {showPassword ? (
                     <EyeOff aria-hidden="true" size={18} />
@@ -165,7 +165,7 @@ export function AuthPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="mt-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:flex max-md:min-h-11 max-md:w-full max-md:items-center max-md:justify-center"
           >
             {submitting ? "Connexion…" : "Se connecter"}
           </button>

@@ -60,11 +60,11 @@ export function ProfilePage() {
               {designer.bio}
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-10 flex flex-wrap items-center gap-4 max-md:justify-center">
               <Link
                 to={`/${designer.slug}/projects`}
                 aria-label={`Voir les projets de ${designer.fullName}`}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 max-md:min-h-11 max-md:w-full"
               >
                 Voir les projets
                 <ArrowRight aria-hidden="true" size={18} />
@@ -77,7 +77,7 @@ export function ProfilePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Ouvrir le profil LinkedIn"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary max-md:h-11 max-md:w-11"
                     >
                       <FaLinkedin aria-hidden="true" size={18} />
                     </a>
@@ -90,7 +90,7 @@ export function ProfilePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Ouvrir le profil X"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary max-md:h-11 max-md:w-11"
                     >
                       <FaXTwitter aria-hidden="true" size={18} />
                     </a>
@@ -103,7 +103,7 @@ export function ProfilePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Visiter le site web de ${designer.fullName}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary max-md:h-11 max-md:w-11"
                     >
                       <Globe aria-hidden="true" size={18} />
                     </a>
@@ -117,7 +117,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="inline-flex items-center justify-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
                 >
                   <Lock aria-hidden="true" size={18} />
                   <span className="text-sm font-bold tracking-wider">

@@ -59,7 +59,7 @@ export function Alert({ type, title, description, dismissible, onClose, icon }: 
             type="button"
             onClick={onClose}
             aria-label="Fermer l'alerte"
-            className="shrink-0 rounded-full p-1 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface"
+            className="flex shrink-0 items-center justify-center rounded-full p-1 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface max-md:h-11 max-md:w-11"
           >
             <X aria-hidden="true" size={16} />
           </button>
