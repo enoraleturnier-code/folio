@@ -68,10 +68,12 @@ export function StatusBadge({
   kind,
   suffix,
   size = "sm",
+  className,
 }: {
   kind: StatusKind;
   suffix?: string;
   size?: "sm" | "md";
+  className?: string;
 }) {
   const Icon = icons[kind];
   return (
@@ -80,6 +82,7 @@ export function StatusBadge({
         "inline-flex items-center gap-1.5 rounded-full border font-normal uppercase tracking-widest",
         size === "md" ? "px-4 py-1.5 text-xs" : "px-3 py-1 text-[10px]",
         styles[kind],
+        className,
       )}
     >
       {Icon &&

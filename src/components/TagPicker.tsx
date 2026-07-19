@@ -82,25 +82,19 @@ export function TagPicker({
       </legend>
       <div className="flex flex-wrap items-center gap-2">
         {selected.map((name) => (
-          <span
+          <button
             key={name}
+            type="button"
+            onClick={() => remove(name)}
+            aria-label={`Retirer ${name}`}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border py-0.5 pl-2.5 pr-1 text-[10px] font-normal tracking-wide",
+              "inline-flex items-center gap-1.5 rounded-full border py-0.5 pl-2.5 pr-1 text-[10px] font-normal tracking-wide transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:min-h-[34px]",
               tagBadgeStyles[category],
             )}
           >
             {name}
-            <IconTooltip label="Retirer">
-              <button
-                type="button"
-                onClick={() => remove(name)}
-                aria-label={`Retirer ${name}`}
-                className="rounded-full p-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <X aria-hidden="true" size={11} />
-              </button>
-            </IconTooltip>
-          </span>
+            <X aria-hidden="true" size={11} />
+          </button>
         ))}
 
         <div className="relative" ref={ref}>
@@ -109,7 +103,7 @@ export function TagPicker({
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-label={`Ajouter ${label.toLowerCase()}`}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-on-surface-variant transition-all hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
             >
               <Plus aria-hidden="true" size={14} />
             </button>
@@ -131,7 +125,7 @@ export function TagPicker({
                   ))}
                 </div>
               )}
-              <div className="flex items-center gap-1 border-t border-white/5 pt-2">
+              <div className="flex flex-col gap-2 border-t border-white/5 pt-2 md:flex-row md:items-center md:gap-1">
                 <label htmlFor={newTagInputId} className="sr-only">
                   Nouveau tag pour {label.toLowerCase()}
                 </label>
@@ -141,7 +135,7 @@ export function TagPicker({
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addNew())}
                   placeholder="Nouveau tag..."
-                  className="min-w-0 flex-1 rounded-lg border border-white/5 bg-surface-container px-2 py-1.5 text-xs text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                  className="min-w-0 w-full rounded-lg border border-white/5 bg-surface-container px-2 py-1.5 text-xs text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary md:flex-1"
                 />
                 <IconTooltip label="Créer">
                   <button
@@ -149,7 +143,7 @@ export function TagPicker({
                     onClick={addNew}
                     disabled={!input.trim() || busy}
                     aria-label="Créer ce tag"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container text-on-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-full"
                   >
                     <Plus aria-hidden="true" size={14} />
                   </button>

@@ -385,7 +385,7 @@ export function AccessRequestModal({
             type="button"
             onClick={onClose}
             aria-label="Fermer le formulaire"
-            className="absolute right-5 top-5 z-20 rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="absolute right-5 top-5 z-20 flex items-center justify-center rounded-full p-2 text-on-surface-variant/70 transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
           >
             <X aria-hidden="true" size={24} />
           </button>
@@ -404,7 +404,7 @@ export function AccessRequestModal({
             <button
               type="button"
               onClick={goToProjects}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
             >
               Retour aux projets
               <ArrowRight aria-hidden="true" size={18} />
@@ -525,7 +525,7 @@ export function AccessRequestModal({
                               type="button"
                               onClick={() => setShowPassword((v) => !v)}
                               aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
                             >
                               {showPassword ? (
                                 <EyeOff aria-hidden="true" size={18} />
@@ -573,7 +573,7 @@ export function AccessRequestModal({
                               aria-label={
                                 showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
                               }
-                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
                             >
                               {showConfirmPassword ? (
                                 <EyeOff aria-hidden="true" size={18} />
@@ -707,7 +707,7 @@ export function AccessRequestModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-transparent px-5 py-2.5 text-sm font-medium text-on-surface hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:w-auto"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-transparent px-5 py-2.5 text-sm font-medium text-on-surface hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
                     >
                       <X aria-hidden="true" size={16} />
                       Annuler
@@ -715,7 +715,7 @@ export function AccessRequestModal({
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:w-auto"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
                     >
                       {submitting ? "Envoi..." : "Envoyer ma demande"}
                       <Check aria-hidden="true" size={18} />

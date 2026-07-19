@@ -89,7 +89,7 @@ export function AccountPage() {
               <button
                 type="button"
                 onClick={() => setConfirmOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 max-md:min-h-11 max-md:w-full"
               >
                 <Trash2 aria-hidden="true" size={16} />
                 Supprimer mon compte
@@ -113,12 +113,12 @@ export function AccountPage() {
               title="Supprimer définitivement votre compte ?"
               description="Vos données personnelles seront anonymisées et votre compte supprimé. Cette action est irréversible et ne peut pas être annulée."
             />
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-end">
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
                 disabled={deleting}
-                className="rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-on-surface disabled:cursor-not-allowed disabled:opacity-60 max-md:min-h-11 md:w-auto"
               >
                 Annuler
               </button>
@@ -126,7 +126,7 @@ export function AccountPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="rounded-full bg-error px-6 py-2.5 text-sm font-bold text-on-error shadow-lg transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100"
+                className="inline-flex w-full items-center justify-center rounded-full bg-error px-6 py-2.5 text-sm font-bold text-on-error shadow-lg transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:brightness-100 max-md:min-h-11 md:w-auto"
               >
                 {deleting ? "Suppression…" : "Confirmer la suppression"}
               </button>

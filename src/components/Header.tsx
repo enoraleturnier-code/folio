@@ -5,8 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { BurgerMenu } from "@/components/BurgerMenu";
 import { MobileAccountSheet } from "@/components/MobileAccountSheet";
 import { MobileThemeSheet } from "@/components/MobileThemeSheet";
+import { NotificationCountBadge } from "@/components/NotificationCountBadge";
 import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { supabase } from "@/integrations/supabase/client";
 import { initials } from "@/lib/utils";
 import { NotificationBell } from "./NotificationBell";
@@ -15,6 +17,7 @@ import { ThemeToggle } from "./ThemeToggle";
 export function Header() {
   const location = useLocation();
   const { session, role, roleLoading, fullName } = useAuth();
+  const unreadCount = useUnreadNotificationCount();
   const isAdminRoute = location.pathname.startsWith("/admin");
   const [burgerOpen, setBurgerOpen] = useState(false);
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
@@ -73,7 +76,7 @@ export function Header() {
             type="button"
             onClick={() => setBurgerOpen(true)}
             aria-label="Ouvrir le menu"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
           >
             <Menu aria-hidden="true" size={24} />
           </button>
@@ -94,7 +97,7 @@ export function Header() {
               type="button"
               onClick={() => setThemeSheetOpen(true)}
               aria-label="Choisir le thème d'affichage"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
             >
               <Moon aria-hidden="true" size={22} />
             </button>
@@ -104,9 +107,10 @@ export function Header() {
                 type="button"
                 onClick={() => setAccountSheetOpen(true)}
                 aria-label="Mon compte"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
               >
                 {fullName ? initials(fullName) : "?"}
+                <NotificationCountBadge count={unreadCount} className="absolute -right-0.5 -top-0.5" />
               </button>
             ) : (
               <Link
@@ -130,6 +134,7 @@ export function Header() {
           fullName={fullName}
           role={role}
           roleLoading={roleLoading}
+          unreadCount={unreadCount}
         />
       )}
     </header>

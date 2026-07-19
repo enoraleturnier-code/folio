@@ -48,7 +48,7 @@ const secondaryCategories: { key: keyof FilterState; label: string }[] = [
 
 function pillClass(key: keyof FilterState, active: boolean) {
   return (
-    "rounded-full border px-4 py-1.5 text-sm transition-colors " +
+    "inline-flex items-center justify-center rounded-full border px-4 py-1.5 text-sm transition-colors max-md:min-h-[34px] " +
     focusRing +
     " " +
     (active
@@ -105,7 +105,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
   return (
     <div className="space-y-4">
       {(visibleSecondaryCategories.length > 0 || hasTypeOptions) && (
-        <div className="scrollbar-hide flex items-center gap-4 overflow-x-auto whitespace-nowrap border-b border-white/5 pb-6 md:flex-wrap md:overflow-visible md:whitespace-normal">
+        <div className="scrollbar-hide flex items-center gap-4 overflow-x-auto whitespace-nowrap border-b border-white/5 pb-6 max-md:-mr-5 max-md:pr-5 md:flex-wrap md:overflow-visible md:whitespace-normal">
           {visibleSecondaryCategories.length > 0 && (
             <>
               <IconTooltip label="Filtrer">
@@ -115,7 +115,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
                   aria-expanded={expanded}
                   aria-label="Filtrer"
                   className={
-                    "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors " +
+                    "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors max-md:h-11 max-md:w-11 " +
                     focusRing +
                     " " +
                     (expanded || activeSecondaryCount > 0
@@ -188,7 +188,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Fermer"
-              className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
             >
               <X aria-hidden="true" size={20} />
             </button>
@@ -202,7 +202,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
             type="button"
             onClick={() => setExpanded(false)}
             className={
-              "inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] " +
+              "inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] max-md:min-h-11 " +
               focusRing
             }
           >

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { MobileNotificationsView } from "@/components/MobileNotificationsView";
+import { NotificationCountBadge } from "@/components/NotificationCountBadge";
 import { SlideSheet } from "@/components/SlideSheet";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,12 +16,14 @@ export function MobileAccountSheet({
   fullName,
   role,
   roleLoading,
+  unreadCount,
 }: {
   open: boolean;
   onClose: () => void;
   fullName: string | null;
   role: string | null;
   roleLoading: boolean;
+  unreadCount: number;
 }) {
   const [view, setView] = useState<View>("menu");
   const navigate = useNavigate();
@@ -64,7 +67,7 @@ export function MobileAccountSheet({
           type="button"
           onClick={close}
           aria-label="Fermer"
-          className="rounded-full p-2 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
         >
           <X aria-hidden="true" size={24} />
         </button>
@@ -101,6 +104,7 @@ export function MobileAccountSheet({
         >
           <Bell aria-hidden="true" className="text-on-surface-variant" size={20} />
           Notifications
+          <NotificationCountBadge count={unreadCount} />
         </button>
 
         <div className="border-t border-outline-variant" />

@@ -85,7 +85,7 @@ export function ProjectDetailPage() {
 
   return (
     <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-28 md:px-16">
-      <section className="relative aspect-[3/1] overflow-hidden rounded-2xl">
+      <section className="relative aspect-[3/1] overflow-hidden rounded-2xl max-md:-mx-5 max-md:-mt-28 max-md:aspect-[4/3] max-md:rounded-none">
         <img
           src={project.thumbnail_url ?? ""}
           alt={project.title}
@@ -95,19 +95,19 @@ export function ProjectDetailPage() {
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-        <div className="absolute left-6 top-6 z-10">
+        <div className="absolute left-6 top-6 z-10 max-md:top-24">
           <IconTooltip label="Retour à la liste">
             <Link
               to={`/${designer.slug}/projects`}
               aria-label="Retour à la liste"
-              className="glass-card flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:border-primary hover:text-primary"
+              className="glass-card flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:border-primary hover:text-primary max-md:h-11 max-md:w-11"
             >
               <ArrowLeft aria-hidden="true" size={18} />
             </Link>
           </IconTooltip>
         </div>
         {project.status === "confidential" && (
-          <div className="absolute right-6 top-6 z-10">
+          <div className="absolute right-6 top-6 z-10 max-md:top-24">
             <StatusBadge kind="confidential" size="md" />
           </div>
         )}

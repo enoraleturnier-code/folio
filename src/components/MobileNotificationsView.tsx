@@ -64,7 +64,7 @@ export function MobileNotificationsView({
           type="button"
           onClick={onBack}
           aria-label="Retour au menu compte"
-          className="rounded-full p-2 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
         >
           <ArrowLeft aria-hidden="true" size={22} />
         </button>
@@ -99,7 +99,7 @@ export function MobileNotificationsView({
                 <button
                   type="button"
                   onClick={() => handleAction(n)}
-                  className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="inline-flex w-fit shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary-container px-4 py-1.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
                 >
                   {isAdmin ? "Accéder au dashboard" : "Voir le projet"}
                   <ArrowRight aria-hidden="true" size={14} />

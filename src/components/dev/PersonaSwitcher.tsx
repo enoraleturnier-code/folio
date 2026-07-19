@@ -96,7 +96,7 @@ export function PersonaSwitcher() {
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Fermer le sélecteur de personas"
-              className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex items-center justify-center rounded-full p-1 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
             >
               <X aria-hidden="true" size={14} />
             </button>
@@ -126,7 +126,7 @@ export function PersonaSwitcher() {
               type="button"
               onClick={signOut}
               disabled={busy !== null}
-              className="w-full rounded-full bg-primary-container px-3 py-1.5 text-center font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:brightness-100"
+              className="flex w-full items-center justify-center rounded-full bg-primary-container px-3 py-1.5 text-center font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:brightness-100 max-md:min-h-11"
             >
               {busy === "__signout__" ? "…" : "Se déconnecter"}
             </button>
