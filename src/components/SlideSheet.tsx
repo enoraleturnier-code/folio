@@ -15,6 +15,10 @@ interface SlideSheetProps {
   /** Classe additionnelle sur le conteneur racine (ex. `md:hidden` pour un
    * tiroir mobile-only doublé d'une variante desktop distincte). */
   className?: string;
+  /** Override de la largeur du tiroir "left" (défaut `w-[70%]`, pensé pour
+   * mobile) -- utile quand le même SlideSheet sert aussi en desktop, où 70%
+   * de la largeur d'écran est disproportionné (ex. filtre catalogue). */
+  widthClassName?: string;
   children: ReactNode;
 }
 
@@ -28,6 +32,7 @@ export function SlideSheet({
   ariaLabel,
   closeOnBackdropClick = false,
   className,
+  widthClassName,
   children,
 }: SlideSheetProps) {
   const [mounted, setMounted] = useState(false);
@@ -61,7 +66,9 @@ export function SlideSheet({
   if (!mounted) return null;
 
   const positionCls =
-    from === "bottom" ? "inset-x-0 bottom-0 h-full rounded-t-2xl" : "inset-y-0 left-0 h-full w-[70%]";
+    from === "bottom"
+      ? "inset-x-0 bottom-0 h-full rounded-t-2xl"
+      : `inset-y-0 left-0 h-full ${widthClassName ?? "w-[70%]"}`;
 
   const transformCls =
     from === "bottom"

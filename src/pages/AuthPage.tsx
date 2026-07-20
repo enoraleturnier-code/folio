@@ -59,7 +59,7 @@ export function AuthPage() {
   };
 
   const inputCls =
-    "rounded-full border bg-transparent px-5 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none";
+    "w-full rounded-xl border bg-surface-container px-4 py-3 text-sm font-light text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
   return (
     <main
@@ -69,13 +69,17 @@ export function AuthPage() {
     >
       <AuroraBackground variant="modal" />
 
-      <Link
-        to={`/${designer.slug}`}
-        className="absolute left-5 top-5 z-10 inline-flex items-center gap-1.5 text-sm text-on-surface-variant no-underline transition-colors hover:text-on-surface md:left-8 md:top-8"
-      >
-        <ArrowLeft aria-hidden="true" size={16} />
-        Retour au portfolio
-      </Link>
+      <div className="absolute left-5 top-5 z-10 md:left-8 md:top-8">
+        <IconTooltip label="Retour à la page profil">
+          <Link
+            to={`/${designer.slug}`}
+            aria-label="Retour à la page profil"
+            className="glass-card flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:border-primary hover:text-primary max-md:h-11 max-md:w-11"
+          >
+            <ArrowLeft aria-hidden="true" size={18} />
+          </Link>
+        </IconTooltip>
+      </div>
 
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-surface-container-lowest p-8 shadow-2xl shadow-black/40">
         <p className="mb-2 text-2xl font-medium tracking-tight text-on-surface">
@@ -103,7 +107,7 @@ export function AuthPage() {
               aria-invalid={Boolean(emailInvalid)}
               aria-describedby={emailInvalid ? "auth-email-hint" : undefined}
               className={
-                inputCls + " " + (emailInvalid ? "border-error" : "border-outline focus:border-primary")
+                inputCls + " " + (emailInvalid ? "border-error focus-visible:ring-error" : "border-outline")
               }
               placeholder="vous@exemple.com"
             />
@@ -132,8 +136,8 @@ export function AuthPage() {
                 aria-describedby={passwordInvalid ? "auth-password-hint" : undefined}
                 className={
                   inputCls +
-                  " w-full pr-12 " +
-                  (passwordInvalid ? "border-error" : "border-outline focus:border-primary")
+                  " pr-12 " +
+                  (passwordInvalid ? "border-error focus-visible:ring-error" : "border-outline")
                 }
                 placeholder="••••••••"
               />

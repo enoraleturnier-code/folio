@@ -164,20 +164,13 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
         </div>
       )}
 
-      {/* Desktop : panneau inline sous la barre. Mobile : SlideSheet plein-hauteur ci-dessous. */}
-      {expanded && visibleSecondaryCategories.length > 0 && (
-        <div className="hidden border-b border-white/5 pb-6 pt-2 md:flex md:flex-wrap md:gap-x-12 md:gap-y-5">
-          {secondaryCategoriesFields}
-        </div>
-      )}
-
       <SlideSheet
         open={expanded && visibleSecondaryCategories.length > 0}
         onClose={() => setExpanded(false)}
         from="left"
         ariaLabel="Filtrer les projets"
         closeOnBackdropClick
-        className="md:hidden"
+        widthClassName="w-[70%] md:w-1/2"
       >
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <span className="text-sm font-semibold uppercase tracking-widest text-on-surface">
@@ -202,7 +195,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
             type="button"
             onClick={() => setExpanded(false)}
             className={
-              "inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] max-md:min-h-11 " +
+              "inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 max-md:min-h-11 " +
               focusRing
             }
           >

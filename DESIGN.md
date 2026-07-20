@@ -309,6 +309,8 @@ Exception : le couple "Quitter sans enregistrer" / "Revenir au formulaire" a son
 
 **Non concerné** : les items de menu déroulant (`AccountMenu`, `ThemeToggle`) gardent leur padding d'origine — ce sont des lignes de liste dans un panneau, pas des boutons CTA autonomes.
 
+**Carte profil — bouton "Accéder aux projets confidentiels" (19/07)** : couleur passée de `primary` à `tertiary` (`border-tertiary`/`text-tertiary`/`hover:bg-tertiary-container/10`/`ring-tertiary`, style outline conservé) pour se distinguer du CTA "Voir les projets" ; icône `Lock` remplacée par `LockOpen` (cadenas ouvert = accès disponible, cohérent avec l'action). Layout de la carte profil (`ProfilePage.tsx`) après plusieurs itérations le même jour : la ligne "Voir les projets" + 3 icônes sociales est alignée à gauche avec un espace élargi entre les deux groupes (`gap-12` desktop, contre `gap-4` d'origine) ; le bouton "Accéder aux projets confidentiels" est lui aussi aligné à gauche (plus de centrage) — les deux sont désormais alignés sur la marge gauche de la carte, comme le texte de présentation (`bio`, élargi de `max-w-md` à `max-w-xl` pour occuper toute la largeur disponible de la carte). Mobile inchangé dans tous les cas (CTA `w-full`, icônes centrées en dessous).
+
 ---
 
 ## 🪟 Modales — ombre & style de confirmation (12/07)
@@ -425,19 +427,21 @@ Pattern déjà en place sur `AccessRequestModal` (`FieldHint`, icône `CircleAle
 
 | Token | Dark | Light |
 |---|---|---|
-| `aurora-teal` | `rgba(45,212,191,0.36)` | `rgba(45,212,191,0.3)` |
-| `aurora-purple` | `rgba(124,58,237,0.32)` | `rgba(124,58,237,0.26)` |
-| `aurora-cyan` | `rgba(6,182,212,0.28)` | `rgba(6,182,212,0.24)` |
-| `aurora-indigo` | `rgba(129,140,248,0.3)` | `rgba(129,140,248,0.28)` |
+| `aurora-teal` | `rgba(45,212,191,0.44)` | `rgba(45,212,191,0.36)` |
+| `aurora-purple` | `rgba(124,58,237,0.4)` | `rgba(124,58,237,0.32)` |
+| `aurora-cyan` | `rgba(6,182,212,0.36)` | `rgba(6,182,212,0.3)` |
+| `aurora-indigo` | `rgba(129,140,248,0.38)` | `rgba(129,140,248,0.34)` |
 
-**Variant `modal`** — mêmes 4 teintes, alphas propres et plus élevés (+20 à +36 % relatif selon la couleur), redéfinis localement sur `.aurora-bg--modal` (les 4 custom properties sont simplement réassignées dans ce scope, aucune règle dupliquée sur chaque pseudo-élément) :
+**Variant `modal`** — mêmes 4 teintes, alphas propres et plus élevés, redéfinis localement sur `.aurora-bg--modal` (les 4 custom properties sont simplement réassignées dans ce scope, aucune règle dupliquée sur chaque pseudo-élément) :
 
 | Token | Dark (modal) | Light (modal) |
 |---|---|---|
-| `aurora-teal` | `rgba(45,212,191,0.46)` | `rgba(45,212,191,0.4)` |
-| `aurora-purple` | `rgba(124,58,237,0.42)` | `rgba(124,58,237,0.36)` |
-| `aurora-cyan` | `rgba(6,182,212,0.38)` | `rgba(6,182,212,0.34)` |
-| `aurora-indigo` | `rgba(129,140,248,0.4)` | `rgba(129,140,248,0.38)` |
+| `aurora-teal` | `rgba(45,212,191,0.56)` | `rgba(45,212,191,0.48)` |
+| `aurora-purple` | `rgba(124,58,237,0.52)` | `rgba(124,58,237,0.44)` |
+| `aurora-cyan` | `rgba(6,182,212,0.48)` | `rgba(6,182,212,0.42)` |
+| `aurora-indigo` | `rgba(129,140,248,0.5)` | `rgba(129,140,248,0.46)` |
+
+**3ᵉ passe d'intensification (19/07)** : alphas des deux tables ci-dessus remontés une nouvelle fois (+~20 % relatif chacun) sur demande explicite ("accentuer l'effet aurore boréale"). À cette occasion, les 3 dialogs en lecture seule d'`AdminPage.tsx` qui n'avaient **jamais** monté `<AuroraBackground variant="modal" />` (`AccesConfidentielsDrawer`, `MesContactsDrawer`, l'aside détail Veille) l'ont reçu — un oubli pré-existant, pas une régression de cette passe. Le variant `modal` couvre désormais systématiquement tout dialog/drawer plein écran de l'app, pas seulement les 4 qui l'avaient déjà.
 
 CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `aurora-indigo` a d'abord existé uniquement pour la 4ᵉ teinte du dashboard admin (`SectionAurora`) ; il rejoint désormais aussi la composition principale `.aurora-bg` (4ᵉ tache, `.aurora-blob-indigo`) — toujours aucune nouvelle couleur, seulement une variante translucide d'un token déjà existant (même hex que `tag-keywords`).
 
@@ -531,7 +535,8 @@ Animation d'entrée ~250ms (`translate-y-full→0` ou `-translate-x-full→0`), 
 **Overlays et filtres mobile (17/07)** :
 - **Tiroirs latéraux type `ProjectDrawer`** (`ProjectDrawer.tsx` + les 3 asides en lecture seule d'`AdminPage.tsx` : suivi des accès confidentiels accordés, "Mes contacts Folio+", détail d'une entrée Veille) — tous calqués sur le même `absolute right-0 top-0 h-screen w-[54vw]` desktop, aucun n'avait de repli mobile. Fix uniforme : `inset-x-4 top-0 bottom-0 rounded-2xl border` (flottant, marge 16px de chaque côté, hauteur pleine) sous `md`, `md:inset-x-auto md:right-0 md:h-screen md:w-[54vw] md:rounded-none md:border-0 md:border-l` au-dessus — un seul jeu de classes responsive, pas de duplication JSX (juste une largeur/position, pas une structure différente). `overflow-hidden` ajouté pour que le `rounded-2xl` mobile clippe proprement le contenu.
 - **Footer de boutons** (`ProjectDrawer` — footer principal + les 2 confirmations imbriquées `pendingSave`/`confirmClose —, `AccessRequestModal`, confirmation de suppression `AdminPage`) : `flex-col-reverse` sous `md` (l'action principale, dernière dans le DOM, remonte visuellement en haut sans réordonner le JSX) + chaque bouton `w-full md:w-auto`, redevient `md:flex-row` (ordre desktop inchangé) au-dessus.
-- **`FilterBar`/`AdminFilterBar`** (catalogue public + tous les filtres admin) : la rangée de pills principale passe en scroll horizontal sous `md` (`overflow-x-auto whitespace-nowrap` + nouvelle classe utilitaire `.scrollbar-hide` dans `styles.css`, scrollbar masquée mais scroll fonctionnel), reprend `md:flex-wrap md:overflow-visible` au-dessus. Le bouton "Filtrer" (catégories secondaires) garde son panneau inline sous la barre en desktop (`hidden md:flex`) mais ouvre désormais un `SlideSheet from="left"` (même primitive que `BurgerMenu`, `closeOnBackdropClick`) en dessous de `md` — deux rendus du même bloc de pills (`secondaryCategoriesFields`/`secondaryGroupsFields`), un seul état `expanded` partagé, jamais les deux montés visibles en même temps (`md:hidden` sur le `SlideSheet`). Le panneau mobile a un bouton "Filtrer" `w-full` ancré en pied (ferme le panneau, les filtres s'appliquent déjà en live via `onChange`). `SlideSheet` a gagné une prop `className` optionnelle pour ce genre de cas (variante mobile-only d'un composant qui a aussi une variante desktop distincte).
+- **`FilterBar`/`AdminFilterBar`** (catalogue public + tous les filtres admin) : la rangée de pills principale passe en scroll horizontal sous `md` (`overflow-x-auto whitespace-nowrap` + nouvelle classe utilitaire `.scrollbar-hide` dans `styles.css`, scrollbar masquée mais scroll fonctionnel), reprend `md:flex-wrap md:overflow-visible` au-dessus. Le bouton "Filtrer" (catégories secondaires) — `AdminFilterBar` garde son panneau inline sous la barre en desktop (`hidden md:flex`) + `SlideSheet from="left"` (`md:hidden`) en dessous de `md`, deux rendus du même bloc de pills, un seul état `expanded` partagé, jamais les deux montés visibles en même temps. `SlideSheet` a une prop `className` optionnelle pour ce genre de cas (variante mobile-only d'un composant qui a aussi une variante desktop distincte).
+  **`FilterBar` (catalogue public uniquement, 19/07)** : le panneau inline desktop a été retiré — `SlideSheet` sert désormais aussi bien sur desktop que mobile, plus de duplication de bloc de pills ni de state à synchroniser. `SlideSheet` a gagné une seconde prop optionnelle, `widthClassName`, pour ce cas précis : le tiroir gauche fait `w-[70%]` par défaut (pensé pour mobile, cf. `BurgerMenu`), disproportionné en plein écran desktop. `FilterBar` passe `widthClassName="w-[70%] md:w-1/2"` — mobile inchangé, 50 % de la largeur d'écran sur desktop (ajusté depuis une première valeur fixe `md:w-[380px]`, jugée trop étroite). Le bouton "Filtrer" du pied de tiroir reprend désormais exactement le style des autres boutons primary `px-5 py-2.5` du site (`shadow-lg shadow-primary/20 hover:scale-105 active:scale-95`, alignés sur `AuthPage`) au lieu d'un style `active:scale-[0.98]` ad hoc sans ombre.
 
 ---
 
