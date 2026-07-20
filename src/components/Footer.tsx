@@ -1,5 +1,10 @@
 import { CircleHelp } from "lucide-react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
+import { cn } from "@/lib/utils";
+
+const footerLinkClass = ({ isActive }: { isActive: boolean }) =>
+  cn("transition-colors hover:text-primary hover:font-bold", isActive && "font-bold");
 
 export function Footer() {
   return (
@@ -15,19 +20,19 @@ export function Footer() {
             </p>
           </div>
           <div className="flex w-full flex-col items-center gap-4 text-center text-sm text-on-surface-variant md:w-auto md:flex-row md:flex-wrap md:gap-6 md:text-left">
-            <Link to="/politique-de-confidentialite" className="hover:text-primary transition-colors">
+            <NavLink to="/politique-de-confidentialite" className={footerLinkClass}>
               Politique de confidentialité
-            </Link>
-            <Link to="/mentions-legales" className="hover:text-primary transition-colors">
+            </NavLink>
+            <NavLink to="/mentions-legales" className={footerLinkClass}>
               Mentions légales
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/aide"
-              className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+              className={({ isActive }) => cn("inline-flex items-center gap-1.5", footerLinkClass({ isActive }))}
             >
               <CircleHelp aria-hidden="true" size={16} />
               Aide
-            </Link>
+            </NavLink>
           </div>
         </div>
       </div>

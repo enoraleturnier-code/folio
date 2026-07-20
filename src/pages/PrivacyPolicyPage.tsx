@@ -1,6 +1,10 @@
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { designer } from "@/data/designer";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const CONTENT = `## 1. Qui traite vos données ?
@@ -66,6 +70,13 @@ export function PrivacyPolicyPage() {
     <div className="relative min-h-screen bg-background">
       <Header />
       <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-5 pb-24 pt-32 md:px-16">
+        <Link
+          to={`/${designer.slug}/projects`}
+          className="mb-8 inline-flex items-center gap-1.5 text-sm text-on-surface-variant no-underline transition-colors hover:text-on-surface"
+        >
+          <ArrowLeft aria-hidden="true" size={16} />
+          Retour au catalogue
+        </Link>
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
           Confidentialité
         </p>

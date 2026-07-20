@@ -1561,6 +1561,7 @@ function AccesConfidentielsDrawer({
       aria-modal="true"
       aria-label="Suivi des accès confidentiels accordés"
     >
+      <AuroraBackground variant="modal" />
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
@@ -1622,11 +1623,11 @@ function AccesConfidentielsDrawer({
                     </div>
                   </div>
                   {grantees.length > 0 && (
-                    <ul className="mt-3 space-y-1.5 border-t border-white/5 pt-3">
+                    <ul className="mt-3 divide-y divide-white/5 border-t border-white/5">
                       {grantees.map((g, i) => (
                         <li
                           key={i}
-                          className="flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant"
+                          className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-xs text-on-surface-variant"
                         >
                           <span className="font-medium text-on-surface">{g.name}</span>
                           <span>
@@ -1871,6 +1872,7 @@ function MesContactsDrawer({
       aria-modal="true"
       aria-label="Mes contacts Folio+"
     >
+      <AuroraBackground variant="modal" />
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
@@ -2636,6 +2638,7 @@ function VeilleContentDrawer({
 
   return (
     <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={entry.titre}>
+      <AuroraBackground variant="modal" />
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}

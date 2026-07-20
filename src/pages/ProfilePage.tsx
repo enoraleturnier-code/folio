@@ -1,4 +1,4 @@
-import { ArrowRight, Calendar, Globe, Lock } from "lucide-react";
+import { ArrowRight, Calendar, Globe, LockOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react-router-dom";
@@ -56,11 +56,11 @@ export function ProfilePage() {
             <p className="mt-2 font-display-accent text-5xl italic leading-tight text-primary md:text-6xl">
               {designer.adjective}
             </p>
-            <p className="mt-8 max-w-md text-base font-light leading-relaxed text-on-surface">
+            <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-on-surface">
               {designer.bio}
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-4 max-md:justify-center">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:justify-start md:gap-12">
               <Link
                 to={`/${designer.slug}/projects`}
                 aria-label={`Voir les projets de ${designer.fullName}`}
@@ -117,9 +117,9 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-3 rounded-full border border-primary px-5 py-2.5 text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
+                  className="inline-flex items-center justify-center gap-3 rounded-full border border-tertiary px-5 py-2.5 text-tertiary transition-colors hover:bg-tertiary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
                 >
-                  <Lock aria-hidden="true" size={18} />
+                  <LockOpen aria-hidden="true" size={18} />
                   <span className="text-sm font-bold tracking-wider">
                     Accéder aux projets confidentiels
                   </span>

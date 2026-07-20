@@ -111,10 +111,10 @@
   --tag-sector: #06b6d4;
   --tag-tools: #0ea5e9;
   --tag-keywords: #818cf8;
-  --aurora-teal: rgba(45, 212, 191, 0.36);
-  --aurora-purple: rgba(124, 58, 237, 0.32);
-  --aurora-cyan: rgba(6, 182, 212, 0.28);
-  --aurora-indigo: rgba(129, 140, 248, 0.3);
+  --aurora-teal: rgba(45, 212, 191, 0.44);
+  --aurora-purple: rgba(124, 58, 237, 0.4);
+  --aurora-cyan: rgba(6, 182, 212, 0.36);
+  --aurora-indigo: rgba(129, 140, 248, 0.38);
   --border-glass: rgba(186, 202, 197, 0.1);
   --radius: 1rem;
 }
@@ -134,10 +134,10 @@
   --outline: #5a6a66;
   --outline-variant: #b6c1be;
   --border-glass: rgba(14, 21, 19, 0.08);
-  --aurora-teal: rgba(45, 212, 191, 0.3);
-  --aurora-purple: rgba(124, 58, 237, 0.26);
-  --aurora-cyan: rgba(6, 182, 212, 0.24);
-  --aurora-indigo: rgba(129, 140, 248, 0.28);
+  --aurora-teal: rgba(45, 212, 191, 0.36);
+  --aurora-purple: rgba(124, 58, 237, 0.32);
+  --aurora-cyan: rgba(6, 182, 212, 0.3);
+  --aurora-indigo: rgba(129, 140, 248, 0.34);
 }
 
 @layer base {
@@ -302,16 +302,16 @@
    touché). Les 4 tokens sont redéfinis localement, aucune règle de
    propriété séparée à maintenir sur chaque pseudo-élément. */
 .aurora-bg--modal {
-  --aurora-teal: rgba(45, 212, 191, 0.46);
-  --aurora-purple: rgba(124, 58, 237, 0.42);
-  --aurora-cyan: rgba(6, 182, 212, 0.38);
-  --aurora-indigo: rgba(129, 140, 248, 0.4);
+  --aurora-teal: rgba(45, 212, 191, 0.56);
+  --aurora-purple: rgba(124, 58, 237, 0.52);
+  --aurora-cyan: rgba(6, 182, 212, 0.48);
+  --aurora-indigo: rgba(129, 140, 248, 0.5);
 }
 :root:not(.dark) .aurora-bg--modal {
-  --aurora-teal: rgba(45, 212, 191, 0.4);
-  --aurora-purple: rgba(124, 58, 237, 0.36);
-  --aurora-cyan: rgba(6, 182, 212, 0.34);
-  --aurora-indigo: rgba(129, 140, 248, 0.38);
+  --aurora-teal: rgba(45, 212, 191, 0.48);
+  --aurora-purple: rgba(124, 58, 237, 0.44);
+  --aurora-cyan: rgba(6, 182, 212, 0.42);
+  --aurora-indigo: rgba(129, 140, 248, 0.46);
 }
 
 /* Fond boréal léger, un seul halo, utilisé derrière une section du
