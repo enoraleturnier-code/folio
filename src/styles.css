@@ -230,7 +230,6 @@
   position: absolute;
   border-radius: 9999px;
   filter: blur(140px);
-  will-change: transform;
 }
 .aurora-bg::before {
   width: 60%;
@@ -340,6 +339,32 @@
   border-radius: 9999px;
   filter: blur(120px);
   background: radial-gradient(circle, var(--aurora-section-color), transparent 70%);
+}
+
+/* Safari iOS a un bug connu de compositeur graphique sur les tres grands
+ * rayons de flou (filter: blur) appliques a des elements plein ecran :
+ * au lieu de flouter, la tache se peint en aplat opaque (souvent noir), et
+ * le rendu peut se figer completement (plus aucun clic ne repond, le thread
+ * de rendu est bloque) -- signale le 23/07 apres l'intensification de
+ * l'aurore (alphas relevés + AuroraBackground ajoute a 3 dialogs de plus
+ * qui ne l'avaient jamais eue). Rayon divise par ~3 sous md : reste un
+ * effet visible, sort de la zone a risque documentee sur iOS Safari.
+ * .aurora-bg est en position: fixed sur CHAQUE page/modale/tiroir, donc
+ * le bug touchait potentiellement tout l'appareil, pas une page isolee. */
+@media (max-width: 767px) {
+  .aurora-bg::before,
+  .aurora-bg::after {
+    filter: blur(48px);
+  }
+  .aurora-bg > .aurora-blob {
+    filter: blur(52px);
+  }
+  .aurora-bg > .aurora-blob-indigo {
+    filter: blur(50px);
+  }
+  .aurora-section::before {
+    filter: blur(40px);
+  }
 }
 
 @keyframes aurora-float-a {
