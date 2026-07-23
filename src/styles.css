@@ -191,6 +191,12 @@
     font-family: var(--font-sans);
     font-weight: 300;
     -webkit-font-smoothing: antialiased;
+    /* Filet de sécurité : bloque tout débordement horizontal (élément mal
+     * dimensionné, largeur fixe oubliée, tache décorative mal contenue) sans
+     * empêcher le scroll vertical normal. Audit mobile 22/07 : aucun
+     * débordement trouvé en pratique sur les pages/tiroirs existants, ajouté
+     * en prévention. */
+    overflow-x: hidden;
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 40%, transparent);
