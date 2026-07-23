@@ -93,6 +93,22 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 /**
+ * Page profil : n'a besoin que de savoir s'il existe au moins un projet
+ * confidentiel (pour afficher le bouton "Accéder aux projets confidentiels"),
+ * jamais des cartes elles-mêmes -- `head: true` ne récupère aucune ligne,
+ * juste un count via header HTTP, au lieu du `select *` complet de getProjects().
+ */
+export async function hasConfidentialProject(): Promise<boolean> {
+  const { count, error } = await supabase
+    .from("projects_catalog_view")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "confidential");
+
+  if (error) throw error;
+  return (count ?? 0) > 0;
+}
+
+/**
  * Full project row for the detail page — includes long_desc,
  * ai_structured_desc, client_name, team (absent from the catalog view).
  *

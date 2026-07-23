@@ -9,21 +9,24 @@ import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { ContactForm } from "@/components/ContactForm";
 import { IconTooltip } from "@/components/IconTooltip";
 import { designer, getDesignerProfile } from "@/data/designer";
-import { getProjects } from "@/data/projects";
+import { hasConfidentialProject } from "@/data/projects";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { prefersReducedMotion } from "@/lib/utils";
 
 export async function profileLoader({ params }: LoaderFunctionArgs) {
-  if (params.slug !== designer.slug) throw new Response("Not Found", { status: 404 });
-  const [projects, profile] = await Promise.all([getProjects(), getDesignerProfile()]);
-  return { designer: profile, projects };
+  // params.slug est absent sur la route "/" (index racine) -- seul un slug
+  // présent mais différent du designer réel est une vraie 404.
+  if (params.slug && params.slug !== designer.slug) {
+    throw new Response("Not Found", { status: 404 });
+  }
+  const [hasConfidential, profile] = await Promise.all([hasConfidentialProject(), getDesignerProfile()]);
+  return { designer: profile, hasConfidential };
 }
 
 export function ProfilePage() {
-  const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof profileLoader>>;
+  const { designer, hasConfidential } = useLoaderData() as Awaited<ReturnType<typeof profileLoader>>;
   useDocumentTitle(designer.fullName);
   const [modalOpen, setModalOpen] = useState(false);
-  const hasConfidential = projects.some((p) => p.status === "confidential");
   const { hash } = useLocation();
 
   // React Router ne scrolle pas automatiquement vers un #hash après une
