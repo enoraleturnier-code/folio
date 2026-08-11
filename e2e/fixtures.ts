@@ -1,11 +1,11 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
-export const SLUG = "lea-martin";
+export const SLUG = "enora-le-turnier";
 
 // Comptes seed du projet (PersonaSwitcher.tsx, deja utilises cette session
 // -- confirmes explicitement par l'utilisatrice pour cette session de QA).
 export const PERSONAS = {
-  admin: { email: "enoraleturnier+lea-persona@gmail.com", password: "Test1234!", name: "Léa Martin" },
+  admin: { email: "enoraleturnier+enora-persona@gmail.com", password: "Test1234!", name: "Enora Le Turnier" },
   pending: { email: "enoraleturnier+sophie-persona@gmail.com", password: "Test1234!", name: "Sophie Michelle" },
   validated: { email: "enoraleturnier+karim-persona@gmail.com", password: "Test1234!", name: "Karim Mansouri" },
 } as const;

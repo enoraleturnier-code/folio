@@ -4,7 +4,7 @@ test.describe("Catalogue public (anon)", () => {
   test("page profil : contenu de base et navigation vers le catalogue", async ({ page, consoleErrors }) => {
     await page.goto(`/${SLUG}`);
     await humanPause(page, 600);
-    await expect(page.getByRole("heading", { name: "Léa Martin" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Enora Le Turnier" })).toBeVisible();
     await humanScroll(page, 2);
     const voirProjets = page.getByRole("link", { name: /voir les projets/i });
     await expect(voirProjets).toBeVisible();

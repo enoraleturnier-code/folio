@@ -15,7 +15,7 @@ const CONTENT = `## Éditeur du site
 
 ## Note sur les données de démonstration
 
-Ce site est un MVP (Minimum Viable Product) développé dans le cadre d'une formation. Le profil "Léa Martin" ainsi que les projets, clients et informations associées affichés dans le catalogue sont des données de démonstration fictives, créées à des fins de test et de présentation. Elles ne correspondent à aucune personne physique ou morale réelle.
+Ce site est un projet personnel développé dans le cadre d'une formation. Les informations du profil affiché (nom, email, parcours) sont celles de l'éditeur du site, indiquées ci-dessus. Les projets, clients et informations associées affichés dans le catalogue restent en revanche des données de démonstration fictives, créées à des fins de test et de présentation, et ne correspondent à aucune personne physique ou morale réelle.
 
 ## Hébergement
 
@@ -44,6 +44,8 @@ Ce site utilise uniquement un cookie technique de session, strictement nécessai
 
 Pour toute question relative à ce site, contactez enoraleturnier@gmail.com.`;
 
+const LAST_UPDATED = "4 août 2026";
+
 export function LegalNoticePage() {
   useDocumentTitle("Mentions légales");
   return (
@@ -60,7 +62,7 @@ export function LegalNoticePage() {
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">Légal</p>
         <h1 className="mb-2 text-4xl font-medium text-on-surface md:text-5xl">Mentions légales</h1>
         <p className="mb-10 text-sm text-on-surface-variant">
-          Dernière mise à jour : 12 juillet 2026
+          Dernière mise à jour : {LAST_UPDATED}
         </p>
         <MarkdownContent content={CONTENT} className="space-y-6" />
       </main>

@@ -2,11 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 import type { Designer } from "./types";
 
-const firstName = "Léa";
-const lastName = "Martin";
+const firstName = "Enora";
+const lastName = "Le Turnier";
 
 export const designer: Designer = {
-  slug: "lea-martin",
+  slug: "enora-le-turnier",
   firstName,
   lastName,
   fullName: `${firstName} ${lastName}`,
@@ -19,8 +19,8 @@ export const designer: Designer = {
   linkedin: "https://example.com/in/demo-linkedin",
   twitter: "https://example.com/demo-x",
   website: "https://example.com",
-  calUsername: "lea-martin",
-  email: "hello@leamartin.design",
+  calUsername: "enora-le-turnier",
+  email: "enoraleturnier@gmail.com",
   location: "Paris — remote friendly",
 };
 

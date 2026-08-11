@@ -13,9 +13,9 @@ interface Persona {
 
 const PERSONAS: Persona[] = [
   {
-    name: "Léa Martin",
+    name: "Enora Le Turnier",
     role: "admin",
-    email: "enoraleturnier+lea-persona@gmail.com",
+    email: "enoraleturnier+enora-persona@gmail.com",
     password: "Test1234!",
   },
   {
