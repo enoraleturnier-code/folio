@@ -6,8 +6,8 @@ Portfolio privé à accès conditionnel pour designer freelance : projets public
 
 ## 🔗 Accès
 
-- App en ligne : [https://folio-sandy-eight.vercel.app/lea-martin](https://folio-sandy-eight.vercel.app/lea-martin)
-- Comptes de test (3 personas) : Léa Martin (admin, accès dashboard), Sophie Michelle (pending, demande en attente), Karim Mansouri (validated_visitor, accès projets confidentiels) — identifiants en note privée, non partagés ici
+- App en ligne : [https://folio-sandy-eight.vercel.app/enora-le-turnier](https://folio-sandy-eight.vercel.app/enora-le-turnier)
+- Comptes de test (3 personas) : Enora Le Turnier (admin, accès dashboard), Sophie Michelle (pending, demande en attente), Karim Mansouri (validated_visitor, accès projets confidentiels) — identifiants en note privée, non partagés ici
 
 ## 🛠️ Stack
 
@@ -75,4 +75,4 @@ Le guide utilisateur (parcours, FAQ, RGPD) est directement intégré à l'applic
 
 ## 👤 Auteur
 
-Enora Le Turnier (persona de démo : Léa Martin), projet fil rouge Bootcamp Vibe Coding, Lion.
+Enora Le Turnier, projet fil rouge Bootcamp Vibe Coding, Lion.

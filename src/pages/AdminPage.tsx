@@ -2318,7 +2318,7 @@ function ParametresTab() {
                 value={form.calUsername}
                 onChange={(e) => setForm({ ...form, calUsername: e.target.value })}
                 className={inputCls + " mt-2"}
-                placeholder="ex : lea-martin"
+                placeholder="ex : enora-le-turnier"
               />
               <p className="mt-1 text-xs text-on-surface-variant/70">
                 Affiche le widget de prise de rendez-vous sur ton profil public si rempli, le masque

@@ -40,7 +40,7 @@ Folio+ te permet de découvrir le travail d'un designer freelance : ses projets 
 
 ## 🔒 Les données personnelles (RGPD)
 
-- **Responsable du traitement** : Enora Le Turnier (persona affiché : Léa Martin).
+- **Responsable du traitement** : Enora Le Turnier.
 - **Données collectées** : nom, email, mot de passe (haché via Supabase Auth), message de demande d'accès, entreprise (optionnel), message de contact.
 - **Finalité** : gérer son compte, traiter ses demandes d'accès et ses messages.
 - **Base légale** : ton consentement, donné explicitement à l'inscription et sur le formulaire de contact.
