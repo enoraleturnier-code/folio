@@ -458,7 +458,9 @@ CSS-only (`.aurora-bg` + `AuroraBackground.tsx`), radial-gradient flouté. `auro
 |---|---|---|
 | `profile` (défaut) | Page profil public | 4 taches : teal en haut-gauche, purple en bas-droite, cyan centrée, indigo en bas-gauche — composition d'origine |
 | `catalogue` | Catalogue de projets | Mêmes 4 couleurs, réparties différemment (teal en haut-**droite** et plus petit, purple en bas-**gauche** et plus petit, cyan décalée à 30%/65% et plus large, indigo en haut-**gauche**) — pour que les deux pages restent reconnaissables l'une de l'autre sans changer de palette |
-| `modal` | Derrière chaque modale ouverte (`AccessRequestModal`, `ProjectDrawer`, confirmations `AdminPage`) + la page `/auth` (`AuthPage.tsx`, 15/07 — pas une modale à proprement parler, mais même traitement visuel pour la cohérence avec le reste de l'app) | Même géométrie que `profile`, alphas propres et plus marqués (table ci-dessus) — combinée à l'overlay `bg-background/80-90` + `backdrop-blur-sm` déjà en place, qui apporte le flou (sauf `/auth`, qui n'a pas d'overlay de dim puisqu'il n'y a rien derrière à assombrir) |
+| `modal` | Derrière chaque dialogue d'action ponctuelle (`AccessRequestModal`, confirmation de suppression `AdminPage`) + la page `/auth` (`AuthPage.tsx`, 15/07 — pas une modale à proprement parler, mais même traitement visuel pour la cohérence avec le reste de l'app) + les feuilles mobiles (`SlideSheet`) | Même géométrie que `profile`, alphas propres et plus marqués (table ci-dessus) — combinée à l'overlay `bg-background/80-90` + `backdrop-blur-sm` déjà en place, qui apporte le flou (sauf `/auth`, qui n'a pas d'overlay de dim puisqu'il n'y a rien derrière à assombrir) |
+
+**Retiré des drawers (11/08)** : `<AuroraBackground variant="modal" />` retiré de `ProjectDrawer` (panneau d'édition + ses 2 confirmations imbriquées, qui partageaient ce montage unique) et des 3 dialogs en lecture seule d'`AdminPage.tsx` ajoutés le 19/07 (`AccesConfidentielsDrawer`, `MesContactsDrawer`, aside détail Veille) — sur demande explicite. Ce sont des panneaux de contenu/lecture consultés plus longtemps que les dialogues d'action ponctuelle listés ci-dessus (confirmation, formulaire court, connexion), où le halo devenait plus gênant qu'utile. Le variant `modal` lui-même (tokens/alphas des deux tables ci-dessus) n'a pas changé, seuls ces 4 montages ont été retirés — `AccessRequestModal`, la confirmation de suppression `AdminPage`, `/auth` et les feuilles `SlideSheet` (dont le tiroir mobile `from="left"`, cf. section Navigation mobile) gardent l'effet.
 
 **Dashboard admin — un halo par section (`SectionAurora`, `AdminPage.tsx`, 12/07)** : une seule tache douce (`.aurora-section`, `position: absolute` dans le conteneur de la section — pas `position: fixed` plein écran comme `.aurora-bg`), couleur dominante différente par onglet, réutilise les 4 teintes déjà existantes :
 
@@ -510,14 +512,16 @@ Refonte complète — avant cette session, `< md` (768px) n'affichait quasi rien
 - Centre : logo "Folio+" (pages publiques) ou texte fixe "Dashboard" (`isAdminRoute`, jamais dynamique par onglet)
 - Droite : bouton thème (`MobileThemeSheet`) + avatar → `MobileAccountSheet` (connecté) ou lien "Connexion" (visiteur anonyme)
 
-**`SlideSheet`** (`src/components/SlideSheet.tsx`) — primitive partagée, deux variantes :
-| | `from="bottom"` (thème, compte) | `from="left"` (burger) |
-|---|---|---|
-| Usage | Feuille plein écran (100% × 100%) | Tiroir 70% largeur |
-| Fermeture clic-extérieur | Non (pas de zone visible "à l'extérieur") | Oui (`closeOnBackdropClick`) |
-| Overlay | `bg-background/60 backdrop-blur-sm` | idem + bordure `border-r border-white/15` sur le tiroir |
+**`SlideSheet`** (`src/components/SlideSheet.tsx`) — primitive partagée, trois variantes :
+| | `from="bottom"` (thème, compte) | `from="left"` (burger) | `from="right"` (filtres, 11/08) |
+|---|---|---|---|
+| Usage | Feuille plein écran (100% × 100%) | Tiroir 70% largeur | Tiroir 70%/50% largeur (`widthClassName` overridable) |
+| Fermeture clic-extérieur | Non (pas de zone visible "à l'extérieur") | Oui (`closeOnBackdropClick`) | Oui (`closeOnBackdropClick`) |
+| Overlay | `bg-background/60 backdrop-blur-sm` | idem + bordure `border-r border-white/15` sur le tiroir | idem + bordure `border-l border-white/15` sur le tiroir |
 
-Animation d'entrée ~250ms (`translate-y-full→0` ou `-translate-x-full→0`), `AuroraBackground variant="modal"` monté une seule fois par pile, Échap + blocage du scroll body communs aux deux variantes.
+Animation d'entrée ~250ms (`translate-y-full→0`, `-translate-x-full→0` ou `translate-x-full→0` selon la variante), Échap + blocage du scroll body communs aux trois variantes. `AuroraBackground variant="modal"` monté une seule fois par pile — retiré du tiroir de filtres (`FilterBar`/`AdminFilterBar`, cf. section Aurora, "Retiré des drawers") mais toujours présent sur le burger et les feuilles thème/compte.
+
+**Tiroir de filtres passé à droite (`FilterBar`/`AdminFilterBar`, 11/08)** : `from="left"` → `from="right"`, pour ne pas chevaucher le burger menu (aussi `from="left"`) côté gauche de l'écran. Le bouton "Filtrer" en pied de tiroir (dupliquait la fermeture — `onClick={() => setExpanded(false)}`, aucun rôle de validation puisque chaque pill applique son filtre immédiatement au clic) a été retiré ; la fermeture reste possible via le X en en-tête, le clic sur l'overlay, ou Échap. Sur `FilterBar` (catalogue public), le bouton "Filtrer" + son séparateur sont sortis du conteneur `overflow-x-auto` du carrousel de types — ils restent fixes, seul le carrousel de pills scrolle désormais entre le séparateur et le bord de la fenêtre (`min-w-0 flex-1`, nécessaire pour qu'un enfant flex respecte `overflow-x-auto` au lieu de s'étirer). Corrige au passage un clip vertical du badge de comptage (`-top-1`, débordait du conteneur — `overflow-x-auto` force `overflow-y` à `auto` par défaut CSS, un enfant positionné en négatif au-dessus se faisait couper) : le badge n'est plus dans un conteneur à overflow contraint. `AdminFilterBar` (dashboard admin) garde sa structure carrousel d'origine (bouton inclus dans le scroll, correctif de padding `max-md:pt-1` à la place) — non restructuré dans cette passe, à aligner sur `FilterBar` si demandé.
 
 **`useThemeMode`** (`src/hooks/useThemeMode.ts`) — état thème extrait de `ThemeToggle.tsx` pour être partagé avec `MobileThemeSheet` (seule source de vérité, plus de risque de désync entre dropdown desktop et feuille mobile). Toujours verrouillé sur `dark` (cf. section Light mode ci-dessous), Clair/Système désactivés avec `ComingSoonBadge` dans les deux variantes.
 

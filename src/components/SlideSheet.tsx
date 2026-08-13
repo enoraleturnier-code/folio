@@ -6,11 +6,12 @@ import { AuroraBackground } from "@/components/AuroraBackground";
 interface SlideSheetProps {
   open: boolean;
   onClose: () => void;
-  /** "bottom" = feuille pleine page (theme/compte) ; "left" = tiroir 70% (burger). */
-  from: "bottom" | "left";
+  /** "bottom" = feuille pleine page (theme/compte) ; "left" = tiroir 70% (burger) ;
+   * "right" = tiroir 70% (filtres catalogue/admin). */
+  from: "bottom" | "left" | "right";
   ariaLabel: string;
-  /** Ferme au clic sur l'overlay -- seul le tiroir gauche (burger) l'utilise,
-   * les feuilles pleine page n'ont pas de zone visible "à l'extérieur". */
+  /** Ferme au clic sur l'overlay -- seuls les tiroirs latéraux (burger, filtres)
+   * l'utilisent, les feuilles pleine page n'ont pas de zone visible "à l'extérieur". */
   closeOnBackdropClick?: boolean;
   /** Classe additionnelle sur le conteneur racine (ex. `md:hidden` pour un
    * tiroir mobile-only doublé d'une variante desktop distincte). */
@@ -68,7 +69,7 @@ export function SlideSheet({
   const positionCls =
     from === "bottom"
       ? "inset-x-0 bottom-0 h-full rounded-t-2xl"
-      : `inset-y-0 left-0 h-full ${widthClassName ?? "w-[70%]"}`;
+      : `inset-y-0 ${from === "right" ? "right-0" : "left-0"} h-full ${widthClassName ?? "w-[70%]"}`;
 
   const transformCls =
     from === "bottom"
@@ -77,7 +78,9 @@ export function SlideSheet({
         : "translate-y-full"
       : visible
         ? "translate-x-0"
-        : "-translate-x-full";
+        : from === "right"
+          ? "translate-x-full"
+          : "-translate-x-full";
 
   return createPortal(
     <div
@@ -100,7 +103,11 @@ export function SlideSheet({
           positionCls +
           " " +
           transformCls +
-          (from === "left" ? " border-r border-white/15" : "")
+          (from === "left"
+            ? " border-r border-white/15"
+            : from === "right"
+              ? " border-l border-white/15"
+              : "")
         }
       >
         <AuroraBackground variant="modal" />

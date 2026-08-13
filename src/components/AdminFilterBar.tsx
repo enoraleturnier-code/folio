@@ -83,7 +83,7 @@ export function AdminFilterBar({ groups, value, onChange }: AdminFilterBarProps)
 
   return (
     <div className="space-y-4">
-      <div className="scrollbar-hide flex items-center gap-4 overflow-x-auto whitespace-nowrap border-b border-white/5 pb-6 max-md:-mr-5 max-md:pr-5 md:flex-wrap md:overflow-visible md:whitespace-normal">
+      <div className="scrollbar-hide flex items-center gap-4 overflow-x-auto whitespace-nowrap border-b border-white/5 pb-6 max-md:-mr-5 max-md:pt-1 max-md:pr-5 md:flex-wrap md:overflow-visible md:whitespace-normal">
         {secondaryGroups.length > 0 && (
           <>
             <IconTooltip label="Filtrer">
@@ -151,7 +151,7 @@ export function AdminFilterBar({ groups, value, onChange }: AdminFilterBarProps)
       <SlideSheet
         open={expanded && secondaryGroups.length > 0}
         onClose={() => setExpanded(false)}
-        from="left"
+        from="right"
         ariaLabel="Filtrer"
         closeOnBackdropClick
         className="md:hidden"
@@ -173,19 +173,6 @@ export function AdminFilterBar({ groups, value, onChange }: AdminFilterBarProps)
         </div>
         <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
           {secondaryGroupsFields}
-        </div>
-        <div className="shrink-0 border-t border-white/10 px-6 py-4">
-          <button
-            type="button"
-            onClick={() => setExpanded(false)}
-            className={
-              "inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:brightness-110 active:scale-[0.98] max-md:min-h-11 " +
-              focusRing
-            }
-          >
-            <SlidersHorizontal aria-hidden="true" size={16} />
-            Filtrer{activeSecondaryCount > 0 ? ` (${activeSecondaryCount})` : ""}
-          </button>
         </div>
       </SlideSheet>
     </div>
