@@ -7,7 +7,7 @@
 @theme inline {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-display-accent: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-display-accent: "Lora", ui-serif, Georgia, serif;
 
   --color-background: var(--background);
   --color-foreground: var(--on-background);
@@ -52,6 +52,16 @@
   --color-aurora-cyan: var(--aurora-cyan);
   --color-aurora-indigo: var(--aurora-indigo);
   --color-border-glass: var(--border-glass);
+
+  /* Echelle de mouvement partagee -- generent automatiquement les utilitaires
+   * duration-fast/standard/drawer/card et ease-signature (Tailwind v4). Avant
+   * cette entree, chaque composant reinventait sa propre duree/easing en
+   * classe arbitraire (duration-[400ms], ease-[cubic-bezier(...)], etc.). */
+  --duration-fast: 150ms;
+  --duration-standard: 200ms;
+  --duration-drawer: 250ms;
+  --duration-card: 400ms;
+  --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* shadcn aliases for existing UI primitives */
   --color-card: var(--surface-container);
@@ -216,7 +226,10 @@
     stroke, opacity, transform, filter, backdrop-filter;
 }
 
-/* Aurora background — CSS-only radial + conic gradients */
+/* Aurora background — conteneur plein écran pour SoftAurora (WebGL, cf.
+   AuroraBackground.tsx + SoftAurora.tsx). Le composant lui-même gère
+   l'activation (désactivé avec prefers-reduced-motion), donc aucune media
+   query de repli n'est nécessaire ici. */
 .aurora-bg {
   position: fixed;
   inset: 0;
@@ -224,99 +237,13 @@
   pointer-events: none;
   overflow: hidden;
 }
-.aurora-bg::before,
-.aurora-bg::after {
-  content: "";
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(140px);
-}
-.aurora-bg::before {
-  width: 60%;
-  height: 60%;
-  top: -10%;
-  left: -10%;
-  background: radial-gradient(circle, var(--aurora-teal), transparent 65%);
-  
-}
-.aurora-bg::after {
-  width: 65%;
-  height: 65%;
-  bottom: -15%;
-  right: -10%;
-  background: radial-gradient(circle, var(--aurora-purple), transparent 65%);
-  
-}
-.aurora-bg > .aurora-blob {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  width: 55%;
-  height: 55%;
-  transform: translate(-50%, -50%);
-  border-radius: 9999px;
-  filter: blur(160px);
-  background: radial-gradient(circle, var(--aurora-cyan), transparent 70%);
-
-}
-.aurora-bg > .aurora-blob-indigo {
-  position: absolute;
-  bottom: -10%;
-  left: -5%;
-  width: 40%;
-  height: 40%;
-  border-radius: 9999px;
-  filter: blur(150px);
-  background: radial-gradient(circle, var(--aurora-indigo), transparent 70%);
-}
-
-/* Variante "catalogue" — même famille de 4 couleurs que le profil, mais
-   répartition/tailles différentes pour que les deux espaces restent
-   reconnaissables l'un de l'autre (cf. DESIGN.md, section Aurora). */
-.aurora-bg--catalogue::before {
-  width: 45%;
-  height: 45%;
-  top: -12%;
-  left: auto;
-  right: -8%;
-}
-.aurora-bg--catalogue::after {
-  width: 40%;
-  height: 40%;
-  bottom: -5%;
-  left: -12%;
-  right: auto;
-}
-.aurora-bg--catalogue > .aurora-blob {
-  top: 65%;
-  left: 30%;
-  width: 70%;
-  height: 70%;
-}
-.aurora-bg--catalogue > .aurora-blob-indigo {
-  top: -8%;
-  bottom: auto;
-  left: -10%;
-  width: 32%;
-  height: 32%;
-}
-
-/* Variante "modal" — même géométrie que le profil, mais avec ses propres
-   alphas (plus élevés que les pages) : le fond doit être nettement plus
-   présent derrière une modale, tout en restant diffus (le flou n'est pas
-   touché). Les 4 tokens sont redéfinis localement, aucune règle de
-   propriété séparée à maintenir sur chaque pseudo-élément. */
+/* Variante "modal" (28/08, puis neutralisée le meme jour sur demande) -- plus
+   de couleurs aurora derriere une modale/un tiroir : meme fond que les cartes
+   (.glass-card, cf. plus bas), pas de degrade colore ni de canvas anime. */
 .aurora-bg--modal {
-  --aurora-teal: rgba(45, 212, 191, 0.56);
-  --aurora-purple: rgba(124, 58, 237, 0.52);
-  --aurora-cyan: rgba(6, 182, 212, 0.48);
-  --aurora-indigo: rgba(129, 140, 248, 0.5);
-}
-:root:not(.dark) .aurora-bg--modal {
-  --aurora-teal: rgba(45, 212, 191, 0.48);
-  --aurora-purple: rgba(124, 58, 237, 0.44);
-  --aurora-cyan: rgba(6, 182, 212, 0.42);
-  --aurora-indigo: rgba(129, 140, 248, 0.46);
+  background: color-mix(in oklab, var(--surface-container-low) 70%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Fond boréal léger, un seul halo, utilisé derrière une section du
@@ -341,64 +268,13 @@
   background: radial-gradient(circle, var(--aurora-section-color), transparent 70%);
 }
 
-/* Safari iOS a un bug connu de compositeur graphique sur les tres grands
- * rayons de flou (filter: blur) appliques a des elements plein ecran :
- * au lieu de flouter, la tache se peint en aplat opaque (souvent noir), et
- * le rendu peut se figer completement (plus aucun clic ne repond, le thread
- * de rendu est bloque) -- signale le 23/07 apres l'intensification de
- * l'aurore (alphas relevés + AuroraBackground ajoute a 3 dialogs de plus
- * qui ne l'avaient jamais eue). Rayon divise par ~3 sous md : reste un
- * effet visible, sort de la zone a risque documentee sur iOS Safari.
- * .aurora-bg est en position: fixed sur CHAQUE page/modale/tiroir, donc
- * le bug touchait potentiellement tout l'appareil, pas une page isolee. */
 @media (max-width: 767px) {
-  .aurora-bg::before,
-  .aurora-bg::after {
-    filter: blur(48px);
-  }
-  .aurora-bg > .aurora-blob {
-    filter: blur(52px);
-  }
-  .aurora-bg > .aurora-blob-indigo {
-    filter: blur(50px);
-  }
   .aurora-section::before {
     filter: blur(40px);
   }
 }
 
-@keyframes aurora-float-a {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(6%, 4%, 0) scale(1.1);
-  }
-}
-@keyframes aurora-float-b {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(-4%, -6%, 0) scale(1.08);
-  }
-}
-@keyframes aurora-float-c {
-  from {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  to {
-    transform: translate(-46%, -54%) scale(1.12);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .aurora-bg::before,
-  .aurora-bg::after,
-  .aurora-bg > .aurora-blob,
-  .aurora-bg > .aurora-blob-indigo {
-    animation: none !important;
-  }
   * {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
@@ -417,6 +293,29 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
 }
+/* Hamburger -> croix (Header.tsx, bouton menu mobile) -- animation reprise
+   d'un composant Uiverse.io (Jason21403019), pilotee par l'etat React
+   (aria-expanded/data-open) plutot que par un <input type="checkbox"> +
+   selecteurs `:checked ~` : pas de checkbox cache necessaire, `burgerOpen`
+   fait deja ce travail. Couleur en dur (#404040) remplacee par `on-surface`. */
+.hamburger-bars .bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin: 5px auto;
+  border-radius: 40px;
+  background-color: var(--on-surface);
+  transition: all 0.3s cubic-bezier(0.37, -1.11, 0.79, 2.02);
+}
+.hamburger-bars[data-open="true"] .bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger-bars[data-open="true"] .bar:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-bars[data-open="true"] .bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
 /* Pills de filtre en scroll horizontal sur mobile (FilterBar/AdminFilterBar) --
    scrollbar masquée, le scroll reste fonctionnel au doigt/à la molette. */
 .scrollbar-hide {
@@ -425,6 +324,23 @@
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Rejoue a chaque changement de filtre catalogue (CataloguePage.tsx, cle sur
+   JSON.stringify(filters)) -- le filtrage lui-meme reste instantane, seul
+   l'habillage visuel de la grille est anime. */
+@keyframes catalogue-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.catalogue-fade-in {
+  animation: catalogue-fade-in var(--duration-standard) var(--ease-signature);
 }
 
 /* #main-content reçoit le focus programmatiquement à chaque changement de

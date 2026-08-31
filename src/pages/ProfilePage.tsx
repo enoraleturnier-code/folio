@@ -56,7 +56,7 @@ export function ProfilePage() {
             <h1 className="text-5xl font-medium leading-[1.1] text-on-surface md:text-6xl">
               {designer.fullName}
             </h1>
-            <p className="mt-2 font-display-accent text-5xl italic leading-tight text-primary md:text-6xl">
+            <p className="mt-2 font-display-accent text-5xl leading-tight text-primary md:text-6xl">
               {designer.adjective}
             </p>
             <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-on-surface">
@@ -67,7 +67,7 @@ export function ProfilePage() {
               <Link
                 to={`/${designer.slug}/projects`}
                 aria-label={`Voir les projets de ${designer.fullName}`}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 max-md:min-h-11 max-md:w-full"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-8 py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all duration-[var(--duration-standard)] ease-signature hover:scale-105 hover:brightness-110 active:scale-95 max-md:min-h-11 max-md:w-full"
               >
                 Voir les projets
                 <ArrowRight aria-hidden="true" size={18} />
@@ -80,7 +80,7 @@ export function ProfilePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Ouvrir le profil LinkedIn"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary max-md:h-11 max-md:w-11"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors duration-[var(--duration-fast)] ease-signature hover:border-primary max-md:h-11 max-md:w-11"
                     >
                       <FaLinkedin aria-hidden="true" size={18} />
                     </a>
@@ -93,7 +93,7 @@ export function ProfilePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Ouvrir le profil X"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary max-md:h-11 max-md:w-11"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors duration-[var(--duration-fast)] ease-signature hover:border-primary max-md:h-11 max-md:w-11"
                     >
                       <FaXTwitter aria-hidden="true" size={18} />
                     </a>
@@ -106,7 +106,7 @@ export function ProfilePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Visiter le site web de ${designer.fullName}`}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors hover:border-primary max-md:h-11 max-md:w-11"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-primary transition-colors duration-[var(--duration-fast)] ease-signature hover:border-primary max-md:h-11 max-md:w-11"
                     >
                       <Globe aria-hidden="true" size={18} />
                     </a>
@@ -120,7 +120,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-3 rounded-full border border-tertiary px-5 py-2.5 text-tertiary transition-colors hover:bg-tertiary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
+                  className="inline-flex items-center justify-center gap-3 rounded-full border border-tertiary px-5 py-2.5 text-tertiary transition-all duration-[var(--duration-standard)] ease-signature hover:scale-105 hover:bg-tertiary-container/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11"
                 >
                   <LockOpen aria-hidden="true" size={18} />
                   <span className="text-sm font-bold tracking-wider">
@@ -133,7 +133,10 @@ export function ProfilePage() {
 
           <div className="flex justify-center md:col-span-4 md:justify-end">
             <div className="relative w-full max-w-[360px]">
-              <div className="aspect-square overflow-hidden rounded-[48px] border border-white/10">
+              <div
+                className="aspect-square overflow-hidden border border-white/10"
+                style={{ borderRadius: "63% 37% 54% 46% / 55% 48% 52% 45%" }}
+              >
                 <img
                   src={designer.avatar}
                   alt={`Portrait professionnel de ${designer.fullName}`}

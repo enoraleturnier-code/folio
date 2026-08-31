@@ -129,7 +129,7 @@ export function CataloguePage() {
           </div>
           <Link
             to={`/${designer.slug}#contact`}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 max-md:min-h-11"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary-container px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all duration-[var(--duration-standard)] ease-signature hover:scale-105 hover:brightness-110 active:scale-95 max-md:min-h-11"
           >
             Contacter
             <ArrowRight aria-hidden="true" size={18} />
@@ -142,7 +142,10 @@ export function CataloguePage() {
           <p className="mb-6 text-xs font-medium uppercase tracking-widest text-on-surface-variant">
             {filtered.length} projet{filtered.length > 1 ? "s" : ""}
           </p>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            key={JSON.stringify(filters)}
+            className="catalogue-fade-in grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {filtered.map((p) => {
               const { accessState, rejectionReason } = resolveAccess(p);
               return (

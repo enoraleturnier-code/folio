@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { textLinkClass } from "@/lib/linkStyles";
 import { formatSecteur } from "@/lib/secteurLabels";
+import { FOCUSABLE_SELECTOR } from "@/lib/utils";
 import type { Project } from "@/types/project";
 
 interface AccessRequestModalProps {
@@ -42,10 +43,6 @@ interface AccessRequestModalProps {
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // 8 caractères min., au moins une lettre et un chiffre.
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
-
-/** Piège à focus (priorité 3, audit accessibilité) : seul vrai dialog modal du site. */
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 type FieldKey = "name" | "company" | "email" | "password" | "confirmPassword";
 type FieldState = { kind: "valid" | "warning" | "error"; message: string };

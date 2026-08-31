@@ -5,6 +5,7 @@ import { designer } from "@/data/designer";
 import { textLinkClass } from "@/lib/linkStyles";
 import { formatSecteur } from "@/lib/secteurLabels";
 import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
+import { FOCUS_RING } from "@/lib/utils";
 import type { Project } from "@/types/project";
 import { Alert } from "./Alert";
 import { StatusBadge } from "./StatusBadge";
@@ -81,9 +82,9 @@ export function ProjectCard({
 
   const isInteractive = mode === "link" || mode === "modal";
   const cardClasses =
-    "glass-card group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] " +
+    "glass-card group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-[var(--duration-card)] ease-signature " +
     (isInteractive
-      ? "hover:-translate-y-1 hover:border-white/15 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      ? "hover:-translate-y-1 hover:border-white/15 hover:bg-surface-container-low " + FOCUS_RING
       : "cursor-default");
 
   const content = (
@@ -207,7 +208,9 @@ export function ProjectCard({
                   <Link
                     to={resolvedContactHref}
                     className={
-                      "mt-1 block w-fit rounded font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
+                      "mt-1 block w-fit rounded font-bold " +
+                      FOCUS_RING +
+                      " " +
                       textLinkClass("alert")
                     }
                   >

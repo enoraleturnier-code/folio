@@ -1561,7 +1561,6 @@ function AccesConfidentielsDrawer({
       aria-modal="true"
       aria-label="Suivi des accès confidentiels accordés"
     >
-      <AuroraBackground variant="modal" />
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
@@ -1872,7 +1871,6 @@ function MesContactsDrawer({
       aria-modal="true"
       aria-label="Mes contacts Folio+"
     >
-      <AuroraBackground variant="modal" />
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
@@ -2638,7 +2636,6 @@ function VeilleContentDrawer({
 
   return (
     <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={entry.titre}>
-      <AuroraBackground variant="modal" />
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}

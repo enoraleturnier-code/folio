@@ -4,7 +4,10 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const footerLinkClass = ({ isActive }: { isActive: boolean }) =>
-  cn("transition-colors hover:text-primary hover:font-bold", isActive && "font-bold");
+  cn(
+    "transition-colors duration-[var(--duration-fast)] ease-signature hover:text-primary",
+    isActive && "font-bold",
+  );
 
 export function Footer() {
   return (

@@ -2,6 +2,7 @@ import { Outlet, ScrollRestoration } from "react-router-dom";
 import { useEffect } from "react";
 
 import { PersonaSwitcher } from "@/components/dev/PersonaSwitcher";
+import { PageTransition } from "@/components/PageTransition";
 import { RouteAnnouncer } from "@/components/RouteAnnouncer";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,7 +34,9 @@ export function RootLayout() {
         Aller au contenu principal
       </a>
       <ScrollRestoration />
-      <Outlet />
+      <PageTransition>
+        <Outlet />
+      </PageTransition>
       {/* Après <Outlet/> : les effets s'exécutent dans l'ordre du JSX pour des
           composants siblings au sein d'un même commit -- doit rester après la
           page pour que useDocumentTitle (dans la page) ait déjà mis à jour

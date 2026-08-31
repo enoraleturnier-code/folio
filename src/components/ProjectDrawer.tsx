@@ -12,7 +12,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
-import { AuroraBackground } from "@/components/AuroraBackground";
 import { IconTooltip } from "@/components/IconTooltip";
 import { TagPicker } from "@/components/TagPicker";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -580,7 +579,6 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
       aria-modal="true"
       aria-label="Éditer le projet"
     >
-      <AuroraBackground variant="modal" />
       {/* Clic extérieur volontairement sans effet (aria-hidden, pas de onClick) :
           seuls les boutons explicites (Fermer, Annuler, Enregistrer) peuvent
           fermer la modale. */}

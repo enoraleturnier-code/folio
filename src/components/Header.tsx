@@ -1,4 +1,4 @@
-import { LayoutDashboard, LogOut, Menu, Moon, Settings, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Moon, Settings, User } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -10,9 +10,13 @@ import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { supabase } from "@/integrations/supabase/client";
-import { initials } from "@/lib/utils";
+import { FOCUS_RING, cn, initials } from "@/lib/utils";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
+
+/** Seuil (px) au-delà duquel le header desktop passe de transparent
+ * (au chargement) à un fond + bordure visibles. */
+const SCROLL_THRESHOLD = 30;
 
 export function Header() {
   const location = useLocation();
@@ -22,9 +26,22 @@ export function Header() {
   const [burgerOpen, setBurgerOpen] = useState(false);
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
+    <header
+      className={cn(
+        "fixed top-0 z-50 w-full border-b transition-colors duration-[var(--duration-standard)] ease-signature",
+        scrolled ? "border-border-glass bg-surface/90 backdrop-blur-md" : "border-transparent bg-transparent",
+      )}
+    >
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 md:px-16">
         {/* Desktop */}
         <div
@@ -62,7 +79,7 @@ export function Header() {
             <Link
               to="/auth"
               aria-label="Se connecter"
-              className="rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary"
+              className="rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:border-primary"
             >
               Se connecter
             </Link>
@@ -70,17 +87,9 @@ export function Header() {
         </div>
 
         {/* Mobile -- pages publiques et dashboard admin (le burger y contient les mêmes
-         * liens Profil/Projets, seul le centre change : titre fixe "Dashboard"). */}
+         * liens Profil/Projets, seul le centre change : titre fixe "Dashboard"). Logo à
+         * gauche, groupe thème/compte/hamburger à droite (refonte menu, 28/08). */}
         <div className="flex w-full items-center justify-between md:hidden">
-          <button
-            type="button"
-            onClick={() => setBurgerOpen(true)}
-            aria-label="Ouvrir le menu"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
-          >
-            <Menu aria-hidden="true" size={24} />
-          </button>
-
           {isAdminRoute ? (
             <span className="text-lg font-medium text-on-surface">Dashboard</span>
           ) : (
@@ -97,7 +106,10 @@ export function Header() {
               type="button"
               onClick={() => setThemeSheetOpen(true)}
               aria-label="Choisir le thème d'affichage"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+              className={
+                "flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all duration-[var(--duration-standard)] ease-signature hover:bg-white/5 active:scale-95 max-md:h-11 max-md:w-11 " +
+                FOCUS_RING
+              }
             >
               <Moon aria-hidden="true" size={22} />
             </button>
@@ -107,7 +119,10 @@ export function Header() {
                 type="button"
                 onClick={() => setAccountSheetOpen(true)}
                 aria-label="Mon compte"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                className={
+                  "relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-all duration-[var(--duration-standard)] ease-signature hover:bg-primary-container/20 active:scale-95 max-md:h-11 max-md:w-11 " +
+                  FOCUS_RING
+                }
               >
                 {fullName ? initials(fullName) : "?"}
                 <NotificationCountBadge count={unreadCount} className="absolute -right-0.5 -top-0.5" />
@@ -116,11 +131,28 @@ export function Header() {
               <Link
                 to="/auth"
                 aria-label="Se connecter"
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary"
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:border-primary"
               >
                 Connexion
               </Link>
             )}
+
+            <button
+              type="button"
+              onClick={() => setBurgerOpen((v) => !v)}
+              aria-label={burgerOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={burgerOpen}
+              className={
+                "flex h-11 w-11 items-center justify-center rounded-full text-on-surface transition-all duration-[var(--duration-standard)] ease-signature hover:bg-white/5 active:scale-95 " +
+                FOCUS_RING
+              }
+            >
+              <span className="hamburger-bars" data-open={burgerOpen}>
+                <span className="bar" />
+                <span className="bar" />
+                <span className="bar" />
+              </span>
+            </button>
           </div>
         </div>
       </div>
@@ -147,9 +179,9 @@ function VisitorLink({ to, label, end }: { to: string; label: string; end?: bool
       to={to}
       end={end}
       className={({ isActive }) =>
-        "rounded-full px-3 py-1.5 text-sm transition-all active:scale-95 " +
+        "rounded-full px-3 py-1.5 text-sm transition-all duration-[var(--duration-standard)] ease-signature active:scale-95 " +
         (isActive
-          ? "bg-white/10 font-bold text-primary"
+          ? "bg-primary/15 font-bold text-primary"
           : "font-medium text-on-surface-variant hover:text-primary")
       }
     >
@@ -221,9 +253,12 @@ function AccountMenu({
         aria-expanded={open}
         aria-label="Mon compte"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full text-sm font-light text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className={
+          "flex items-center gap-2 rounded-full text-sm font-light text-on-surface transition-all duration-[var(--duration-standard)] ease-signature active:scale-95 " +
+          FOCUS_RING
+        }
       >
-        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-colors hover:bg-primary-container/20">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-primary-container/20">
           {fullName ? initials(fullName) : "?"}
         </span>
         {fullName ?? "Mon compte"}
@@ -242,7 +277,7 @@ function AccountMenu({
                 role="menuitem"
                 aria-label="Dashboard"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-white/5"
               >
                 <LayoutDashboard aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Dashboard
@@ -254,7 +289,7 @@ function AccountMenu({
                 role="menuitem"
                 aria-label="Paramètres"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-white/5"
               >
                 <Settings aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Paramètres
@@ -266,7 +301,7 @@ function AccountMenu({
                 role="menuitem"
                 aria-label="Mon profil"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-white/5"
               >
                 <User aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Mon profil
@@ -278,7 +313,7 @@ function AccountMenu({
               role="menuitem"
               aria-label="Se déconnecter"
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             >
               <LogOut aria-hidden="true" size={18} />
               Se déconnecter
