@@ -67,7 +67,7 @@ export function AuthPage() {
       tabIndex={-1}
       className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12"
     >
-      <AuroraBackground variant="modal" />
+      <AuroraBackground variant="auth" />
 
       <div className="absolute left-5 top-5 z-10 md:left-8 md:top-8">
         <IconTooltip label="Retour à la page profil">
@@ -81,7 +81,7 @@ export function AuthPage() {
         </IconTooltip>
       </div>
 
-      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-surface-container-lowest p-8 shadow-2xl shadow-black/40">
+      <div className="glass-card relative z-10 w-full max-w-md rounded-3xl p-8 shadow-2xl shadow-black/40">
         <p className="mb-2 text-2xl font-medium tracking-tight text-on-surface">
           Folio<span className="text-primary">+</span>
         </p>

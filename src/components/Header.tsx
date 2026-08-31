@@ -1,4 +1,4 @@
-import { LayoutDashboard, LogOut, Menu, Moon, Settings, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Moon, Settings, User } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -10,9 +10,13 @@ import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { supabase } from "@/integrations/supabase/client";
-import { FOCUS_RING, initials } from "@/lib/utils";
+import { FOCUS_RING, cn, initials } from "@/lib/utils";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
+
+/** Seuil (px) au-delà duquel le header desktop passe de transparent
+ * (au chargement) à un fond + bordure visibles. */
+const SCROLL_THRESHOLD = 30;
 
 export function Header() {
   const location = useLocation();
@@ -22,9 +26,22 @@ export function Header() {
   const [burgerOpen, setBurgerOpen] = useState(false);
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-background/90 backdrop-blur-md">
+    <header
+      className={cn(
+        "fixed top-0 z-50 w-full border-b transition-colors duration-[var(--duration-standard)] ease-signature",
+        scrolled ? "border-border-glass bg-surface/90 backdrop-blur-md" : "border-transparent bg-transparent",
+      )}
+    >
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 md:px-16">
         {/* Desktop */}
         <div
@@ -70,20 +87,9 @@ export function Header() {
         </div>
 
         {/* Mobile -- pages publiques et dashboard admin (le burger y contient les mêmes
-         * liens Profil/Projets, seul le centre change : titre fixe "Dashboard"). */}
+         * liens Profil/Projets, seul le centre change : titre fixe "Dashboard"). Logo à
+         * gauche, groupe thème/compte/hamburger à droite (refonte menu, 28/08). */}
         <div className="flex w-full items-center justify-between md:hidden">
-          <button
-            type="button"
-            onClick={() => setBurgerOpen(true)}
-            aria-label="Ouvrir le menu"
-            className={
-              "flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all duration-[var(--duration-standard)] ease-signature hover:bg-white/5 active:scale-95 max-md:h-11 max-md:w-11 " +
-              FOCUS_RING
-            }
-          >
-            <Menu aria-hidden="true" size={24} />
-          </button>
-
           {isAdminRoute ? (
             <span className="text-lg font-medium text-on-surface">Dashboard</span>
           ) : (
@@ -130,6 +136,23 @@ export function Header() {
                 Connexion
               </Link>
             )}
+
+            <button
+              type="button"
+              onClick={() => setBurgerOpen((v) => !v)}
+              aria-label={burgerOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={burgerOpen}
+              className={
+                "flex h-11 w-11 items-center justify-center rounded-full text-on-surface transition-all duration-[var(--duration-standard)] ease-signature hover:bg-white/5 active:scale-95 " +
+                FOCUS_RING
+              }
+            >
+              <span className="hamburger-bars" data-open={burgerOpen}>
+                <span className="bar" />
+                <span className="bar" />
+                <span className="bar" />
+              </span>
+            </button>
           </div>
         </div>
       </div>

@@ -293,6 +293,29 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
 }
+/* Hamburger -> croix (Header.tsx, bouton menu mobile) -- animation reprise
+   d'un composant Uiverse.io (Jason21403019), pilotee par l'etat React
+   (aria-expanded/data-open) plutot que par un <input type="checkbox"> +
+   selecteurs `:checked ~` : pas de checkbox cache necessaire, `burgerOpen`
+   fait deja ce travail. Couleur en dur (#404040) remplacee par `on-surface`. */
+.hamburger-bars .bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin: 5px auto;
+  border-radius: 40px;
+  background-color: var(--on-surface);
+  transition: all 0.3s cubic-bezier(0.37, -1.11, 0.79, 2.02);
+}
+.hamburger-bars[data-open="true"] .bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger-bars[data-open="true"] .bar:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-bars[data-open="true"] .bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
 /* Pills de filtre en scroll horizontal sur mobile (FilterBar/AdminFilterBar) --
    scrollbar masquée, le scroll reste fonctionnel au doigt/à la molette. */
 .scrollbar-hide {

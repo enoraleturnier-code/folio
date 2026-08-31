@@ -133,7 +133,10 @@ export function ProfilePage() {
 
           <div className="flex justify-center md:col-span-4 md:justify-end">
             <div className="relative w-full max-w-[360px]">
-              <div className="aspect-square overflow-hidden rounded-[48px] border border-white/10">
+              <div
+                className="aspect-square overflow-hidden border border-white/10"
+                style={{ borderRadius: "63% 37% 54% 46% / 55% 48% 52% 45%" }}
+              >
                 <img
                   src={designer.avatar}
                   alt={`Portrait professionnel de ${designer.fullName}`}

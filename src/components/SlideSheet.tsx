@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { AuroraBackground } from "@/components/AuroraBackground";
-import { FOCUSABLE_SELECTOR } from "@/lib/utils";
+import { cn, FOCUSABLE_SELECTOR } from "@/lib/utils";
 
 interface SlideSheetProps {
   open: boolean;
@@ -21,6 +21,34 @@ interface SlideSheetProps {
    * mobile) -- utile quand le même SlideSheet sert aussi en desktop, où 70%
    * de la largeur d'écran est disproportionné (ex. filtre catalogue). */
   widthClassName?: string;
+  /** Override de la classe de durée (défaut `duration-[var(--duration-drawer)]`,
+   * 250ms) -- utile pour synchroniser l'animation avec un déclencheur externe
+   * qui a son propre timing (ex. bouton hamburger→croix, 300ms). Doit rester
+   * cohérent avec `durationMs` (valeur JS, pas lisible depuis la classe CSS). */
+  durationClassName?: string;
+  /** Doit correspondre en ms à `durationClassName` -- pilote le délai avant
+   * démontage complet (`setMounted(false)`) après la fermeture, pour ne pas
+   * couper l'animation de sortie en cours de route. */
+  durationMs?: number;
+  /** Désactive le montage d'`<AuroraBackground variant="modal" />` (défaut
+   * true) -- utile quand le tiroir doit rester sur un fond neutre uni sans
+   * aucun halo décoratif (ex. menu burger plein écran). */
+  showAuroraBackground?: boolean;
+  /** Classe additionnelle sur le PANNEAU (pas le conteneur racine) -- fusionnée
+   * via `cn()`/tailwind-merge, donc tout `bg-*`/`border-*` passé ici remplace
+   * les défauts (`bg-surface-container-lowest` + `border-white/15`). Utile pour
+   * un style spécifique à une instance (ex. fond glass façon `.glass-card`). */
+  panelClassName?: string;
+  /** Anime l'entrée avec un léger effet "rebond" (scale 95%→100% + easing
+   * overshoot `cubic-bezier(0.34,1.56,0.64,1)`) au lieu du `ease-out` linéaire
+   * par défaut -- pensé pour un panneau qui doit sembler se détacher du fond
+   * plutôt que glisser platement. */
+  bouncy?: boolean;
+  /** Override du z-index racine (défaut `z-[1000]`) -- utile pour qu'un élément
+   * fixe d'une autre couche (ex. le header, `z-50`) reste visible PAR-DESSUS ce
+   * panneau plutôt que d'être recouvert par l'overlay (ex. menu burger : le
+   * bouton hamburger→croix doit rester cliquable au même endroit). */
+  zIndexClassName?: string;
   children: ReactNode;
 }
 
@@ -35,6 +63,12 @@ export function SlideSheet({
   closeOnBackdropClick = false,
   className,
   widthClassName,
+  durationClassName = "duration-[var(--duration-drawer)]",
+  durationMs = 250,
+  showAuroraBackground = true,
+  panelClassName,
+  bouncy = false,
+  zIndexClassName = "z-[1000]",
   children,
 }: SlideSheetProps) {
   const [mounted, setMounted] = useState(false);
@@ -49,9 +83,9 @@ export function SlideSheet({
       return () => cancelAnimationFrame(raf);
     }
     setVisible(false);
-    const t = setTimeout(() => setMounted(false), 250);
+    const t = setTimeout(() => setMounted(false), durationMs);
     return () => clearTimeout(t);
-  }, [open]);
+  }, [open, durationMs]);
 
   // Focus initial dans le tiroir + restitution au declencheur a la fermeture --
   // meme pattern que AccessRequestModal.tsx. Cle sur `mounted` (pas `open`) :
@@ -106,7 +140,7 @@ export function SlideSheet({
       : `inset-y-0 ${from === "right" ? "right-0" : "left-0"} h-full ${widthClassName ?? "w-[70%]"}`;
 
   const transformCls =
-    from === "bottom"
+    (from === "bottom"
       ? visible
         ? "translate-y-0"
         : "translate-y-full"
@@ -114,18 +148,20 @@ export function SlideSheet({
         ? "translate-x-0"
         : from === "right"
           ? "translate-x-full"
-          : "-translate-x-full";
+          : "-translate-x-full") + (bouncy ? (visible ? " scale-100" : " scale-95") : "");
 
   return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
-      className={"fixed inset-0 z-[1000]" + (className ? " " + className : "")}
+      className={cn("fixed inset-0", zIndexClassName, className)}
     >
       <div
         className={
-          "absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity duration-[var(--duration-drawer)] " +
+          "absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity ease-out " +
+          durationClassName +
+          " " +
           (visible ? "opacity-100" : "opacity-0")
         }
         onClick={closeOnBackdropClick ? onClose : undefined}
@@ -133,19 +169,19 @@ export function SlideSheet({
       />
       <div
         ref={panelRef}
-        className={
-          "absolute flex flex-col overflow-hidden bg-surface-container-lowest shadow-2xl shadow-black/40 transition-transform duration-[var(--duration-drawer)] ease-out " +
-          positionCls +
-          " " +
-          transformCls +
-          (from === "left"
-            ? " border-r border-white/15"
-            : from === "right"
-              ? " border-l border-white/15"
-              : "")
-        }
+        className={cn(
+          "absolute flex flex-col overflow-hidden shadow-2xl shadow-black/40 transition-transform",
+          bouncy ? "ease-[cubic-bezier(0.34,1.56,0.64,1)]" : "ease-out",
+          durationClassName,
+          positionCls,
+          transformCls,
+          "bg-surface-container-lowest",
+          from === "left" && "border-r border-white/15",
+          from === "right" && "border-l border-white/15",
+          panelClassName,
+        )}
       >
-        <AuroraBackground variant="modal" />
+        {showAuroraBackground && <AuroraBackground variant="modal" />}
         <div className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</div>
       </div>
     </div>,

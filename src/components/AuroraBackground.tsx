@@ -3,14 +3,14 @@ import { useEffect, useState } from "react";
 import SoftAurora from "@/components/SoftAurora";
 import { cn } from "@/lib/utils";
 
-export type AuroraVariant = "profile" | "catalogue" | "modal";
+export type AuroraVariant = "profile" | "catalogue" | "modal" | "auth";
 
 interface AuroraBackgroundProps {
-  /** "modal" (SlideSheet, AccessRequestModal, AuthPage, AdminPage) rend le
-   * même fond que les cartes (`.glass-card`, cf. styles.css) -- aucune
-   * couleur aurora, pas de canvas WebGL derrière une modale (28/08, demande
-   * explicite, neutralisé le même jour après un essai coloré intermédiaire).
-   * "profile"/"catalogue" gardent l'animation Soft Aurora. */
+  /** "modal" (SlideSheet, AccessRequestModal, AdminPage) rend le même fond que
+   * les cartes (`.glass-card`, cf. styles.css) -- aucune couleur aurora, pas de
+   * canvas WebGL derrière une modale (28/08, demande explicite, neutralisé le
+   * même jour après un essai coloré intermédiaire). "profile"/"catalogue"/"auth"
+   * gardent l'animation Soft Aurora. */
   variant?: AuroraVariant;
 }
 
@@ -61,7 +61,7 @@ export function AuroraBackground({ variant = "profile" }: AuroraBackgroundProps)
         color3="#06B6D4"
         color4="#818CF8"
         noiseAmplitude={3.5}
-        bandHeight={0.7}
+        bandHeight={variant === "auth" ? 0.5 : 0.7}
         octaveDecay={0.42}
         layerOffset={0.5}
         mouseInfluence={0.3}
