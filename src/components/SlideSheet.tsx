@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { FOCUSABLE_SELECTOR } from "@/lib/utils";
 
 interface SlideSheetProps {
   open: boolean;
@@ -38,6 +39,8 @@ export function SlideSheet({
 }: SlideSheetProps) {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -50,10 +53,41 @@ export function SlideSheet({
     return () => clearTimeout(t);
   }, [open]);
 
+  // Focus initial dans le tiroir + restitution au declencheur a la fermeture --
+  // meme pattern que AccessRequestModal.tsx. Cle sur `mounted` (pas `open`) :
+  // le rendu du panneau (et donc panelRef) n'apparait qu'au cycle de rendu
+  // declenche par setMounted(true) ci-dessus, un rendu apres le passage de `open`.
+  useEffect(() => {
+    if (!mounted) return;
+    triggerRef.current = document.activeElement as HTMLElement | null;
+    panelRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus();
+    return () => {
+      triggerRef.current?.focus();
+    };
+  }, [mounted]);
+
+  // Echap + piege a focus -- meme pattern que AccessRequestModal.tsx (seul
+  // autre vrai dialog modal du site) : Tab ne doit jamais faire sortir le
+  // focus vers le contenu de page masque derriere l'overlay.
   useEffect(() => {
     if (!mounted) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const focusables = panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     const original = document.body.style.overflow;
@@ -91,15 +125,16 @@ export function SlideSheet({
     >
       <div
         className={
-          "absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity duration-[250ms] " +
+          "absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity duration-[var(--duration-drawer)] " +
           (visible ? "opacity-100" : "opacity-0")
         }
         onClick={closeOnBackdropClick ? onClose : undefined}
         aria-hidden="true"
       />
       <div
+        ref={panelRef}
         className={
-          "absolute flex flex-col overflow-hidden bg-surface-container-lowest shadow-2xl shadow-black/40 transition-transform duration-[250ms] ease-out " +
+          "absolute flex flex-col overflow-hidden bg-surface-container-lowest shadow-2xl shadow-black/40 transition-transform duration-[var(--duration-drawer)] ease-out " +
           positionCls +
           " " +
           transformCls +

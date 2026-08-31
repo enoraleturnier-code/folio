@@ -4,6 +4,7 @@ import { useState } from "react";
 import { IconTooltip } from "@/components/IconTooltip";
 import { SlideSheet } from "@/components/SlideSheet";
 import { formatSecteur } from "@/lib/secteurLabels";
+import { FOCUS_RING } from "@/lib/utils";
 
 export interface FilterState {
   designType: string;
@@ -22,9 +23,6 @@ interface FilterBarProps {
   value: FilterState;
   onChange: (v: FilterState) => void;
 }
-
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 const activeClasses: Record<keyof FilterState, string> = {
   designType: "border-tag-design-type/40 bg-tag-design-type/15 text-tag-design-type",
@@ -49,7 +47,7 @@ const secondaryCategories: { key: keyof FilterState; label: string }[] = [
 function pillClass(key: keyof FilterState, active: boolean) {
   return (
     "inline-flex items-center justify-center rounded-full border px-4 py-1.5 text-sm transition-colors max-md:min-h-[34px] " +
-    focusRing +
+    FOCUS_RING +
     " " +
     (active
       ? `font-semibold ${activeClasses[key]}`
@@ -105,38 +103,9 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
   return (
     <div className="space-y-4">
       {(visibleSecondaryCategories.length > 0 || hasTypeOptions) && (
-        <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-          {visibleSecondaryCategories.length > 0 && (
-            <>
-              <IconTooltip label="Filtrer">
-                <button
-                  type="button"
-                  onClick={() => setExpanded((v) => !v)}
-                  aria-expanded={expanded}
-                  aria-label="Filtrer"
-                  className={
-                    "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors max-md:h-11 max-md:w-11 " +
-                    focusRing +
-                    " " +
-                    (expanded || activeSecondaryCount > 0
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
-                  }
-                >
-                  <SlidersHorizontal aria-hidden="true" size={16} />
-                  {activeSecondaryCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">
-                      {activeSecondaryCount}
-                    </span>
-                  )}
-                </button>
-              </IconTooltip>
-              <div className="h-8 w-px shrink-0 bg-white/10" />
-            </>
-          )}
-
+        <div className="flex items-center border-b border-white/5 pb-6">
           {hasTypeOptions && (
-            <div className="scrollbar-hide flex min-w-0 flex-1 gap-2 overflow-x-auto whitespace-nowrap max-md:-mr-5 max-md:pr-5 md:flex-wrap md:overflow-visible md:whitespace-normal">
+            <div className="scrollbar-hide flex min-w-0 flex-1 gap-2 overflow-x-auto whitespace-nowrap max-md:-ml-5 max-md:pl-5 md:flex-wrap md:overflow-visible md:whitespace-normal">
               <button
                 type="button"
                 onClick={() => onChange({ ...value, designType: "" })}
@@ -161,6 +130,35 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
               })}
             </div>
           )}
+
+          {visibleSecondaryCategories.length > 0 && (
+            <div className="flex shrink-0 items-center gap-4">
+              <div className="h-8 w-px shrink-0 bg-white/10" />
+              <IconTooltip label="Filtrer">
+                <button
+                  type="button"
+                  onClick={() => setExpanded((v) => !v)}
+                  aria-expanded={expanded}
+                  aria-label="Filtrer"
+                  className={
+                    "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors duration-[var(--duration-fast)] ease-signature max-md:h-11 max-md:w-11 " +
+                    FOCUS_RING +
+                    " " +
+                    (expanded
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-outline text-on-surface hover:border-primary hover:bg-primary/5 hover:text-primary")
+                  }
+                >
+                  <SlidersHorizontal aria-hidden="true" size={16} />
+                  {activeSecondaryCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-container text-[9px] font-bold text-on-primary">
+                      {activeSecondaryCount}
+                    </span>
+                  )}
+                </button>
+              </IconTooltip>
+            </div>
+          )}
         </div>
       )}
 
@@ -181,7 +179,7 @@ export function FilterBar({ options, value, onChange }: FilterBarProps) {
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Fermer"
-              className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
+              className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-white/5 hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest max-md:h-11 max-md:w-11"
             >
               <X aria-hidden="true" size={20} />
             </button>

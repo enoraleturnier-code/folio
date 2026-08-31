@@ -10,7 +10,7 @@ import { designer } from "@/data/designer";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { supabase } from "@/integrations/supabase/client";
-import { initials } from "@/lib/utils";
+import { FOCUS_RING, initials } from "@/lib/utils";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -62,7 +62,7 @@ export function Header() {
             <Link
               to="/auth"
               aria-label="Se connecter"
-              className="rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary"
+              className="rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:border-primary"
             >
               Se connecter
             </Link>
@@ -76,7 +76,10 @@ export function Header() {
             type="button"
             onClick={() => setBurgerOpen(true)}
             aria-label="Ouvrir le menu"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+            className={
+              "flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all duration-[var(--duration-standard)] ease-signature hover:bg-white/5 active:scale-95 max-md:h-11 max-md:w-11 " +
+              FOCUS_RING
+            }
           >
             <Menu aria-hidden="true" size={24} />
           </button>
@@ -97,7 +100,10 @@ export function Header() {
               type="button"
               onClick={() => setThemeSheetOpen(true)}
               aria-label="Choisir le thème d'affichage"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+              className={
+                "flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-all duration-[var(--duration-standard)] ease-signature hover:bg-white/5 active:scale-95 max-md:h-11 max-md:w-11 " +
+                FOCUS_RING
+              }
             >
               <Moon aria-hidden="true" size={22} />
             </button>
@@ -107,7 +113,10 @@ export function Header() {
                 type="button"
                 onClick={() => setAccountSheetOpen(true)}
                 aria-label="Mon compte"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                className={
+                  "relative flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-all duration-[var(--duration-standard)] ease-signature hover:bg-primary-container/20 active:scale-95 max-md:h-11 max-md:w-11 " +
+                  FOCUS_RING
+                }
               >
                 {fullName ? initials(fullName) : "?"}
                 <NotificationCountBadge count={unreadCount} className="absolute -right-0.5 -top-0.5" />
@@ -116,7 +125,7 @@ export function Header() {
               <Link
                 to="/auth"
                 aria-label="Se connecter"
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary"
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:border-primary"
               >
                 Connexion
               </Link>
@@ -147,9 +156,9 @@ function VisitorLink({ to, label, end }: { to: string; label: string; end?: bool
       to={to}
       end={end}
       className={({ isActive }) =>
-        "rounded-full px-3 py-1.5 text-sm transition-all active:scale-95 " +
+        "rounded-full px-3 py-1.5 text-sm transition-all duration-[var(--duration-standard)] ease-signature active:scale-95 " +
         (isActive
-          ? "bg-white/10 font-bold text-primary"
+          ? "bg-primary/15 font-bold text-primary"
           : "font-medium text-on-surface-variant hover:text-primary")
       }
     >
@@ -221,9 +230,12 @@ function AccountMenu({
         aria-expanded={open}
         aria-label="Mon compte"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full text-sm font-light text-on-surface transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className={
+          "flex items-center gap-2 rounded-full text-sm font-light text-on-surface transition-all duration-[var(--duration-standard)] ease-signature active:scale-95 " +
+          FOCUS_RING
+        }
       >
-        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-colors hover:bg-primary-container/20">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-on-primary/10 text-sm font-bold text-primary transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-primary-container/20">
           {fullName ? initials(fullName) : "?"}
         </span>
         {fullName ?? "Mon compte"}
@@ -242,7 +254,7 @@ function AccountMenu({
                 role="menuitem"
                 aria-label="Dashboard"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-white/5"
               >
                 <LayoutDashboard aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Dashboard
@@ -254,7 +266,7 @@ function AccountMenu({
                 role="menuitem"
                 aria-label="Paramètres"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-white/5"
               >
                 <Settings aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Paramètres
@@ -266,7 +278,7 @@ function AccountMenu({
                 role="menuitem"
                 aria-label="Mon profil"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-white/5"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-on-surface transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-white/5"
               >
                 <User aria-hidden="true" className="text-on-surface-variant" size={18} />
                 Mon profil
@@ -278,7 +290,7 @@ function AccountMenu({
               role="menuitem"
               aria-label="Se déconnecter"
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+              className="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-primary transition-colors duration-[var(--duration-fast)] ease-signature hover:bg-primary-container/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             >
               <LogOut aria-hidden="true" size={18} />
               Se déconnecter

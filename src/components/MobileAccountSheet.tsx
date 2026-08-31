@@ -67,7 +67,7 @@ export function MobileAccountSheet({
           type="button"
           onClick={close}
           aria-label="Fermer"
-          className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
+          className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors duration-[var(--duration-fast)] ease-signature hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest max-md:h-11 max-md:w-11"
         >
           <X aria-hidden="true" size={24} />
         </button>
