@@ -36,6 +36,9 @@ export interface Project {
   short_desc: string | null;
   /** Absent de projects_catalog_view — rempli uniquement par une requête sur la fiche détail. */
   long_desc?: string | null;
+  /** Absent de projects_catalog_view — idem. Contrôle si `long_desc` est affiché sur
+   * ProjectDetailPage plutôt que de rester un brouillon de travail admin-only. */
+  show_long_desc?: boolean;
   /** Absent de projects_catalog_view — idem. */
   ai_structured_desc?: AiStructuredDesc | null;
   thumbnail_url: string | null;

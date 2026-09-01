@@ -130,7 +130,7 @@ export function ProjectDetailPage() {
             )}
           </header>
 
-          {project.long_desc && (
+          {project.show_long_desc && project.long_desc && (
             <section>
               <div className="flex items-end gap-8">
                 <div aria-hidden="true" className="hidden shrink-0 flex-col md:flex">

@@ -12,6 +12,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/Alert";
+import { Checkbox } from "@/components/Checkbox";
 import { IconTooltip } from "@/components/IconTooltip";
 import { TagPicker } from "@/components/TagPicker";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -148,6 +149,7 @@ function emptyProject(): Project {
     title: "",
     short_desc: "",
     long_desc: "",
+    show_long_desc: false,
     ai_structured_desc: { probleme: "", decisions: "", resultat: "" },
     thumbnail_url: null,
     status: "public",
@@ -345,6 +347,7 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
         title: draft.title,
         short_desc: draft.short_desc,
         long_desc: draft.long_desc ?? null,
+        show_long_desc: draft.show_long_desc ?? false,
         ai_structured_desc: draft.ai_structured_desc ?? null,
         thumbnail_url: thumbnailUrl,
         status: finalStatus,
@@ -772,6 +775,17 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                 <div className="mt-1 flex items-center">
                   {fieldError("long_desc")}
                   {counter("long_desc", draft.long_desc)}
+                </div>
+                <div className="mt-3 flex items-start gap-3">
+                  <Checkbox
+                    id="pd-show-long-desc"
+                    checked={draft.show_long_desc ?? false}
+                    onChange={(e) => setDraft({ ...draft, show_long_desc: e.target.checked })}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor="pd-show-long-desc" className="text-sm text-on-surface-variant">
+                    Afficher cette description sur la fiche projet
+                  </label>
                 </div>
               </div>
 

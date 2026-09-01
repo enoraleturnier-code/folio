@@ -58,6 +58,7 @@ function mapProjectRow(row: ProjectRowWithTags): Project {
     title: row.title,
     short_desc: row.short_desc,
     long_desc: row.long_desc,
+    show_long_desc: row.show_long_desc,
     ai_structured_desc: (row.ai_structured_desc as AiStructuredDesc | null) ?? null,
     thumbnail_url: row.thumbnail_url,
     status: row.status,
@@ -189,6 +190,7 @@ type ProjectScalarInput = Pick<
   | "title"
   | "short_desc"
   | "long_desc"
+  | "show_long_desc"
   | "ai_structured_desc"
   | "thumbnail_url"
   | "status"
@@ -209,6 +211,7 @@ function toScalarRow(input: ProjectScalarInput) {
     title: input.title,
     short_desc: input.short_desc,
     long_desc: input.long_desc,
+    show_long_desc: input.show_long_desc ?? false,
     ai_structured_desc: input.ai_structured_desc as Json | null,
     thumbnail_url: input.thumbnail_url,
     status: input.status,

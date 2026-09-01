@@ -474,6 +474,7 @@ export type Database = {
             | null
           sensitivity_level: Database["public"]["Enums"]["sensitivity_level"]
           short_desc: string | null
+          show_long_desc: boolean
           start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
           team: string | null
@@ -496,6 +497,7 @@ export type Database = {
             | null
           sensitivity_level?: Database["public"]["Enums"]["sensitivity_level"]
           short_desc?: string | null
+          show_long_desc?: boolean
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           team?: string | null
@@ -518,6 +520,7 @@ export type Database = {
             | null
           sensitivity_level?: Database["public"]["Enums"]["sensitivity_level"]
           short_desc?: string | null
+          show_long_desc?: boolean
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           team?: string | null
@@ -621,8 +624,10 @@ export type Database = {
       }
     }
     Functions: {
+      contacts_recent_count: { Args: { p_email: string }; Returns: number }
       get_my_role: { Args: never; Returns: string }
       get_public_cal_username: { Args: never; Returns: string }
+      get_webhook_dispatch_secret: { Args: never; Returns: string }
       project_deletion_status: {
         Args: { p_id: string }
         Returns: {
