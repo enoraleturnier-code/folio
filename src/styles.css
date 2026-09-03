@@ -201,11 +201,20 @@
     font-family: var(--font-sans);
     font-weight: 300;
     -webkit-font-smoothing: antialiased;
+  }
+  html {
     /* Filet de sécurité : bloque tout débordement horizontal (élément mal
      * dimensionné, largeur fixe oubliée, tache décorative mal contenue) sans
      * empêcher le scroll vertical normal. Audit mobile 22/07 : aucun
      * débordement trouvé en pratique sur les pages/tiroirs existants, ajouté
-     * en prévention. */
+     * en prévention. Uniquement sur `html` (pas `body`, retiré le 02/09) :
+     * `overflow-x` non-`visible` force `overflow-y` calculé à `auto` sur le
+     * même élément (fixup CSS) -- déclaré aussi sur `body`, ça en faisait un
+     * second conteneur de scroll potentiel aux yeux de `position: sticky`
+     * (dont le containing block se résout à la plus proche ancêtre avec un
+     * `overflow` non-`visible`, scrollable ou non), cassant silencieusement
+     * tout `sticky` descendant de `body` -- `html` seul suffit à bloquer le
+     * débordement horizontal (racine du scroll du document). */
     overflow-x: hidden;
   }
   ::selection {

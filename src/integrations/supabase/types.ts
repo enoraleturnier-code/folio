@@ -329,6 +329,51 @@ export type Database = {
           },
         ]
       }
+      project_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          display_order: number
+          id: string
+          project_id: string
+          size_variant: string
+          storage_path: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          project_id: string
+          size_variant?: string
+          storage_path: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          project_id?: string
+          size_variant?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_images_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_images_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects_catalog_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_keywords: {
         Row: {
           keyword_id: string
@@ -474,6 +519,7 @@ export type Database = {
             | null
           sensitivity_level: Database["public"]["Enums"]["sensitivity_level"]
           short_desc: string | null
+          show_long_desc: boolean
           start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
           team: string | null
@@ -496,6 +542,7 @@ export type Database = {
             | null
           sensitivity_level?: Database["public"]["Enums"]["sensitivity_level"]
           short_desc?: string | null
+          show_long_desc?: boolean
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           team?: string | null
@@ -518,6 +565,7 @@ export type Database = {
             | null
           sensitivity_level?: Database["public"]["Enums"]["sensitivity_level"]
           short_desc?: string | null
+          show_long_desc?: boolean
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           team?: string | null
@@ -621,8 +669,10 @@ export type Database = {
       }
     }
     Functions: {
+      contacts_recent_count: { Args: { p_email: string }; Returns: number }
       get_my_role: { Args: never; Returns: string }
       get_public_cal_username: { Args: never; Returns: string }
+      get_webhook_dispatch_secret: { Args: never; Returns: string }
       project_deletion_status: {
         Args: { p_id: string }
         Returns: {
@@ -632,6 +682,7 @@ export type Database = {
       soft_delete_project: {
         Args: { p_id: string }
         Returns: {
+          image_storage_paths: string[]
           thumbnail_url: string
         }[]
       }
@@ -681,12 +732,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -710,11 +761,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -735,11 +786,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -760,11 +811,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -777,11 +828,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

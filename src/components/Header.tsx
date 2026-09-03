@@ -1,5 +1,5 @@
-import { LayoutDashboard, LogOut, Moon, Settings, User } from "lucide-react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, LayoutDashboard, LogOut, Moon, Settings, User } from "lucide-react";
+import { Link, NavLink, useLocation, useMatch, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import { BurgerMenu } from "@/components/BurgerMenu";
@@ -23,6 +23,7 @@ export function Header() {
   const { session, role, roleLoading, fullName } = useAuth();
   const unreadCount = useUnreadNotificationCount();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const isProjectDetail = Boolean(useMatch("/:slug/projects/:id"));
   const [burgerOpen, setBurgerOpen] = useState(false);
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
@@ -39,7 +40,9 @@ export function Header() {
     <header
       className={cn(
         "fixed top-0 z-50 w-full border-b transition-colors duration-[var(--duration-standard)] ease-signature",
-        scrolled ? "border-border-glass bg-surface/90 backdrop-blur-md" : "border-transparent bg-transparent",
+        scrolled
+          ? "border-border-glass bg-surface/90 backdrop-blur-md"
+          : "border-transparent bg-transparent",
       )}
     >
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 md:px-16">
@@ -49,12 +52,29 @@ export function Header() {
         >
           {!isAdminRoute && (
             <>
-              <Link
-                to={`/${designer.slug}`}
-                className="text-2xl font-medium tracking-tight text-on-surface"
-              >
-                Folio<span className="text-primary">+</span>
-              </Link>
+              <div className="relative">
+                <Link
+                  to={`/${designer.slug}`}
+                  className={cn(
+                    "text-2xl font-medium tracking-tight text-on-surface transition-opacity duration-[var(--duration-standard)] ease-signature",
+                    isProjectDetail && scrolled ? "opacity-0 pointer-events-none" : "opacity-100",
+                  )}
+                >
+                  Folio<span className="text-primary">+</span>
+                </Link>
+                {isProjectDetail && (
+                  <Link
+                    to={`/${designer.slug}/projects`}
+                    aria-label="Retour à la liste des projets"
+                    className={cn(
+                      "absolute inset-0 flex items-center text-on-surface transition-opacity duration-[var(--duration-standard)] ease-signature",
+                      scrolled ? "opacity-100" : "opacity-0 pointer-events-none",
+                    )}
+                  >
+                    <ArrowLeft aria-hidden="true" size={20} />
+                  </Link>
+                )}
+              </div>
               <div className="h-3.5 w-px bg-white/15" />
               <span className="whitespace-nowrap text-sm font-medium text-on-surface md:text-base">
                 {designer.fullName}
@@ -93,12 +113,29 @@ export function Header() {
           {isAdminRoute ? (
             <span className="text-lg font-medium text-on-surface">Dashboard</span>
           ) : (
-            <Link
-              to={`/${designer.slug}`}
-              className="text-xl font-medium tracking-tight text-on-surface"
-            >
-              Folio<span className="text-primary">+</span>
-            </Link>
+            <div className="relative">
+              <Link
+                to={`/${designer.slug}`}
+                className={cn(
+                  "text-xl font-medium tracking-tight text-on-surface transition-opacity duration-[var(--duration-standard)] ease-signature",
+                  isProjectDetail && scrolled ? "opacity-0 pointer-events-none" : "opacity-100",
+                )}
+              >
+                Folio<span className="text-primary">+</span>
+              </Link>
+              {isProjectDetail && (
+                <Link
+                  to={`/${designer.slug}/projects`}
+                  aria-label="Retour à la liste des projets"
+                  className={cn(
+                    "absolute inset-0 flex items-center text-on-surface transition-opacity duration-[var(--duration-standard)] ease-signature",
+                    scrolled ? "opacity-100" : "opacity-0 pointer-events-none",
+                  )}
+                >
+                  <ArrowLeft aria-hidden="true" size={20} />
+                </Link>
+              )}
+            </div>
           )}
 
           <div className="flex items-center gap-1">
@@ -125,7 +162,10 @@ export function Header() {
                 }
               >
                 {fullName ? initials(fullName) : "?"}
-                <NotificationCountBadge count={unreadCount} className="absolute -right-0.5 -top-0.5" />
+                <NotificationCountBadge
+                  count={unreadCount}
+                  className="absolute -right-0.5 -top-0.5"
+                />
               </button>
             ) : (
               <Link

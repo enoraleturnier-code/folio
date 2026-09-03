@@ -74,6 +74,11 @@ function checkOptionalText(
  * Les tags (types/tools/keywords) ne sont volontairement pas comptés comme
  * obligatoires ici, ni `short_desc` ni le trio Problème/Décisions/Résultat
  * (remplissables à la main ou générés par IA, jamais requis pour publier).
+ * `long_desc` optionnel également (`show_long_desc`, case à cocher du
+ * formulaire) : depuis l'introduction de cette case, `long_desc` peut rester
+ * un brouillon de travail admin-only (base pour la structuration IA) jamais
+ * publié tel quel -- sa validation ne dépend jamais de l'état de la case
+ * (cocher sans texte, ou texte sans cocher, sont tous deux valides).
  */
 export function validateProject(draft: Project): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -86,7 +91,7 @@ export function validateProject(draft: Project): ValidationError[] {
   push(checkText("role", draft.role, MAX_LENGTHS.role));
   push(checkText("team", draft.team, MAX_LENGTHS.team));
 
-  push(checkText("long_desc", draft.long_desc, MAX_LENGTHS.long_desc));
+  push(checkOptionalText("long_desc", draft.long_desc, MAX_LENGTHS.long_desc));
   push(checkOptionalText("probleme", draft.ai_structured_desc?.probleme, MAX_LENGTHS.probleme));
   push(checkOptionalText("decisions", draft.ai_structured_desc?.decisions, MAX_LENGTHS.decisions));
   push(checkOptionalText("resultat", draft.ai_structured_desc?.resultat, MAX_LENGTHS.resultat));

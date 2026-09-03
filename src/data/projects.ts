@@ -1,17 +1,38 @@
 import { getKeywordsRef, getToolsRef, getTypesRef } from "@/data/projectRefs";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables } from "@/integrations/supabase/types";
-import { deleteProjectThumbnail } from "@/lib/storage";
-import type { AiStructuredDesc, Project, ProjectStatus, ProjectTags } from "@/types/project";
+import { deleteProjectGalleryImage, deleteProjectThumbnail, GALLERY_BUCKET } from "@/lib/storage";
+import type {
+  AiStructuredDesc,
+  Project,
+  ProjectImage,
+  ProjectStatus,
+  ProjectTags,
+  SizeVariant,
+} from "@/types/project";
 
 type ProjectCatalogRow = Tables<"projects_catalog_view">;
 type ProjectRow = Tables<"projects">;
+type ProjectImageRow = Tables<"project_images">;
 
 type ProjectRowWithTags = ProjectRow & {
   project_tools: { tools_ref: { name: string } | null }[] | null;
   project_keywords: { keywords_ref: { name: string } | null }[] | null;
   project_types: { project_types_ref: { name: string } | null }[] | null;
+  project_images: ProjectImageRow[] | null;
 };
+
+function mapProjectImageRow(row: ProjectImageRow): ProjectImage {
+  return {
+    id: row.id,
+    storage_path: row.storage_path,
+    url: supabase.storage.from(GALLERY_BUCKET).getPublicUrl(row.storage_path).data.publicUrl,
+    display_order: row.display_order,
+    size_variant: row.size_variant as SizeVariant,
+    caption: row.caption,
+    created_at: row.created_at,
+  };
+}
 
 function mapJoinedTags(row: ProjectRowWithTags): ProjectTags {
   return {
@@ -58,6 +79,7 @@ function mapProjectRow(row: ProjectRowWithTags): Project {
     title: row.title,
     short_desc: row.short_desc,
     long_desc: row.long_desc,
+    show_long_desc: row.show_long_desc,
     ai_structured_desc: (row.ai_structured_desc as AiStructuredDesc | null) ?? null,
     thumbnail_url: row.thumbnail_url,
     status: row.status,
@@ -73,6 +95,9 @@ function mapProjectRow(row: ProjectRowWithTags): Project {
     created_at: row.created_at,
     updated_at: row.updated_at,
     tags: mapJoinedTags(row),
+    images: (row.project_images ?? [])
+      .map(mapProjectImageRow)
+      .sort((a, b) => a.display_order - b.display_order),
   };
 }
 
@@ -145,7 +170,8 @@ export async function getProjectById(
       *,
       project_tools ( tools_ref ( name ) ),
       project_keywords ( keywords_ref ( name ) ),
-      project_types ( project_types_ref ( name ) )
+      project_types ( project_types_ref ( name ) ),
+      project_images ( id, storage_path, display_order, size_variant, caption, created_at )
     `,
     )
     .eq("id", id);
@@ -189,6 +215,7 @@ type ProjectScalarInput = Pick<
   | "title"
   | "short_desc"
   | "long_desc"
+  | "show_long_desc"
   | "ai_structured_desc"
   | "thumbnail_url"
   | "status"
@@ -209,6 +236,7 @@ function toScalarRow(input: ProjectScalarInput) {
     title: input.title,
     short_desc: input.short_desc,
     long_desc: input.long_desc,
+    show_long_desc: input.show_long_desc ?? false,
     ai_structured_desc: input.ai_structured_desc as Json | null,
     thumbnail_url: input.thumbnail_url,
     status: input.status,
@@ -225,7 +253,11 @@ function toScalarRow(input: ProjectScalarInput) {
 
 /** Remplace entierement les tags d'un projet par delete-then-insert (volume trivial, quelques tags par projet). */
 async function syncProjectTags(projectId: string, tags: ProjectTags): Promise<void> {
-  const [tools, keywords, types] = await Promise.all([getToolsRef(), getKeywordsRef(), getTypesRef()]);
+  const [tools, keywords, types] = await Promise.all([
+    getToolsRef(),
+    getKeywordsRef(),
+    getTypesRef(),
+  ]);
 
   const toolIds = tools.filter((t) => tags.tools.includes(t.name)).map((t) => t.id);
   const keywordIds = keywords.filter((k) => tags.keywords.includes(k.name)).map((k) => k.id);
@@ -290,9 +322,7 @@ async function syncProjectTags(projectId: string, tags: ProjectTags): Promise<vo
  * thumbnail (upload puis creation du projet, pas l'inverse).
  */
 export async function createProject(id: string, input: ProjectInput): Promise<Project> {
-  const { error } = await supabase
-    .from("projects")
-    .insert({ id, ...toScalarRow(input) });
+  const { error } = await supabase.from("projects").insert({ id, ...toScalarRow(input) });
   if (error) throw error;
 
   await syncProjectTags(id, input.tags);
@@ -310,7 +340,8 @@ export async function updateProject(id: string, input: ProjectInput): Promise<Pr
     .select("id")
     .maybeSingle();
   if (error) throw error;
-  if (!data) throw new Error(`updateProject: no row updated for id=${id} (not found, or not permitted)`);
+  if (!data)
+    throw new Error(`updateProject: no row updated for id=${id} (not found, or not permitted)`);
 
   await syncProjectTags(id, input.tags);
 
@@ -340,20 +371,38 @@ export async function updateProjectStatus(id: string, status: ProjectStatus): Pr
  * (conserve pour l'etat "Projet supprime" sur une URL directe) et supprime
  * ses tags, via la fonction Postgres `soft_delete_project` (SECURITY INVOKER
  * -- la policy projects_update_admin s'applique normalement). Supprime
- * ensuite le fichier thumbnail du Storage si le projet en avait une --
- * best-effort : un echec de nettoyage Storage ne doit pas faire echouer la
- * suppression elle-meme, deja actee en base a ce stade.
+ * ensuite le fichier thumbnail et les images de galerie du Storage si le
+ * projet en avait -- best-effort : un echec de nettoyage Storage ne doit pas
+ * faire echouer la suppression elle-meme, deja actee en base a ce stade.
+ * Contrairement aux tags, les lignes `project_images` elles-memes ne sont
+ * PAS supprimees (cf. `soft_delete_project`) -- seuls leurs fichiers Storage
+ * le sont ici.
  */
 export async function softDeleteProject(id: string): Promise<void> {
   const { data, error } = await supabase.rpc("soft_delete_project", { p_id: id }).single();
   if (error) throw error;
 
-  const oldThumbnailUrl = (data as { thumbnail_url: string | null } | null)?.thumbnail_url;
-  if (oldThumbnailUrl) {
+  const result = data as {
+    thumbnail_url: string | null;
+    image_storage_paths: string[] | null;
+  } | null;
+
+  if (result?.thumbnail_url) {
     try {
-      await deleteProjectThumbnail(oldThumbnailUrl);
+      await deleteProjectThumbnail(result.thumbnail_url);
     } catch (err) {
       console.error("softDeleteProject: failed to clean up Storage thumbnail", err);
+    }
+  }
+
+  // array_agg() renvoie null (pas un tableau vide) quand le projet n'a aucune
+  // image -- cas le plus courant, a normaliser avant de tester la longueur.
+  const imagePaths = result?.image_storage_paths ?? [];
+  if (imagePaths.length > 0) {
+    try {
+      await Promise.all(imagePaths.map((path) => deleteProjectGalleryImage(path)));
+    } catch (err) {
+      console.error("softDeleteProject: failed to clean up Storage gallery images", err);
     }
   }
 }
