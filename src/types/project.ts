@@ -30,6 +30,29 @@ export interface ProjectTags {
   types: string[];
 }
 
+/**
+ * Taille dans la grille CSS de ProjectDetailPage (col-span/row-span,
+ * `grid-flow-dense`) : small=1×1, wide=2×1, tall=1×2, large=2×2,
+ * full=pleine largeur (col-span-full) ×1. Remplace l'ancien masonry
+ * columns-* + width_variant (full/half/third), qui ne permettait pas de
+ * vrais blocs de tailles différentes (28/09).
+ */
+export type SizeVariant = "small" | "wide" | "tall" | "large" | "full";
+
+export interface ProjectImage {
+  id: string;
+  storage_path: string;
+  /** Résolue via getPublicUrl au moment de la lecture — jamais stockée en base. */
+  url: string;
+  display_order: number;
+  size_variant: SizeVariant;
+  /** Légende affichée en overlay bas-droite sur ProjectDetailPage (toujours
+   * visible si non vide, pas de hover) — pré-remplie à l'upload depuis le nom
+   * de fichier (ProjectDrawer.tsx), éditable par l'admin. */
+  caption: string | null;
+  created_at: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -41,6 +64,8 @@ export interface Project {
   show_long_desc?: boolean;
   /** Absent de projects_catalog_view — idem. */
   ai_structured_desc?: AiStructuredDesc | null;
+  /** Absent de projects_catalog_view — idem, triées par display_order. */
+  images?: ProjectImage[];
   thumbnail_url: string | null;
   status: ProjectStatus;
   sensitivity_level: SensitivityLevel;

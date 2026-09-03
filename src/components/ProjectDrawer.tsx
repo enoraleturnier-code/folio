@@ -1,11 +1,14 @@
 import {
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
   Calendar as CalendarIcon,
   Check,
   ChevronDown,
   CircleAlert,
   CloudUpload,
   Sparkles,
+  Trash2,
   TriangleAlert,
   X,
 } from "lucide-react";
@@ -16,6 +19,7 @@ import { Checkbox } from "@/components/Checkbox";
 import { IconTooltip } from "@/components/IconTooltip";
 import { TagPicker } from "@/components/TagPicker";
 import { Skeleton } from "@/components/ui/skeleton";
+import { syncProjectImages } from "@/data/projectImages";
 import {
   ensureRefValue,
   getKeywordsRef,
@@ -28,9 +32,52 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn, prefersReducedMotion } from "@/lib/utils";
 import { SECTEUR_LABELS } from "@/lib/secteurLabels";
 import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
-import { uploadProjectThumbnail } from "@/lib/storage";
+import {
+  ALLOWED_IMAGE_TYPES,
+  MAX_GALLERY_IMAGES,
+  MAX_IMAGE_SIZE_BYTES,
+  uploadProjectThumbnail,
+} from "@/lib/storage";
 import { MAX_LENGTHS, validateProject, type ValidationError } from "@/lib/projectValidation";
-import type { AiGenerationResult, Project, ProjectStatus, SensitivityLevel } from "@/types/project";
+import type {
+  AiGenerationResult,
+  Project,
+  ProjectImage,
+  ProjectStatus,
+  SensitivityLevel,
+  SizeVariant,
+} from "@/types/project";
+
+/** Une seule liste ordonnée (existantes + fraîchement sélectionnées) plutôt que
+ * plusieurs états parallèles à garder synchronisés -- sert à la fois pour
+ * l'affichage et pour calculer le diff à l'enregistrement (cf. persist()). */
+type GalleryItem =
+  | { kind: "existing"; id: string; url: string; sizeVariant: SizeVariant; caption: string }
+  | {
+      kind: "pending";
+      tempId: string;
+      file: File;
+      preview: string;
+      sizeVariant: SizeVariant;
+      caption: string;
+    };
+
+const SIZE_VARIANT_LABELS: Record<SizeVariant, string> = {
+  small: "1×1",
+  wide: "2×1",
+  tall: "1×2",
+  large: "2×2",
+  full: "Pleine largeur",
+};
+
+/** Légende pré-remplie à l'ajout d'une image : nom de fichier sans extension,
+ * tirets/underscores remplacés par des espaces -- éditable ensuite par l'admin. */
+function captionFromFilename(filename: string): string {
+  return filename
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
+}
 
 interface AiSuggestions {
   tools: string[];
@@ -197,6 +244,19 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
   // enregistrées (cf. isDirty ci-dessous), sans re-render à chaque frappe.
   const initialSnapshotRef = useRef("");
 
+  // Galerie : liste de travail unifiée (existantes + pending) + photo de
+  // l'état initial (pour calculer toDelete/toUpdate à la sauvegarde, cf.
+  // persist()) -- volontairement séparée de `draft` (pas de champ `images`
+  // muté ici), donc sans effet sur le JSON.stringify(draft) ci-dessus.
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const initialImagesRef = useRef<ProjectImage[]>([]);
+  const galleryItemsRef = useRef<GalleryItem[]>([]);
+  const [galleryError, setGalleryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    galleryItemsRef.current = galleryItems;
+  }, [galleryItems]);
+
   useEffect(() => {
     if (open) {
       const initial = project ?? emptyProject();
@@ -211,11 +271,108 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
       setAiSuggestions(EMPTY_SUGGESTIONS);
       setAiHighlighted(false);
       initialSnapshotRef.current = JSON.stringify(initial);
+
+      const initialImages = project?.images ?? [];
+      initialImagesRef.current = initialImages;
+      setGalleryItems(
+        initialImages.map((img) => ({
+          kind: "existing" as const,
+          id: img.id,
+          url: img.url,
+          sizeVariant: img.size_variant,
+          caption: img.caption ?? "",
+        })),
+      );
+      setGalleryError(null);
     }
+    return () => {
+      // Se déclenche juste avant le prochain effet (réouverture) ou au
+      // démontage -- révoque les previews des images pas encore uploadées de
+      // la session précédente (pattern déjà en place pour pendingPreview,
+      // généralisé ici à la liste de la galerie).
+      for (const item of galleryItemsRef.current) {
+        if (item.kind === "pending") URL.revokeObjectURL(item.preview);
+      }
+    };
   }, [open, project]);
 
+  const galleryDirty = (() => {
+    if (galleryItems.some((i) => i.kind === "pending")) return true;
+    const initialImages = initialImagesRef.current;
+    if (galleryItems.length !== initialImages.length) return true;
+    return galleryItems.some((item, idx) => {
+      const existing = item as Extract<GalleryItem, { kind: "existing" }>;
+      const initial = initialImages[idx];
+      return (
+        existing.id !== initial.id ||
+        existing.sizeVariant !== initial.size_variant ||
+        existing.caption !== (initial.caption ?? "")
+      );
+    });
+  })();
+
   const isDirty =
-    open && (JSON.stringify(draft) !== initialSnapshotRef.current || pendingFile !== null);
+    open &&
+    (JSON.stringify(draft) !== initialSnapshotRef.current || pendingFile !== null || galleryDirty);
+
+  const onGalleryFilesSelected = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const accepted: GalleryItem[] = [];
+    let rejected = 0;
+    for (const file of Array.from(files)) {
+      if (galleryItems.length + accepted.length >= MAX_GALLERY_IMAGES) {
+        rejected++;
+        continue;
+      }
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type) || file.size > MAX_IMAGE_SIZE_BYTES) {
+        rejected++;
+        continue;
+      }
+      accepted.push({
+        kind: "pending",
+        tempId: crypto.randomUUID(),
+        file,
+        preview: URL.createObjectURL(file),
+        sizeVariant: "small",
+        caption: captionFromFilename(file.name),
+      });
+    }
+    setGalleryError(
+      rejected > 0
+        ? `${rejected} image${rejected > 1 ? "s" : ""} refusée${rejected > 1 ? "s" : ""} : plafond de ${MAX_GALLERY_IMAGES} images atteint, ou fichier trop lourd (max 5 Mo)/format non supporté (JPG, PNG, WebP).`
+        : null,
+    );
+    if (accepted.length > 0) {
+      setGalleryItems((items) => [...items, ...accepted]);
+    }
+  };
+
+  const setGalleryItemSize = (target: GalleryItem, sizeVariant: SizeVariant) => {
+    setGalleryItems((items) =>
+      items.map((item) => (item === target ? { ...item, sizeVariant } : item)),
+    );
+  };
+
+  const setGalleryItemCaption = (target: GalleryItem, caption: string) => {
+    setGalleryItems((items) =>
+      items.map((item) => (item === target ? { ...item, caption } : item)),
+    );
+  };
+
+  const removeGalleryItem = (target: GalleryItem) => {
+    if (target.kind === "pending") URL.revokeObjectURL(target.preview);
+    setGalleryItems((items) => items.filter((item) => item !== target));
+  };
+
+  const moveGalleryItem = (index: number, direction: -1 | 1) => {
+    setGalleryItems((items) => {
+      const swapWith = index + direction;
+      if (swapWith < 0 || swapWith >= items.length) return items;
+      const next = [...items];
+      [next[index], next[swapWith]] = [next[swapWith], next[index]];
+      return next;
+    });
+  };
 
   // Fermeture "douce" : si le formulaire a des modifications non enregistrées,
   // on affiche la confirmation dédiée au lieu de fermer directement. Chemin
@@ -298,7 +455,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const len = (value ?? "").length;
     return (
       <span
-        className={"ml-auto text-[10px] " + (len > max ? "text-error" : "text-on-surface-variant/70")}
+        className={
+          "ml-auto text-[10px] " + (len > max ? "text-error" : "text-on-surface-variant/70")
+        }
       >
         {len}/{max}
       </span>
@@ -309,7 +468,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
     const err = errorFor(field);
     if (!err) return null;
     return (
-      <p id={errorId(field)} className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+      <p
+        id={errorId(field)}
+        className="mt-1 flex items-center gap-1 text-xs text-error"
+        role="alert"
+      >
         <CircleAlert aria-hidden="true" size={14} />
         {err.message}
       </p>
@@ -362,6 +525,39 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
         tags: draft.tags,
       };
       await onSave(draft.id, input, !project);
+
+      const currentExistingIds = new Set(
+        galleryItems
+          .filter((i): i is Extract<GalleryItem, { kind: "existing" }> => i.kind === "existing")
+          .map((i) => i.id),
+      );
+      const toDelete = initialImagesRef.current.filter((img) => !currentExistingIds.has(img.id));
+      const toUpload = galleryItems
+        .map((item, index) => ({ item, index }))
+        .filter(
+          (entry): entry is { item: Extract<GalleryItem, { kind: "pending" }>; index: number } =>
+            entry.item.kind === "pending",
+        )
+        .map(({ item, index }) => ({
+          file: item.file,
+          sizeVariant: item.sizeVariant,
+          caption: item.caption.trim() || null,
+          displayOrder: index,
+        }));
+      const toUpdate = galleryItems
+        .map((item, index) => ({ item, index }))
+        .filter(
+          (entry): entry is { item: Extract<GalleryItem, { kind: "existing" }>; index: number } =>
+            entry.item.kind === "existing",
+        )
+        .map(({ item, index }) => ({
+          id: item.id,
+          displayOrder: index,
+          sizeVariant: item.sizeVariant,
+          caption: item.caption.trim() || null,
+        }));
+      await syncProjectImages(draft.id, { toDelete, toUpload, toUpdate });
+
       onClose();
     } catch (err) {
       setUploading(false);
@@ -608,7 +804,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
               </button>
             </IconTooltip>
           </div>
-          <p className="mt-2 text-xs text-on-surface-variant/70">Tous les champs sont obligatoires.</p>
+          <p className="mt-2 text-xs text-on-surface-variant/70">
+            Tous les champs sont obligatoires.
+          </p>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col">
@@ -672,7 +870,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     />
                   ) : (
                     <>
-                      <CloudUpload aria-hidden="true" className="text-on-surface-variant" size={30} />
+                      <CloudUpload
+                        aria-hidden="true"
+                        className="text-on-surface-variant"
+                        size={30}
+                      />
                       <p className="text-sm text-on-surface-variant">
                         Glisse-dépose ou <span className="text-primary">parcourir</span>
                       </p>
@@ -690,7 +892,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     {...ariaErrorProps("thumbnail_url")}
                   />
                 </label>
-                {uploading && <p className="mt-1 text-xs text-on-surface-variant">Envoi en cours…</p>}
+                {uploading && (
+                  <p className="mt-1 text-xs text-on-surface-variant">Envoi en cours…</p>
+                )}
                 {fieldError("thumbnail_url")}
               </div>
 
@@ -703,7 +907,9 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     <select
                       id="pd-status"
                       value={draft.status}
-                      onChange={(e) => setDraft({ ...draft, status: e.target.value as ProjectStatus })}
+                      onChange={(e) =>
+                        setDraft({ ...draft, status: e.target.value as ProjectStatus })
+                      }
                       className={selectCls}
                     >
                       {statusOptions.map(([v, l]) => (
@@ -933,11 +1139,131 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     refTable="keywords_ref"
                     fetchOptions={getKeywordsRef}
                     selected={draft.tags.keywords}
-                    onChange={(keywords) => setDraft({ ...draft, tags: { ...draft.tags, keywords } })}
+                    onChange={(keywords) =>
+                      setDraft({ ...draft, tags: { ...draft.tags, keywords } })
+                    }
                   />
                   {suggestionChips("keywords")}
                 </div>
               </div>
+            </div>
+
+            {/* ---------- Section — Galerie ---------- */}
+            <div className="space-y-5 border-t border-white/5 pt-8">
+              <div className="flex items-center justify-between">
+                <p className={sectionHeadingCls}>Galerie</p>
+                <span className="text-xs text-on-surface-variant/70">
+                  {galleryItems.length}/{MAX_GALLERY_IMAGES}
+                </span>
+              </div>
+
+              {galleryError && <Alert type="error" title={galleryError} />}
+
+              <label
+                className={cn(
+                  "flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-surface-container px-4 py-3 text-center text-sm text-on-surface-variant hover:bg-white/5",
+                  galleryItems.length >= MAX_GALLERY_IMAGES
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer border-white/15",
+                )}
+              >
+                <CloudUpload aria-hidden="true" size={18} />
+                Ajouter des images (JPG, PNG ou WebP, max 5 Mo, {MAX_GALLERY_IMAGES} max)
+                <input
+                  type="file"
+                  multiple
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  disabled={galleryItems.length >= MAX_GALLERY_IMAGES}
+                  onChange={(e) => {
+                    onGalleryFilesSelected(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+
+              {galleryItems.length > 0 && (
+                <div className="space-y-3">
+                  {galleryItems.map((item, index) => (
+                    <div
+                      key={item.kind === "existing" ? item.id : item.tempId}
+                      className="flex items-center gap-3 rounded-xl border border-white/10 bg-surface-container p-3"
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-on-primary/10 text-[10px] font-bold text-primary">
+                        {index + 1}
+                      </span>
+                      <img
+                        src={item.kind === "existing" ? item.url : item.preview}
+                        alt=""
+                        className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                      />
+                      <div className="flex-1 space-y-2">
+                        <input
+                          type="text"
+                          value={item.caption}
+                          onChange={(e) => setGalleryItemCaption(item, e.target.value)}
+                          placeholder="Légende (optionnelle)"
+                          aria-label="Légende de l'image"
+                          className={inputCls + " py-2 text-xs"}
+                        />
+                        <div className="relative">
+                          <select
+                            value={item.sizeVariant}
+                            onChange={(e) =>
+                              setGalleryItemSize(item, e.target.value as SizeVariant)
+                            }
+                            aria-label="Taille de l'image dans la grille"
+                            className={selectCls + " py-2 text-xs"}
+                          >
+                            {(Object.entries(SIZE_VARIANT_LABELS) as [SizeVariant, string][]).map(
+                              ([v, l]) => (
+                                <option key={v} value={v}>
+                                  {l}
+                                </option>
+                              ),
+                            )}
+                          </select>
+                          <ChevronDown aria-hidden="true" size={16} className={chevronCls} />
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <IconTooltip label="Monter l'image">
+                          <button
+                            type="button"
+                            onClick={() => moveGalleryItem(index, -1)}
+                            disabled={index === 0}
+                            aria-label="Monter l'image"
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant hover:bg-white/5 hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          >
+                            <ArrowUp aria-hidden="true" size={16} />
+                          </button>
+                        </IconTooltip>
+                        <IconTooltip label="Descendre l'image">
+                          <button
+                            type="button"
+                            onClick={() => moveGalleryItem(index, 1)}
+                            disabled={index === galleryItems.length - 1}
+                            aria-label="Descendre l'image"
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant hover:bg-white/5 hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          >
+                            <ArrowDown aria-hidden="true" size={16} />
+                          </button>
+                        </IconTooltip>
+                        <IconTooltip label="Supprimer cette image">
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryItem(item)}
+                            aria-label="Supprimer cette image"
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-error hover:bg-error/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          >
+                            <Trash2 aria-hidden="true" size={16} />
+                          </button>
+                        </IconTooltip>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* ---------- Section 3 — Contexte client ---------- */}
@@ -1092,7 +1418,11 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-white/5 px-5 py-4 md:flex-row md:items-center md:justify-end md:px-10">
-            <button type="button" onClick={requestClose} className={"w-full justify-center md:w-auto " + tertiaryBtnCls}>
+            <button
+              type="button"
+              onClick={requestClose}
+              className={"w-full justify-center md:w-auto " + tertiaryBtnCls}
+            >
               <X aria-hidden="true" size={16} />
               Annuler
             </button>
@@ -1162,7 +1492,8 @@ export function ProjectDrawer({ open, project, onClose, onSave }: ProjectDrawerP
                     )}
                     {project && statusChanged && (
                       <>
-                        Statut : {STATUS_LABELS[project.status]} → {STATUS_LABELS[pendingSave.status]}.{" "}
+                        Statut : {STATUS_LABELS[project.status]} →{" "}
+                        {STATUS_LABELS[pendingSave.status]}.{" "}
                       </>
                     )}
                     {pendingSave.sensitivityChange && (
