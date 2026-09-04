@@ -43,7 +43,7 @@ export function RootLayout() {
           document.title au moment où RouteAnnouncer le lit et l'annonce. */}
       <RouteAnnouncer />
       <ScrollToTopButton />
-      {(import.meta.env.DEV || import.meta.env.VITE_VERCEL_ENV === "preview") && <PersonaSwitcher />}
+      {import.meta.env.DEV && <PersonaSwitcher />}
     </TooltipProvider>
   );
 }

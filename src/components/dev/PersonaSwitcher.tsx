@@ -11,12 +11,19 @@ interface Persona {
   password: string;
 }
 
+// Le mot de passe du persona admin n'est jamais écrit en dur ici : ce compte a
+// un vrai rôle `admin` sur la base de production, et le repo GitHub est
+// public. Passe par VITE_PERSONA_ADMIN_PASSWORD (.env, gitignored, jamais
+// répliqué dans les env vars Vercel -- ce composant est dev-only, cf.
+// RootLayout.tsx, jamais bundlé sur les déploiements Vercel) -- absent, le
+// bouton reste affiché mais la connexion échoue proprement (erreur affichée
+// par `switchTo`).
 const PERSONAS: Persona[] = [
   {
     name: "Enora Le Turnier",
     role: "admin",
     email: "enoraleturnier+enora-persona@gmail.com",
-    password: "Test1234!",
+    password: import.meta.env.VITE_PERSONA_ADMIN_PASSWORD ?? "",
   },
   {
     name: "Sophie Michelle",
@@ -32,9 +39,9 @@ const PERSONAS: Persona[] = [
   },
 ];
 
-// Distingue visuellement un dev local d'une preview Vercel (où ce switcher
-// devient aussi visible, cf. RootLayout.tsx) — jamais affiché en prod.
-const ENV_LABEL = import.meta.env.DEV ? "Dev" : "Preview";
+// Composant dev-only (gating dans RootLayout.tsx, `import.meta.env.DEV`) --
+// jamais affiché sur les previews Vercel ni en prod.
+const ENV_LABEL = "Dev";
 
 export function PersonaSwitcher() {
   const [open, setOpen] = useState(false);

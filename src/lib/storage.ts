@@ -17,13 +17,26 @@ export async function uploadProjectThumbnail(file: File, projectId: string): Pro
   return data.publicUrl;
 }
 
+/**
+ * ⚠️ Meme piege RLS Storage que `deleteProjectGalleryImage` ci-dessous (cf.
+ * migration `20260903184843_project_thumbnails_designer_photos_select_admin_for_mutations.sql`) :
+ * `project-thumbnails` n'avait aucune policy SELECT admin-only sur
+ * `storage.objects` avant cette migration, donc `.remove()` echouait
+ * silencieusement (`error: null`, `data: []`) sans jamais supprimer le
+ * fichier. Toujours verifier `data` en plus de `error`.
+ */
 export async function deleteProjectThumbnail(url: string): Promise<void> {
   const marker = `/${BUCKET}/`;
   const idx = url.indexOf(marker);
   if (idx === -1) return;
   const path = url.slice(idx + marker.length);
-  const { error } = await supabase.storage.from(BUCKET).remove([path]);
+  const { data, error } = await supabase.storage.from(BUCKET).remove([path]);
   if (error) throw error;
+  if (!data || data.length !== 1) {
+    throw new Error(
+      `deleteProjectThumbnail: expected 1 file removed, got ${data?.length ?? 0} (path=${path})`,
+    );
+  }
 }
 
 export async function uploadDesignerPhoto(file: File): Promise<string> {
