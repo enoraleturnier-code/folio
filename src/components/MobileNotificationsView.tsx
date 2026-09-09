@@ -37,7 +37,9 @@ export function MobileNotificationsView({
   }, []);
 
   const relevant = items
-    .filter((n) => (isAdmin ? n.type === "access_request_received" : n.type === "access_request_resolved"))
+    .filter((n) =>
+      isAdmin ? n.type === "access_request_received" : n.type === "access_request_resolved",
+    )
     .sort((a, b) => {
       if (Boolean(a.readAt) !== Boolean(b.readAt)) return a.readAt ? 1 : -1;
       return a.createdAt < b.createdAt ? 1 : -1;

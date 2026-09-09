@@ -22,7 +22,9 @@ test.describe("Formulaire de contact (ContactForm)", () => {
     await page.locator("#cf-message").fill("Test du message RGPD après fix.");
     await page.getByRole("button", { name: "Envoyer" }).click();
     await humanPause(page, 300);
-    await expect(page.getByText("Ce consentement est requis pour envoyer votre message.")).toBeVisible();
+    await expect(
+      page.getByText("Ce consentement est requis pour envoyer votre message."),
+    ).toBeVisible();
     expect(consoleErrors).toEqual([]);
   });
 
@@ -39,7 +41,9 @@ test.describe("Formulaire de contact (ContactForm)", () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test("cas limite : appui sur Entrée avec RGPD non coché déclenche aussi la validation", async ({ page }) => {
+  test("cas limite : appui sur Entrée avec RGPD non coché déclenche aussi la validation", async ({
+    page,
+  }) => {
     await page.locator("#cf-name").fill("QA Enter Key");
     await page.locator("#cf-email").fill(`enoraleturnier+qaenter${Date.now()}@gmail.com`);
     await page.locator("#cf-message").fill("Test appui Entrée.");
@@ -48,7 +52,9 @@ test.describe("Formulaire de contact (ContactForm)", () => {
     // tester la soumission implicite au clavier.
     await page.locator("#cf-email").press("Enter");
     await humanPause(page, 400);
-    await expect(page.getByText("Ce consentement est requis pour envoyer votre message.")).toBeVisible();
+    await expect(
+      page.getByText("Ce consentement est requis pour envoyer votre message."),
+    ).toBeVisible();
   });
 
   test("cas limite : email invalide", async ({ page }) => {

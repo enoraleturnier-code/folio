@@ -107,12 +107,18 @@ export function AuthPage() {
               aria-invalid={Boolean(emailInvalid)}
               aria-describedby={emailInvalid ? "auth-email-hint" : undefined}
               className={
-                inputCls + " " + (emailInvalid ? "border-error focus-visible:ring-error" : "border-outline")
+                inputCls +
+                " " +
+                (emailInvalid ? "border-error focus-visible:ring-error" : "border-outline")
               }
               placeholder="vous@exemple.com"
             />
             {emailInvalid && (
-              <p id="auth-email-hint" className="flex items-center gap-1 text-xs text-error" role="alert">
+              <p
+                id="auth-email-hint"
+                className="flex items-center gap-1 text-xs text-error"
+                role="alert"
+              >
                 <CircleAlert aria-hidden="true" size={14} />
                 Adresse email invalide.
               </p>
@@ -141,7 +147,9 @@ export function AuthPage() {
                 }
                 placeholder="••••••••"
               />
-              <IconTooltip label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+              <IconTooltip
+                label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
@@ -157,7 +165,11 @@ export function AuthPage() {
               </IconTooltip>
             </div>
             {passwordInvalid && (
-              <p id="auth-password-hint" className="flex items-center gap-1 text-xs text-error" role="alert">
+              <p
+                id="auth-password-hint"
+                className="flex items-center gap-1 text-xs text-error"
+                role="alert"
+              >
                 <CircleAlert aria-hidden="true" size={14} />
                 Ce champ est requis.
               </p>

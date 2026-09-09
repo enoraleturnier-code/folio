@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 // QA manuelle "comme un humain" sur une preview Vercel isolée (protégée par
 // Vercel Authentication) -- cf. e2e/global-setup.ts pour le bypass.
-const PREVIEW_URL = process.env.QA_BASE_URL ?? "https://folio-jkprqf3w4-enora-le-turnier-s-projects.vercel.app";
+const PREVIEW_URL =
+  process.env.QA_BASE_URL ?? "https://folio-jkprqf3w4-enora-le-turnier-s-projects.vercel.app";
 
 export default defineConfig({
   testDir: "./e2e",

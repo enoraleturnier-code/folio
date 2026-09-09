@@ -41,7 +41,10 @@ test.describe("Connexion par rôle -- pending / validated_visitor", () => {
     });
 
     // Au moins une carte confidentielle doit exister sur ce catalogue de démo
-    expect(grantedCount + plainConfidentialCount, "Aucune carte confidentielle trouvée -- catalogue vide ?").toBeGreaterThan(0);
+    expect(
+      grantedCount + plainConfidentialCount,
+      "Aucune carte confidentielle trouvée -- catalogue vide ?",
+    ).toBeGreaterThan(0);
   });
 
   test("validated_visitor (Karim) : accès débloqué à tout le catalogue confidentiel", async ({
@@ -56,7 +59,10 @@ test.describe("Connexion par rôle -- pending / validated_visitor", () => {
     const grantedCount = await page.getByText(/confidentiel\s*·\s*accès validé/i).count();
     const plainConfidentialCount = await page.getByText("CONFIDENTIEL", { exact: true }).count();
 
-    expect(grantedCount, "validated_visitor doit voir au moins un projet confidentiel débloqué").toBeGreaterThan(0);
+    expect(
+      grantedCount,
+      "validated_visitor doit voir au moins un projet confidentiel débloqué",
+    ).toBeGreaterThan(0);
     expect(
       plainConfidentialCount,
       "validated_visitor ne devrait voir AUCUNE carte confidentielle encore verrouillée (accès global débloqué)",

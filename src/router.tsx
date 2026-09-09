@@ -42,9 +42,8 @@ export const router = createBrowserRouter([
               {
                 path: "projects/:id",
                 lazy: async () => {
-                  const { ProjectDetailPage, projectDetailLoader } = await import(
-                    "@/pages/ProjectDetailPage"
-                  );
+                  const { ProjectDetailPage, projectDetailLoader } =
+                    await import("@/pages/ProjectDetailPage");
                   return { Component: ProjectDetailPage, loader: projectDetailLoader };
                 },
               },

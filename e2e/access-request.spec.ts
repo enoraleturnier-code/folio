@@ -4,11 +4,17 @@ test.describe("Demande d'accès (AccessRequestModal)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`/${SLUG}/projects`);
     await humanPause(page, 500);
-    await page.getByRole("button", { name: /demander l'accès au projet/i }).first().click();
+    await page
+      .getByRole("button", { name: /demander l'accès au projet/i })
+      .first()
+      .click();
     await expect(page.getByRole("dialog", { name: /demander l'accès/i })).toBeVisible();
   });
 
-  test("cas limite : soumission à vide affiche les erreurs de validation", async ({ page, consoleErrors }) => {
+  test("cas limite : soumission à vide affiche les erreurs de validation", async ({
+    page,
+    consoleErrors,
+  }) => {
     await page.getByRole("button", { name: "Envoyer ma demande" }).click();
     await humanPause(page, 300);
     // Le formulaire ne doit pas soumettre -- toujours sur le formulaire, pas l'écran de succès
@@ -43,11 +49,15 @@ test.describe("Demande d'accès (AccessRequestModal)", () => {
     // Ne PAS cocher le RGPD volontairement
     await page.getByRole("button", { name: "Envoyer ma demande" }).click();
     await humanPause(page, 300);
-    await expect(page.getByText("Ce consentement est requis pour envoyer votre demande.")).toBeVisible();
+    await expect(
+      page.getByText("Ce consentement est requis pour envoyer votre demande."),
+    ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Demander l'accès" })).toBeVisible();
   });
 
-  test("cas limite : double-clic rapide sur Envoyer ne crée pas de doublon visible", async ({ page }) => {
+  test("cas limite : double-clic rapide sur Envoyer ne crée pas de doublon visible", async ({
+    page,
+  }) => {
     const uniqueEmail = `enoraleturnier+qadbl${Date.now()}@gmail.com`;
     await page.locator("#ar-name").fill("QA Double Click");
     await page.locator("#ar-company").fill("QA Co");
@@ -69,7 +79,10 @@ test.describe("Demande d'accès (AccessRequestModal)", () => {
     expect(await errorAlerts.count()).toBeLessThanOrEqual(1);
   });
 
-  test("chemin heureux : création de compte + demande d'accès valide", async ({ page, consoleErrors }) => {
+  test("chemin heureux : création de compte + demande d'accès valide", async ({
+    page,
+    consoleErrors,
+  }) => {
     const uniqueEmail = `enoraleturnier+qaplaywright${Date.now()}@gmail.com`;
     await page.locator("#ar-name").fill("QA Playwright");
     await humanPause(page, 150);
@@ -81,14 +94,18 @@ test.describe("Demande d'accès (AccessRequestModal)", () => {
     await humanPause(page, 150);
     await page.locator("#ar-confirm-password").fill("TestPass123");
     await humanPause(page, 150);
-    await page.locator("#ar-message").fill("Message de test QA Playwright -- à ignorer / supprimer après coup.");
+    await page
+      .locator("#ar-message")
+      .fill("Message de test QA Playwright -- à ignorer / supprimer après coup.");
     await page.locator("#ar-gdpr").check();
     await humanPause(page, 300);
 
     await page.getByRole("button", { name: "Envoyer ma demande" }).click();
     await humanPause(page, 2000);
 
-    await expect(page.getByRole("heading", { name: "Demande envoyée" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Demande envoyée" })).toBeVisible({
+      timeout: 15_000,
+    });
     expectNoUnexpectedConsoleErrors(consoleErrors);
 
     // Trace pour le nettoyage / le rapport final

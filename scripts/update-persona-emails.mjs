@@ -47,11 +47,31 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 // id captured beforehand via read-only SELECT on auth.users, to verify UUID stability after update
 const updates = [
-  { id: "469dd567-bbf1-40e7-8c0b-c14dc7107f9e", oldEmail: "sophie@folioplus.app", newEmail: "enoraleturnier+sophie-persona@gmail.com" },
-  { id: "f06a6e42-2ce7-4e6e-9563-0315b0102cbb", oldEmail: "karim@folioplus.app", newEmail: "enoraleturnier+karim-persona@gmail.com" },
-  { id: "b2c7b021-0699-4cf0-b5bb-88c7074fb67c", oldEmail: "lea@folioplus.app", newEmail: "enoraleturnier+lea-persona@gmail.com" },
-  { id: "4d162cc9-3359-43bd-8dd0-0184ed8003a9", oldEmail: "jean@app.com", newEmail: "enoraleturnier+jean@gmail.com" },
-  { id: "56f1815a-30c8-43fc-8a5f-a25abe5a55aa", oldEmail: "sandra@app.com", newEmail: "enoraleturnier+sandra@gmail.com" },
+  {
+    id: "469dd567-bbf1-40e7-8c0b-c14dc7107f9e",
+    oldEmail: "sophie@folioplus.app",
+    newEmail: "enoraleturnier+sophie-persona@gmail.com",
+  },
+  {
+    id: "f06a6e42-2ce7-4e6e-9563-0315b0102cbb",
+    oldEmail: "karim@folioplus.app",
+    newEmail: "enoraleturnier+karim-persona@gmail.com",
+  },
+  {
+    id: "b2c7b021-0699-4cf0-b5bb-88c7074fb67c",
+    oldEmail: "lea@folioplus.app",
+    newEmail: "enoraleturnier+lea-persona@gmail.com",
+  },
+  {
+    id: "4d162cc9-3359-43bd-8dd0-0184ed8003a9",
+    oldEmail: "jean@app.com",
+    newEmail: "enoraleturnier+jean@gmail.com",
+  },
+  {
+    id: "56f1815a-30c8-43fc-8a5f-a25abe5a55aa",
+    oldEmail: "sandra@app.com",
+    newEmail: "enoraleturnier+sandra@gmail.com",
+  },
 ];
 
 for (const { id, oldEmail, newEmail } of updates) {

@@ -61,7 +61,10 @@ export function ContactForm() {
         target = el;
       }
     }
-    target?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
+    target?.scrollIntoView({
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+      block: "center",
+    });
     target?.focus({ preventScroll: true });
   };
 
@@ -114,7 +117,11 @@ export function ContactForm() {
   function errorHint(key: FieldKey) {
     if (!showError(key)) return null;
     return (
-      <p id={errorHintId(key)} className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+      <p
+        id={errorHintId(key)}
+        className="mt-1 flex items-center gap-1 text-xs text-error"
+        role="alert"
+      >
         <CircleAlert aria-hidden="true" size={14} className="shrink-0" />
         {errors[key]}
       </p>
@@ -210,7 +217,11 @@ export function ContactForm() {
           </label>
         </div>
         {submitAttempted && rgpdMissing && (
-          <p id="cf-rgpd-error" className="-mt-3 flex items-center gap-1 text-xs text-error" role="alert">
+          <p
+            id="cf-rgpd-error"
+            className="-mt-3 flex items-center gap-1 text-xs text-error"
+            role="alert"
+          >
             <CircleAlert aria-hidden="true" size={14} className="shrink-0" />
             Ce consentement est requis pour envoyer votre message.
           </p>

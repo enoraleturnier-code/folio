@@ -78,7 +78,9 @@ export function ThemeToggle() {
                   <OptIcon aria-hidden="true" size={18} />
                   <span className="flex-1 text-left">{opt.label}</span>
                   {opt.disabled && <ComingSoonBadge />}
-                  {active && !opt.disabled && <Check aria-hidden="true" className="text-primary" size={18} />}
+                  {active && !opt.disabled && (
+                    <Check aria-hidden="true" className="text-primary" size={18} />
+                  )}
                 </button>
               );
             })}

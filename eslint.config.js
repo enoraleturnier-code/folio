@@ -14,6 +14,16 @@ export default tseslint.config(
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
+    // react-hooks/react-refresh n'ont de sens que pour le code React de l'app --
+    // scopé à src/ pour éviter les faux positifs sur e2e/ (fixtures Playwright,
+    // ex. le paramètre `use` d'une fixture, confondu avec le hook React `use`)
+    // et supabase/functions/ (Edge Functions Deno, aucun React).
+    files: ["src/**/*.{ts,tsx}"],
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
@@ -21,7 +31,6 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
     },
   },
   eslintPluginPrettier,

@@ -126,7 +126,11 @@ export function PersonaSwitcher() {
                   </span>
                   <span className="block text-[10px] text-on-surface-variant">{p.role}</span>
                 </span>
-                <ArrowRight aria-hidden="true" size={14} className="shrink-0 text-on-surface-variant" />
+                <ArrowRight
+                  aria-hidden="true"
+                  size={14}
+                  className="shrink-0 text-on-surface-variant"
+                />
               </button>
             ))}
             <button

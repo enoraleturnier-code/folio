@@ -86,9 +86,12 @@ Deno.serve(async (req: Request) => {
   }
 
   if (oldRecord?.status !== "pending" || !["approved", "rejected"].includes(record.status)) {
-    return new Response(JSON.stringify({ skipped: true, reason: "not a pending->approved/rejected transition" }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ skipped: true, reason: "not a pending->approved/rejected transition" }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 
   const [{ data: visitor }, { data: project }] = await Promise.all([

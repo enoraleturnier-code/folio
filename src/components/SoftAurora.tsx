@@ -228,8 +228,12 @@ export default function SoftAurora({
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
 
+    // Assigné une seule fois plus bas, mais doit rester `let` : `resize()`
+    // (appelé avant cette assignation) lit `program` via closure, un `const`
+    // combiné à l'assignation casserait cet appel anticipé.
+    // eslint-disable-next-line prefer-const
     let program: Program;
-    let currentMouse = [0.5, 0.5];
+    const currentMouse = [0.5, 0.5];
     let targetMouse = [0.5, 0.5];
 
     function handleMouseMove(e: MouseEvent) {
@@ -263,7 +267,9 @@ export default function SoftAurora({
       fragment: fragmentShader,
       uniforms: {
         uTime: { value: 0 },
-        uResolution: { value: [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height] },
+        uResolution: {
+          value: [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height],
+        },
         uSpeed: { value: speed },
         uScale: { value: scale },
         uBrightness: { value: brightness },

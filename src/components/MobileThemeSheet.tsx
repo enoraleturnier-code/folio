@@ -53,7 +53,9 @@ export function MobileThemeSheet({ open, onClose }: { open: boolean; onClose: ()
               <OptIcon aria-hidden="true" size={20} />
               <span className="flex-1 text-left">{opt.label}</span>
               {opt.disabled && <ComingSoonBadge />}
-              {active && !opt.disabled && <Check aria-hidden="true" className="text-primary" size={20} />}
+              {active && !opt.disabled && (
+                <Check aria-hidden="true" className="text-primary" size={20} />
+              )}
             </button>
           );
         })}
