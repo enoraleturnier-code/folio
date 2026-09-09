@@ -118,6 +118,22 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 /**
+ * Lecture ciblée d'un sous-ensemble de projets par id (ProfilePage : projets
+ * liés aux expériences du bloc "Expériences", généralement une poignée de
+ * lignes) -- même vue/RLS que `getProjects()` mais sans rapatrier tout le
+ * catalogue (cf. `hasConfidentialProject` ci-dessous pour le même principe
+ * appliqué au comptage). `ids` vide court-circuite avant tout aller-retour
+ * réseau.
+ */
+export async function getProjectsByIds(ids: string[]): Promise<Project[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase.from("projects_catalog_view").select("*").in("id", ids);
+
+  if (error) throw error;
+  return (data ?? []).map(mapCatalogRow);
+}
+
+/**
  * Page profil : n'a besoin que de savoir s'il existe au moins un projet
  * confidentiel (pour afficher le bouton "Accéder aux projets confidentiels"),
  * jamais des cartes elles-mêmes -- `head: true` ne récupère aucune ligne,

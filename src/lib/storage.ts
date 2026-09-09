@@ -62,6 +62,47 @@ export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export const GALLERY_BUCKET = "project-gallery";
 
+const DESIGNER_CV_BUCKET = "designer-cv";
+export const MAX_CV_SIZE_BYTES = 5 * 1024 * 1024;
+export const ALLOWED_CV_TYPES = ["application/pdf"];
+
+/**
+ * URL publique "nue" (pas de `?download`) : le CV s'ouvre inline dans un
+ * nouvel onglet (visionneuse PDF du navigateur, bouton "Voir le CV en
+ * détail" de `ProfilePage.tsx`) -- le téléchargement reste possible depuis
+ * cette visionneuse, plus besoin de forcer `Content-Disposition: attachment`
+ * à la source. `deleteDesignerCv` gère quand même un éventuel `?download`
+ * hérité d'une URL enregistrée avant ce changement.
+ */
+export async function uploadDesignerCv(file: File): Promise<string> {
+  const path = `${Date.now()}.pdf`;
+
+  const { error } = await supabase.storage.from(DESIGNER_CV_BUCKET).upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from(DESIGNER_CV_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/** Même piège RLS Storage que `deleteProjectGalleryImage`/`deleteProjectThumbnail`
+ * ci-dessus -- toujours vérifier `data` en plus de `error`. */
+export async function deleteDesignerCv(url: string): Promise<void> {
+  const marker = `/${DESIGNER_CV_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return;
+  const path = url.slice(idx + marker.length).split("?")[0];
+  const { data, error } = await supabase.storage.from(DESIGNER_CV_BUCKET).remove([path]);
+  if (error) throw error;
+  if (!data || data.length !== 1) {
+    throw new Error(
+      `deleteDesignerCv: expected 1 file removed, got ${data?.length ?? 0} (path=${path})`,
+    );
+  }
+}
+
 /** Contrairement à `uploadProjectThumbnail`, le nom de fichier porte un
  * suffixe aléatoire : plusieurs images peuvent être sélectionnées dans le
  * même batch, potentiellement à la même milliseconde (`Date.now()` seul

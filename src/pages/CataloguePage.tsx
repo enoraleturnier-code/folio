@@ -5,12 +5,13 @@ import { Link, useLoaderData, useSearchParams, type LoaderFunctionArgs } from "r
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
-import { ProjectCard, type AccessState } from "@/components/ProjectCard";
+import { ProjectCard } from "@/components/ProjectCard";
 import { getMyAccessRequests, type MyAccessRequest } from "@/data/accessRequests";
 import { designer } from "@/data/designer";
 import { getProjects } from "@/data/projects";
 import { useAuth } from "@/hooks/useAuth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { resolveAccess } from "@/lib/accessState";
 import type { Project } from "@/types/project";
 
 export async function catalogueLoader({ params }: LoaderFunctionArgs) {
@@ -58,15 +59,6 @@ export function CataloguePage() {
     return map;
   }, [myRequests]);
 
-  /** Statut d'accès du visiteur courant pour un projet confidentiel donné. */
-  function resolveAccess(p: Project): { accessState: AccessState; rejectionReason?: string | null } {
-    if (isEntitled) return { accessState: "granted" };
-    const req = requestByProject.get(p.id);
-    if (!req) return { accessState: "none" };
-    if (req.status === "approved") return { accessState: "granted" };
-    if (req.status === "pending") return { accessState: "pending" };
-    return { accessState: "refused", rejectionReason: req.rejection_reason };
-  }
   const [filters, setFilters] = useState<FilterState>({
     designType: "",
     sector: "",
@@ -113,7 +105,11 @@ export function CataloguePage() {
   return (
     <>
       <AuroraBackground variant="catalogue" />
-      <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16"
+      >
         <header className="mb-16 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
@@ -147,7 +143,11 @@ export function CataloguePage() {
             className="catalogue-fade-in grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
           >
             {filtered.map((p) => {
-              const { accessState, rejectionReason } = resolveAccess(p);
+              const { accessState, rejectionReason } = resolveAccess(
+                p,
+                isEntitled,
+                requestByProject,
+              );
               return (
                 <ProjectCard
                   key={p.id}

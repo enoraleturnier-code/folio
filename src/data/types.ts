@@ -70,9 +70,11 @@ export interface Designer {
   bio: string;
   avatar: string;
   linkedin: string;
-  twitter: string;
   website: string;
   calUsername: string;
   email: string;
   location: string;
+  cvUrl: string;
+  /** Description courte sous le titre "Expériences" de la colonne éditoriale (bloc accordéon, page profil). */
+  experiencesIntro: string;
 }

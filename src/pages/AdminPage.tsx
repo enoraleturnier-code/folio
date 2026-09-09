@@ -1,7 +1,9 @@
 import {
   ArchiveRestore,
+  ArrowDown,
   ArrowLeftRight,
   ArrowRight,
+  ArrowUp,
   Ban,
   Check,
   ChevronDown,
@@ -10,6 +12,8 @@ import {
   CircleAlert,
   CloudUpload,
   Copy,
+  ExternalLink,
+  FileText,
   Folder,
   Inbox,
   KeyRound,
@@ -38,6 +42,7 @@ import { Alert } from "@/components/Alert";
 import { AdminFilterBar, type AdminFilterGroup } from "@/components/AdminFilterBar";
 import { AdminMobileBottomNav } from "@/components/AdminMobileBottomNav";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { Checkbox } from "@/components/Checkbox";
 import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { IconTooltip } from "@/components/IconTooltip";
 import { NotificationCountBadge } from "@/components/NotificationCountBadge";
@@ -52,10 +57,29 @@ import {
   updateDesignerProfile,
   type DesignerProfileInput,
 } from "@/data/designer";
+import {
+  createExperience,
+  getExperiencesAdmin,
+  softDeleteExperience,
+  updateExperience,
+  updateExperienceOrder,
+  type Experience,
+  type ExperienceInput,
+} from "@/data/experiences";
+import {
+  validateExperience,
+  type ValidationError as ExperienceValidationError,
+  type ValidationField as ExperienceValidationField,
+} from "@/lib/experienceValidation";
 import { textLinkClass } from "@/lib/linkStyles";
 import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
-import { uploadDesignerPhoto } from "@/lib/storage";
-import { cn } from "@/lib/utils";
+import {
+  ALLOWED_CV_TYPES,
+  MAX_CV_SIZE_BYTES,
+  uploadDesignerCv,
+  uploadDesignerPhoto,
+} from "@/lib/storage";
+import { cn, isValidEmail, isValidUrl, prefersReducedMotion } from "@/lib/utils";
 import {
   getAllContacts,
   updateContactStatus,
@@ -659,7 +683,10 @@ function QuickAccessCard({
        * tactile). Desktop inchangé, cf. plus bas. */}
       <div className="flex w-full items-center gap-3 md:hidden">
         <div
-          className={cn("flex h-[75.99px] w-[75.99px] shrink-0 items-center justify-center rounded-xl", classes.bg)}
+          className={cn(
+            "flex h-[75.99px] w-[75.99px] shrink-0 items-center justify-center rounded-xl",
+            classes.bg,
+          )}
         >
           <Icon aria-hidden="true" className={classes.icon} size={22} />
         </div>
@@ -679,7 +706,12 @@ function QuickAccessCard({
       />
 
       {/* Desktop : disposition d'origine (icône puis texte empilés, flèche révélée au survol). */}
-      <div className={cn("hidden h-11 w-11 items-center justify-center rounded-xl md:flex", classes.bg)}>
+      <div
+        className={cn(
+          "hidden h-11 w-11 items-center justify-center rounded-xl md:flex",
+          classes.bg,
+        )}
+      >
         <Icon aria-hidden="true" className={classes.icon} size={22} />
       </div>
       <span className="mt-4 hidden text-3xl font-bold text-on-surface md:block">{count}</span>
@@ -909,13 +941,22 @@ function DashboardTab({
             <table className="w-full border-collapse text-left text-sm">
               <thead className="text-on-surface-variant">
                 <tr>
-                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
+                  <th
+                    scope="col"
+                    className="px-5 py-3 text-xs font-semibold uppercase tracking-wide"
+                  >
                     Titre
                   </th>
-                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
+                  <th
+                    scope="col"
+                    className="px-5 py-3 text-xs font-semibold uppercase tracking-wide"
+                  >
                     Période
                   </th>
-                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide">
+                  <th
+                    scope="col"
+                    className="px-5 py-3 text-xs font-semibold uppercase tracking-wide"
+                  >
                     Sources
                   </th>
                   <th scope="col" className="px-5 py-3" />
@@ -952,7 +993,6 @@ function DashboardTab({
           </div>
         </div>
       )}
-
     </>
   );
 }
@@ -1173,15 +1213,15 @@ function ProjetsTab({
                         </button>
                       </IconTooltip>
                       <IconTooltip label="Supprimer">
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDelete(p.id)}
-                        disabled={busyId === p.id}
-                        aria-label={`Supprimer ${p.title}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
-                      >
-                        <Trash2 aria-hidden="true" size={18} />
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(p.id)}
+                          disabled={busyId === p.id}
+                          aria-label={`Supprimer ${p.title}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                        >
+                          <Trash2 aria-hidden="true" size={18} />
+                        </button>
                       </IconTooltip>
                     </>
                   )}
@@ -1955,7 +1995,7 @@ function MesContactsDrawer({
 
 /* ---------- Paramètres Tab ---------- */
 
-type SocialFieldKey = "linkedin" | "twitter" | "website";
+type SocialFieldKey = "linkedin" | "website" | "email";
 
 interface SocialFieldError {
   field: SocialFieldKey;
@@ -1964,21 +2004,16 @@ interface SocialFieldError {
 
 const SOCIAL_FIELD_LABELS: Record<SocialFieldKey, string> = {
   linkedin: "LinkedIn",
-  twitter: "X (Twitter)",
   website: "Site web",
+  email: "E-mail",
 };
 
-/** Vide = optionnel, valide -- rempli mais mal formé ou protocole non http(s) = invalide. */
-function isValidUrl(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed) return true;
-  try {
-    const url = new URL(trimmed);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
+/** `email` a sa propre règle de format (pas une URL) -- utilisé par `handleSave`. */
+const SOCIAL_FIELD_VALIDATORS: Record<SocialFieldKey, (value: string) => boolean> = {
+  linkedin: isValidUrl,
+  website: isValidUrl,
+  email: isValidEmail,
+};
 
 type ParametresForm = Omit<DesignerProfileInput, "photoUrl"> & { photoUrl: string };
 
@@ -1989,10 +2024,21 @@ function emptyParametresForm(): ParametresForm {
     adjective: "",
     bio: "",
     linkedin: "",
-    twitter: "",
     website: "",
+    email: "",
     calUsername: "",
+    cvUrl: "",
+    experiencesIntro: "",
   };
+}
+
+/** Nom de fichier affiché admin -- l'URL stocke un timestamp brut
+ * (`uploadDesignerCv`), pas de nom lisible à en tirer autrement. */
+function cvFileNameFromUrl(url: string): string {
+  const marker = "/designer-cv/";
+  const idx = url.indexOf(marker);
+  if (idx === -1) return "CV.pdf";
+  return url.slice(idx + marker.length).split("?")[0];
 }
 
 function ParametresTab() {
@@ -2002,6 +2048,8 @@ function ParametresTab() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [pendingCvFile, setPendingCvFile] = useState<File | null>(null);
+  const [cvError, setCvError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -2016,9 +2064,11 @@ function ParametresTab() {
         adjective: profile.adjective,
         bio: profile.bio,
         linkedin: profile.linkedin,
-        twitter: profile.twitter,
         website: profile.website,
+        email: profile.email,
         calUsername: profile.calUsername,
+        cvUrl: profile.cvUrl,
+        experiencesIntro: profile.experiencesIntro,
       }),
     );
 
@@ -2087,6 +2137,8 @@ function ParametresTab() {
   const cancelEditing = () => {
     setPendingFile(null);
     setPendingPreview(null);
+    setPendingCvFile(null);
+    setCvError(null);
     setErrors([]);
     setSaveError(null);
     setEditing(false);
@@ -2094,13 +2146,35 @@ function ParametresTab() {
     loadProfile().finally(() => setLoading(false));
   };
 
+  const onCvFileSelected = (file: File) => {
+    if (!ALLOWED_CV_TYPES.includes(file.type)) {
+      setCvError("Format non supporté : seul le PDF est accepté.");
+      return;
+    }
+    if (file.size > MAX_CV_SIZE_BYTES) {
+      setCvError("Fichier trop lourd (5 Mo max).");
+      return;
+    }
+    setCvError(null);
+    setPendingCvFile(file);
+  };
+
+  const removeCv = () => {
+    setPendingCvFile(null);
+    setCvError(null);
+    setForm((f) => ({ ...f, cvUrl: "" }));
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errs: SocialFieldError[] = (["linkedin", "twitter", "website"] as SocialFieldKey[])
-      .filter((field) => !isValidUrl(form[field]))
+    const errs: SocialFieldError[] = (["linkedin", "website", "email"] as SocialFieldKey[])
+      .filter((field) => !SOCIAL_FIELD_VALIDATORS[field](form[field]))
       .map((field) => ({
         field,
-        message: `Le lien ${SOCIAL_FIELD_LABELS[field]} n'est pas valide.`,
+        message:
+          field === "email"
+            ? "L'adresse e-mail n'est pas valide."
+            : `Le lien ${SOCIAL_FIELD_LABELS[field]} n'est pas valide.`,
       }));
     setErrors(errs);
     if (errs.length > 0) return;
@@ -2112,19 +2186,26 @@ function ParametresTab() {
       if (pendingFile) {
         photoUrl = await uploadDesignerPhoto(pendingFile);
       }
+      let cvUrl = form.cvUrl;
+      if (pendingCvFile) {
+        cvUrl = await uploadDesignerCv(pendingCvFile);
+      }
       await updateDesignerProfile({
         photoUrl,
         profession: form.profession.trim(),
         adjective: form.adjective.trim(),
         bio: form.bio.trim(),
         linkedin: form.linkedin.trim(),
-        twitter: form.twitter.trim(),
         website: form.website.trim(),
+        email: form.email.trim(),
         calUsername: form.calUsername.trim(),
+        cvUrl,
+        experiencesIntro: form.experiencesIntro.trim(),
       });
-      setForm((f) => ({ ...f, photoUrl }));
+      setForm((f) => ({ ...f, photoUrl, cvUrl }));
       setPendingFile(null);
       setPendingPreview(null);
+      setPendingCvFile(null);
       setEditing(false);
       setSaveSuccess(true);
     } catch (err) {
@@ -2169,7 +2250,7 @@ function ParametresTab() {
       {loading ? (
         <p className="mt-10 text-sm text-on-surface-variant">Chargement de ton profil…</p>
       ) : (
-        <form onSubmit={handleSave} className="mt-10 space-y-6">
+        <form onSubmit={handleSave} noValidate className="mt-10 space-y-6">
           <div>
             <label htmlFor="s-photo-input" className={labelCls}>
               Photo de profil
@@ -2276,18 +2357,19 @@ function ParametresTab() {
               {fieldError("linkedin")}
             </div>
             <div>
-              <label htmlFor="s-twitter" className={labelCls}>
-                X (Twitter)
+              <label htmlFor="s-email" className={labelCls}>
+                E-mail
               </label>
               <input
-                id="s-twitter"
+                id="s-email"
+                type="email"
                 disabled={!editing}
-                value={form.twitter}
-                onChange={(e) => setForm({ ...form, twitter: e.target.value })}
-                className={errorRingCls("twitter", inputCls + " mt-2")}
-                placeholder="https://x.com/votre-profil"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className={errorRingCls("email", inputCls + " mt-2")}
+                placeholder="vous@exemple.fr"
               />
-              {fieldError("twitter")}
+              {fieldError("email")}
             </div>
             <div>
               <label htmlFor="s-website" className={labelCls}>
@@ -2385,6 +2467,684 @@ function ParametresTab() {
           )}
         </form>
       )}
+
+      <ExperiencesManager
+        editing={editing}
+        cvUrl={form.cvUrl}
+        pendingCvFile={pendingCvFile}
+        cvError={cvError}
+        onCvFileSelected={onCvFileSelected}
+        onRemoveCv={removeCv}
+        experiencesIntro={form.experiencesIntro}
+        onExperiencesIntroChange={(value) => setForm({ ...form, experiencesIntro: value })}
+      />
+    </div>
+  );
+}
+
+/* ---------- Expériences (Parcours) — CRUD admin, ParametresTab ---------- */
+
+interface ExperienceFormState {
+  title: string;
+  company: string;
+  shortDesc: string;
+  bulletsText: string;
+  impact: string;
+  projectId: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+}
+
+function emptyExperienceForm(): ExperienceFormState {
+  return {
+    title: "",
+    company: "",
+    shortDesc: "",
+    bulletsText: "",
+    impact: "",
+    projectId: "",
+    startDate: "",
+    endDate: "",
+    current: false,
+  };
+}
+
+function experienceToForm(exp: Experience): ExperienceFormState {
+  return {
+    title: exp.title,
+    company: exp.company,
+    shortDesc: exp.shortDesc,
+    bulletsText: exp.bullets.join("\n"),
+    impact: exp.impact ?? "",
+    projectId: exp.projectId ?? "",
+    startDate: exp.startDate,
+    endDate: exp.endDate ?? "",
+    current: exp.endDate === null,
+  };
+}
+
+function experienceFormToInput(form: ExperienceFormState): ExperienceInput {
+  return {
+    title: form.title.trim(),
+    company: form.company.trim(),
+    shortDesc: form.shortDesc.trim(),
+    bullets: form.bulletsText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean),
+    impact: form.impact.trim() || null,
+    projectId: form.projectId || null,
+    startDate: form.startDate,
+    endDate: form.current ? null : form.endDate || null,
+  };
+}
+
+/** id DOM de l'input correspondant à chaque champ validable -- sert à
+ * retrouver et focus le premier champ en erreur (même pattern que
+ * FIELD_INPUT_IDS/focusFirstError, ProjectDrawer.tsx). */
+const EXPERIENCE_FIELD_INPUT_IDS: Record<ExperienceValidationField, string> = {
+  title: "exp-title",
+  company: "exp-company",
+  short_desc: "exp-short-desc",
+  bullet: "exp-bullets",
+  impact: "exp-impact",
+  start_date: "exp-start",
+  end_date: "exp-end",
+};
+
+function focusFirstExperienceError(errs: ExperienceValidationError[]) {
+  if (errs.length === 0) return;
+  const fields = new Set(errs.map((e) => e.field));
+  let target: HTMLElement | null = null;
+  let targetTop = Infinity;
+  for (const field of fields) {
+    const el = document.getElementById(EXPERIENCE_FIELD_INPUT_IDS[field]);
+    if (!el) continue;
+    const top = el.getBoundingClientRect().top;
+    if (top < targetTop) {
+      targetTop = top;
+      target = el;
+    }
+  }
+  target?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
+  target?.focus({ preventScroll: true });
+}
+
+function formatExperiencePeriodAdmin(start: string, end: string | null): string {
+  const fmt = (iso: string) =>
+    new Intl.DateTimeFormat("fr-FR", { month: "short", year: "numeric" }).format(new Date(iso));
+  return `${fmt(start)} — ${end ? fmt(end) : "Aujourd'hui"}`;
+}
+
+const experienceInputCls =
+  "w-full rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-sm font-light text-on-surface placeholder:text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60";
+const experienceLabelCls = "block text-sm font-medium text-on-surface-variant";
+
+interface ExperiencesManagerProps {
+  editing: boolean;
+  cvUrl: string;
+  pendingCvFile: File | null;
+  cvError: string | null;
+  onCvFileSelected: (file: File) => void;
+  onRemoveCv: () => void;
+  experiencesIntro: string;
+  onExperiencesIntroChange: (value: string) => void;
+}
+
+function ExperiencesManager({
+  editing,
+  cvUrl,
+  pendingCvFile,
+  cvError,
+  onCvFileSelected,
+  onRemoveCv,
+  experiencesIntro,
+  onExperiencesIntroChange,
+}: ExperiencesManagerProps) {
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | "new" | null>(null);
+  const [form, setForm] = useState<ExperienceFormState>(emptyExperienceForm);
+  const [errors, setErrors] = useState<ExperienceValidationError[]>([]);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const load = () => getExperiencesAdmin().then(setExperiences);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    // Le sélecteur de projet lié a besoin du catalogue complet (y compris
+    // brouillons/confidentiels, RLS admin) -- chargé une seule fois, en
+    // parallèle des expériences elles-mêmes.
+    Promise.all([load(), getProjects().then(setProjects)]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const errorFor = (field: ExperienceValidationField) => errors.find((e) => e.field === field);
+  const errorRingCls = (field: ExperienceValidationField, base: string) =>
+    cn(base, errorFor(field) && "border-error focus-visible:ring-error");
+
+  function fieldError(field: ExperienceValidationField) {
+    const err = errorFor(field);
+    if (!err) return null;
+    return (
+      <p className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+        <CircleAlert aria-hidden="true" size={14} className="shrink-0" />
+        {err.message}
+      </p>
+    );
+  }
+
+  const startCreate = () => {
+    setForm(emptyExperienceForm());
+    setErrors([]);
+    setSaveError(null);
+    setEditingId("new");
+  };
+
+  const startEdit = (exp: Experience) => {
+    setForm(experienceToForm(exp));
+    setErrors([]);
+    setSaveError(null);
+    setEditingId(exp.id);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setErrors([]);
+    setSaveError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const input = experienceFormToInput(form);
+    const errs = validateExperience(input);
+    setErrors(errs);
+    if (errs.length > 0) {
+      focusFirstExperienceError(errs);
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      if (editingId === "new") {
+        await createExperience(input, experiences.length);
+      } else if (editingId) {
+        await updateExperience(editingId, input);
+      }
+      setExperiences(await getExperiencesAdmin());
+      setEditingId(null);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Une erreur est survenue. Réessaie.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const moveExperience = async (index: number, direction: -1 | 1) => {
+    const swapWith = index + direction;
+    if (swapWith < 0 || swapWith >= experiences.length) return;
+    const a = experiences[index];
+    const b = experiences[swapWith];
+    const next = [...experiences];
+    [next[index], next[swapWith]] = [next[swapWith], next[index]];
+    setExperiences(next);
+    setBusyId(a.id);
+    try {
+      await Promise.all([
+        updateExperienceOrder(a.id, b.displayOrder),
+        updateExperienceOrder(b.id, a.displayOrder),
+      ]);
+    } catch (err) {
+      // Pas de rollback vers l'état pré-swap : si un seul des deux appels a
+      // échoué, cet état en mémoire serait faux. On recharge la vérité
+      // depuis la base.
+      try {
+        setExperiences(await getExperiencesAdmin());
+      } catch {
+        /* affichage reste optimiste si même le refetch échoue -- l'erreur
+           ci-dessous informe déjà l'admin qu'il faut vérifier */
+      }
+      setSaveError(err instanceof Error ? err.message : "Échec du réordonnancement.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
+    const id = confirmDeleteId;
+    setConfirmDeleteId(null);
+    setBusyId(id);
+    try {
+      await softDeleteExperience(id);
+      setExperiences(await getExperiencesAdmin());
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Échec de la suppression.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const experienceForm = (
+    <form onSubmit={handleSubmit} className="mt-4 space-y-5">
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="exp-title" className={experienceLabelCls}>
+            Titre du poste
+          </label>
+          <input
+            id="exp-title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className={errorRingCls("title", experienceInputCls + " mt-2")}
+          />
+          {fieldError("title")}
+        </div>
+        <div>
+          <label htmlFor="exp-company" className={experienceLabelCls}>
+            Entreprise
+          </label>
+          <input
+            id="exp-company"
+            value={form.company}
+            onChange={(e) => setForm({ ...form, company: e.target.value })}
+            className={errorRingCls("company", experienceInputCls + " mt-2")}
+          />
+          {fieldError("company")}
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="exp-short-desc" className={experienceLabelCls}>
+          Description (affichée dans l'en-tête de l'accordéon)
+        </label>
+        <textarea
+          id="exp-short-desc"
+          rows={2}
+          value={form.shortDesc}
+          onChange={(e) => setForm({ ...form, shortDesc: e.target.value })}
+          className={errorRingCls("short_desc", experienceInputCls + " mt-2 resize-y")}
+        />
+        <div className="mt-1 flex items-center justify-between gap-2">
+          {fieldError("short_desc")}
+          <span className="ml-auto shrink-0 text-xs text-on-surface-variant">
+            {form.shortDesc.trim().length}/200
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-3">
+        <div>
+          <label htmlFor="exp-start" className={experienceLabelCls}>
+            Date de début
+          </label>
+          <input
+            id="exp-start"
+            type="date"
+            value={form.startDate}
+            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+            className={errorRingCls("start_date", experienceInputCls + " mt-2")}
+          />
+          {fieldError("start_date")}
+        </div>
+        <div>
+          <label htmlFor="exp-end" className={experienceLabelCls}>
+            Date de fin
+          </label>
+          <input
+            id="exp-end"
+            type="date"
+            disabled={form.current}
+            value={form.endDate}
+            onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+            className={errorRingCls("end_date", experienceInputCls + " mt-2")}
+          />
+          {fieldError("end_date")}
+        </div>
+        <div className="flex items-end pb-3">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-on-surface-variant">
+            <Checkbox
+              checked={form.current}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  current: e.target.checked,
+                  endDate: e.target.checked ? "" : form.endDate,
+                })
+              }
+            />
+            Poste actuel
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="exp-bullets" className={experienceLabelCls}>
+          Points clés (une ligne = un point)
+        </label>
+        <textarea
+          id="exp-bullets"
+          rows={4}
+          value={form.bulletsText}
+          onChange={(e) => setForm({ ...form, bulletsText: e.target.value })}
+          className={errorRingCls("bullet", experienceInputCls + " mt-2 resize-y")}
+        />
+        {fieldError("bullet")}
+      </div>
+
+      <div>
+        <label htmlFor="exp-impact" className={experienceLabelCls}>
+          Impact
+        </label>
+        <textarea
+          id="exp-impact"
+          rows={2}
+          value={form.impact}
+          onChange={(e) => setForm({ ...form, impact: e.target.value })}
+          className={errorRingCls("impact", experienceInputCls + " mt-2 resize-y")}
+        />
+        {fieldError("impact")}
+      </div>
+
+      <div>
+        <label htmlFor="exp-project" className={experienceLabelCls}>
+          Projet lié
+        </label>
+        <div className="relative mt-2">
+          <select
+            id="exp-project"
+            value={form.projectId}
+            onChange={(e) => setForm({ ...form, projectId: e.target.value })}
+            className={experienceInputCls + " appearance-none pr-9"}
+          >
+            <option value="">Aucun projet lié</option>
+            {projects
+              .filter((p) => !p.deleted_at)
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+          </select>
+          <ChevronDown
+            aria-hidden="true"
+            size={16}
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+          />
+        </div>
+        <p className="mt-1 text-xs text-on-surface-variant/70">
+          Affiche le bouton "Voir le projet" (public) ou "Accéder au projet confidentiel"
+          (confidentiel) dans l'accordéon.
+        </p>
+      </div>
+
+      <div className="flex flex-col-reverse gap-3 border-t border-white/5 pt-5 md:flex-row md:items-center md:justify-end">
+        <button
+          type="button"
+          onClick={cancelEdit}
+          disabled={saving}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
+        >
+          <X aria-hidden="true" size={16} />
+          Annuler
+        </button>
+        <button
+          type="submit"
+          disabled={saving}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
+        >
+          {saving ? (
+            <Loader2 aria-hidden="true" className="animate-spin" size={18} />
+          ) : (
+            <Check aria-hidden="true" size={18} />
+          )}
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  );
+
+  return (
+    <div className="relative mt-16 border-t border-white/5 pt-16">
+      <TabHeader
+        title="Mon"
+        emphasis="Parcours"
+        subtitle="Gère les expériences affichées sur ton profil public."
+        cta={
+          editingId === null ? (
+            <button
+              type="button"
+              onClick={startCreate}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Plus aria-hidden="true" size={16} />
+              Ajouter une expérience
+            </button>
+          ) : undefined
+        }
+      />
+
+      <div className="mt-10 space-y-6 border-b border-white/5 pb-10">
+        <div>
+          <label className={experienceLabelCls}>CV (PDF)</label>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {pendingCvFile || cvUrl ? (
+              <div className="flex min-w-0 items-center gap-2 rounded-xl border border-white/5 bg-surface-container px-4 py-3">
+                <FileText aria-hidden="true" size={18} className="shrink-0 text-primary" />
+                <span className="truncate text-sm text-on-surface">
+                  {pendingCvFile ? pendingCvFile.name : cvFileNameFromUrl(cvUrl)}
+                </span>
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Aucun CV enregistré.</p>
+            )}
+            {editing && (
+              <>
+                <label
+                  htmlFor="s-cv-input"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-on-surface hover:border-primary hover:text-primary"
+                >
+                  <CloudUpload aria-hidden="true" size={14} />
+                  {cvUrl || pendingCvFile ? "Remplacer" : "Ajouter un PDF"}
+                </label>
+                <input
+                  id="s-cv-input"
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && onCvFileSelected(e.target.files[0])}
+                />
+                {(cvUrl || pendingCvFile) && (
+                  <button
+                    type="button"
+                    onClick={onRemoveCv}
+                    className="inline-flex items-center gap-2 rounded-full border border-error/30 bg-error/10 px-4 py-2 text-xs font-medium text-error hover:bg-error/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <Trash2 aria-hidden="true" size={14} />
+                    Supprimer
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+          {cvError && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-error" role="alert">
+              <CircleAlert aria-hidden="true" size={14} className="shrink-0" />
+              {cvError}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="s-experiences-intro" className={experienceLabelCls}>
+            Description courte — section Parcours
+          </label>
+          <textarea
+            id="s-experiences-intro"
+            rows={2}
+            disabled={!editing}
+            value={experiencesIntro}
+            onChange={(e) => onExperiencesIntroChange(e.target.value)}
+            className={experienceInputCls + " mt-2 resize-y"}
+            placeholder="Affichée sous le titre « Parcours » du profil public."
+          />
+        </div>
+      </div>
+
+      {saveError && (
+        <div className="mt-6">
+          <Alert type="error" title="Échec de l'enregistrement" description={saveError} />
+        </div>
+      )}
+
+      {loading ? (
+        <p className="mt-10 text-sm text-on-surface-variant">Chargement du parcours…</p>
+      ) : (
+        <ul className="mt-10 space-y-4">
+          {editingId === "new" && (
+            <li className="rounded-2xl border border-white/5 bg-surface-container-low p-6">
+              {experienceForm}
+            </li>
+          )}
+          {experiences.map((exp, index) => (
+            <li
+              key={exp.id}
+              className={cn(
+                "rounded-2xl border bg-surface-container-low p-6",
+                exp.deletedAt ? "border-white/5 opacity-40" : "border-white/5",
+              )}
+            >
+              {editingId === exp.id ? (
+                experienceForm
+              ) : (
+                <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                  <div className="w-14 shrink-0 font-headline text-3xl font-medium text-on-surface-variant opacity-90">
+                    {String(index + 1).padStart(2, "0")}.
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-lg font-bold text-on-surface">{exp.title}</h3>
+                    <p className="mt-1 text-xs text-on-surface-variant">
+                      {exp.company} · {formatExperiencePeriodAdmin(exp.startDate, exp.endDate)}
+                    </p>
+                  </div>
+                  {exp.projectId && (
+                    <IconTooltip label="Voir la fiche du projet lié">
+                      <Link
+                        to={`/${designer.slug}/projects/${exp.projectId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Voir la fiche du projet lié"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                      >
+                        <ExternalLink aria-hidden="true" size={16} />
+                      </Link>
+                    </IconTooltip>
+                  )}
+                  <div className="flex shrink-0 items-center justify-end gap-1">
+                    <IconTooltip label="Monter">
+                      <button
+                        type="button"
+                        onClick={() => moveExperience(index, -1)}
+                        disabled={index === 0 || busyId === exp.id}
+                        aria-label={`Monter ${exp.title}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant hover:bg-white/5 hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                      >
+                        <ArrowUp aria-hidden="true" size={16} />
+                      </button>
+                    </IconTooltip>
+                    <IconTooltip label="Descendre">
+                      <button
+                        type="button"
+                        onClick={() => moveExperience(index, 1)}
+                        disabled={index === experiences.length - 1 || busyId === exp.id}
+                        aria-label={`Descendre ${exp.title}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant hover:bg-white/5 hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                      >
+                        <ArrowDown aria-hidden="true" size={16} />
+                      </button>
+                    </IconTooltip>
+                    <IconTooltip label="Éditer">
+                      <button
+                        type="button"
+                        onClick={() => startEdit(exp)}
+                        disabled={busyId === exp.id}
+                        aria-label={`Éditer ${exp.title}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                      >
+                        <Pencil aria-hidden="true" size={16} />
+                      </button>
+                    </IconTooltip>
+                    <IconTooltip label="Supprimer">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(exp.id)}
+                        disabled={busyId === exp.id}
+                        aria-label={`Supprimer ${exp.title}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:text-error disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:h-11 max-md:w-11"
+                      >
+                        <Trash2 aria-hidden="true" size={18} />
+                      </button>
+                    </IconTooltip>
+                  </div>
+                </div>
+              )}
+            </li>
+          ))}
+          {experiences.length === 0 && editingId !== "new" && (
+            <p className="rounded-2xl border border-white/5 bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">
+              Aucune expérience pour l'instant.
+            </p>
+          )}
+        </ul>
+      )}
+
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <AuroraBackground variant="modal" />
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setConfirmDeleteId(null)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-surface-container-lowest p-6 text-center shadow-2xl shadow-black/40">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-error/15">
+              <Trash2 aria-hidden="true" className="text-error" size={32} />
+            </div>
+            <h3 className="text-lg font-medium text-on-surface">Supprimer cette expérience ?</h3>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Elle sera retirée du profil public. Cette action n'est pas réversible depuis le
+              dashboard.
+            </p>
+            <div className="mt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-center">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-error/30 bg-error/10 px-5 py-2.5 text-sm font-bold text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 md:w-auto"
+              >
+                <Trash2 aria-hidden="true" size={16} />
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2400,7 +3160,9 @@ const VEILLE_STATUT_STYLES: Record<string, string> = {
 };
 
 function veilleStatutClass(statut: string): string {
-  return VEILLE_STATUT_STYLES[statut] ?? "border-tag-keywords/30 bg-tag-keywords/10 text-tag-keywords";
+  return (
+    VEILLE_STATUT_STYLES[statut] ?? "border-tag-keywords/30 bg-tag-keywords/10 text-tag-keywords"
+  );
 }
 
 /** Formate periode_debut → periode_fin en français, ex. "3 – 9 juillet 2026". */
@@ -2526,7 +3288,11 @@ function VeilleDesignTab({
       )}
       {syncSuccess && (
         <div className="mt-4">
-          <Alert type="success" title="Synchronisation réussie" description="La veille est à jour." />
+          <Alert
+            type="success"
+            title="Synchronisation réussie"
+            description="La veille est à jour."
+          />
         </div>
       )}
 
@@ -2612,13 +3378,7 @@ function VeilleDesignTab({
   );
 }
 
-function VeilleContentDrawer({
-  entry,
-  onClose,
-}: {
-  entry: DesignWatchEntry;
-  onClose: () => void;
-}) {
+function VeilleContentDrawer({ entry, onClose }: { entry: DesignWatchEntry; onClose: () => void }) {
   // Meme shell que ProjectDrawer.tsx (overlay + aside w-[54vw], scroll unique,
   // fermeture Echap) -- ici en lecture seule, pas de confirmation de perte de
   // saisie necessaire, donc le clic sur l'overlay ferme aussi le drawer.
