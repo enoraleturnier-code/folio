@@ -29,7 +29,7 @@ export default async function globalSetup(config: FullConfig) {
     throw new Error(
       "QA_SHARE_URL manquant -- genere un lien de bypass Vercel Authentication " +
         "(get_access_to_vercel_url sur l'URL de preview a tester) et exporte-le : " +
-        "QA_SHARE_URL=\"https://...?_vercel_share=...\" npx playwright test",
+        'QA_SHARE_URL="https://...?_vercel_share=..." npx playwright test',
     );
   }
   const browser = await chromium.launch();

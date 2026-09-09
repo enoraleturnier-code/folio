@@ -6,8 +6,6 @@
 export function textLinkClass(variant: "default" | "alert" = "default"): string {
   return (
     "no-underline underline-offset-2 transition-colors hover:underline " +
-    (variant === "alert"
-      ? "text-on-surface-variant"
-      : "font-semibold text-primary")
+    (variant === "alert" ? "text-on-surface-variant" : "font-semibold text-primary")
   );
 }

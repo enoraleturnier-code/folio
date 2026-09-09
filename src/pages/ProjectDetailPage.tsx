@@ -127,7 +127,9 @@ function ProjectGallery({
                   const t = e.currentTarget;
                   if (!t.naturalWidth || !t.naturalHeight) return;
                   const ratio = t.naturalWidth / t.naturalHeight;
-                  setRatios((prev) => (prev[img.id] === ratio ? prev : { ...prev, [img.id]: ratio }));
+                  setRatios((prev) =>
+                    prev[img.id] === ratio ? prev : { ...prev, [img.id]: ratio },
+                  );
                 }}
                 className="absolute inset-0 h-full w-full object-cover"
               />
@@ -345,7 +347,11 @@ export function ProjectDetailPage() {
               Secteur
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
-              <TagBadge category="sector" label={formatSecteur(project.secteur_activite)} size="md" />
+              <TagBadge
+                category="sector"
+                label={formatSecteur(project.secteur_activite)}
+                size="md"
+              />
             </div>
           </div>
         )}

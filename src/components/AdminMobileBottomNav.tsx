@@ -19,9 +19,27 @@ const ITEMS: {
   fullLabel: string;
   color: keyof typeof NAV_ACTIVE_CLASSES;
 }[] = [
-  { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", fullLabel: "Dashboard", color: "teal" },
-  { key: "projets", icon: Folder, label: "Projets", fullLabel: "Catalogue projets", color: "fuchsia" },
-  { key: "demandes", icon: KeyRound, label: "Accès", fullLabel: "Demandes d'accès", color: "violet" },
+  {
+    key: "dashboard",
+    icon: LayoutDashboard,
+    label: "Dashboard",
+    fullLabel: "Dashboard",
+    color: "teal",
+  },
+  {
+    key: "projets",
+    icon: Folder,
+    label: "Projets",
+    fullLabel: "Catalogue projets",
+    color: "fuchsia",
+  },
+  {
+    key: "demandes",
+    icon: KeyRound,
+    label: "Accès",
+    fullLabel: "Demandes d'accès",
+    color: "violet",
+  },
   { key: "contacts", icon: Mail, label: "Messages", fullLabel: "Messages", color: "nouveau" },
   { key: "veille", icon: Newspaper, label: "Veille", fullLabel: "Veille Hebdo", color: "cyan" },
 ];

@@ -78,7 +78,10 @@ function getFieldState(key: FieldKey, form: typeof emptyForm): FieldState {
       if (!form.password) return { kind: "error", message: "Ce champ est requis." };
       return PASSWORD_RULE.test(form.password)
         ? { kind: "valid", message: "Validé" }
-        : { kind: "warning", message: "8 caractères min., avec au moins une lettre et un chiffre." };
+        : {
+            kind: "warning",
+            message: "8 caractères min., avec au moins une lettre et un chiffre.",
+          };
     case "confirmPassword":
       if (!form.confirmPassword) return { kind: "error", message: "Ce champ est requis." };
       return form.confirmPassword === form.password
@@ -112,9 +115,18 @@ function mapSubmitError(err: unknown): string {
 }
 
 function FieldHint({ state }: { state: FieldState }) {
-  const Icon = state.kind === "valid" ? CircleCheckBig : state.kind === "warning" ? TriangleAlert : CircleAlert;
+  const Icon =
+    state.kind === "valid"
+      ? CircleCheckBig
+      : state.kind === "warning"
+        ? TriangleAlert
+        : CircleAlert;
   const colorClass =
-    state.kind === "valid" ? "text-primary" : state.kind === "warning" ? "text-warning" : "text-error";
+    state.kind === "valid"
+      ? "text-primary"
+      : state.kind === "warning"
+        ? "text-warning"
+        : "text-error";
   return (
     <p className={"mt-1 flex items-center gap-1 text-xs " + colorClass} role="alert">
       <Icon aria-hidden="true" size={14} />
@@ -144,7 +156,9 @@ export function AccessRequestModal({
   const navigate = useNavigate();
   const isAuthenticated = !!session;
   const [form, setForm] = useState(emptyForm);
-  const [touched, setTouched] = useState<Partial<Record<FieldKey | "rgpd" | "projectIds", boolean>>>({});
+  const [touched, setTouched] = useState<
+    Partial<Record<FieldKey | "rgpd" | "projectIds", boolean>>
+  >({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confidentialProjects, setConfidentialProjects] = useState<Project[]>([]);
@@ -395,8 +409,8 @@ export function AccessRequestModal({
             </div>
             <h2 className="mb-4 text-2xl font-medium text-on-surface">Demande envoyée</h2>
             <p className="mb-8 text-sm text-on-surface-variant">
-              Votre demande est bien envoyée. Notre équipe examinera votre profil et vous
-              répondra par email sous 24h.
+              Votre demande est bien envoyée. Notre équipe examinera votre profil et vous répondra
+              par email sous 24h.
             </p>
             <button
               type="button"
@@ -410,25 +424,30 @@ export function AccessRequestModal({
         ) : (
           <>
             <div className="shrink-0 border-b border-white/10 px-6 py-5 md:px-10 md:py-6">
-              <h2 className="text-2xl font-medium text-on-surface md:text-3xl">
-                Demander l'accès
-              </h2>
+              <h2 className="text-2xl font-medium text-on-surface md:text-3xl">Demander l'accès</h2>
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
               <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6 md:p-10">
                 <p className="max-w-md text-sm text-on-surface-variant">
-                  Accédez aux études de cas confidentielles et aux détails de projets sous accord
-                  de divulgation restreinte.
+                  Accédez aux études de cas confidentielles et aux détails de projets sous accord de
+                  divulgation restreinte.
                 </p>
                 {submitError && (
-                  <Alert type="error" title="Impossible d'envoyer la demande" description={submitError} />
+                  <Alert
+                    type="error"
+                    title="Impossible d'envoyer la demande"
+                    description={submitError}
+                  />
                 )}
                 {!isAuthenticated && (
                   <>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <label htmlFor="ar-name" className="mb-1 block text-xs font-medium text-on-surface-variant">
+                        <label
+                          htmlFor="ar-name"
+                          className="mb-1 block text-xs font-medium text-on-surface-variant"
+                        >
                           Nom complet
                         </label>
                         <input
@@ -475,7 +494,10 @@ export function AccessRequestModal({
                     </div>
 
                     <div>
-                      <label htmlFor="ar-email" className="mb-1 block text-xs font-medium text-on-surface-variant">
+                      <label
+                        htmlFor="ar-email"
+                        className="mb-1 block text-xs font-medium text-on-surface-variant"
+                      >
                         Email professionnel
                       </label>
                       <input
@@ -514,14 +536,26 @@ export function AccessRequestModal({
                             onChange={(e) => setForm({ ...form, password: e.target.value })}
                             onBlur={() => touch("password")}
                             aria-invalid={fieldState("password")?.kind === "error"}
-                            aria-describedby={fieldState("password") ? "ar-password-hint" : undefined}
-                            className={inputCls + " pr-12 " + borderClassFor(fieldState("password"))}
+                            aria-describedby={
+                              fieldState("password") ? "ar-password-hint" : undefined
+                            }
+                            className={
+                              inputCls + " pr-12 " + borderClassFor(fieldState("password"))
+                            }
                           />
-                          <IconTooltip label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+                          <IconTooltip
+                            label={
+                              showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                            }
+                          >
                             <button
                               type="button"
                               onClick={() => setShowPassword((v) => !v)}
-                              aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                              aria-label={
+                                showPassword
+                                  ? "Masquer le mot de passe"
+                                  : "Afficher le mot de passe"
+                              }
                               className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
                             >
                               {showPassword ? (
@@ -557,18 +591,24 @@ export function AccessRequestModal({
                             aria-describedby={
                               fieldState("confirmPassword") ? "ar-confirm-password-hint" : undefined
                             }
-                            className={inputCls + " pr-12 " + borderClassFor(fieldState("confirmPassword"))}
+                            className={
+                              inputCls + " pr-12 " + borderClassFor(fieldState("confirmPassword"))
+                            }
                           />
                           <IconTooltip
                             label={
-                              showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                              showConfirmPassword
+                                ? "Masquer le mot de passe"
+                                : "Afficher le mot de passe"
                             }
                           >
                             <button
                               type="button"
                               onClick={() => setShowConfirmPassword((v) => !v)}
                               aria-label={
-                                showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+                                showConfirmPassword
+                                  ? "Masquer le mot de passe"
+                                  : "Afficher le mot de passe"
                               }
                               className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center rounded p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:h-11 max-md:w-11"
                             >
@@ -637,7 +677,10 @@ export function AccessRequestModal({
                 </fieldset>
 
                 <div>
-                  <label htmlFor="ar-message" className="mb-1 block text-xs font-medium text-on-surface-variant">
+                  <label
+                    htmlFor="ar-message"
+                    className="mb-1 block text-xs font-medium text-on-surface-variant"
+                  >
                     Message (Optionnel)
                   </label>
                   <textarea
@@ -665,7 +708,10 @@ export function AccessRequestModal({
                     aria-describedby={rgpdTouchedInvalid ? "ar-gdpr-hint" : undefined}
                     className="mt-0.5"
                   />
-                  <label htmlFor="ar-gdpr" className="text-sm leading-relaxed text-on-surface-variant">
+                  <label
+                    htmlFor="ar-gdpr"
+                    className="text-sm leading-relaxed text-on-surface-variant"
+                  >
                     J'accepte que Folio+ traite mes données pour gérer ma demande d'accès
                     conformément à la{" "}
                     <Link
@@ -680,7 +726,11 @@ export function AccessRequestModal({
                   </label>
                 </div>
                 {rgpdTouchedInvalid && (
-                  <p id="ar-gdpr-hint" className="-mt-4 flex items-center gap-1 text-xs text-error" role="alert">
+                  <p
+                    id="ar-gdpr-hint"
+                    className="-mt-4 flex items-center gap-1 text-xs text-error"
+                    role="alert"
+                  >
                     <CircleAlert aria-hidden="true" size={14} />
                     Ce consentement est requis pour envoyer votre demande.
                   </p>

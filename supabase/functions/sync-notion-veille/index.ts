@@ -223,7 +223,8 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const cronSecret = req.headers.get("x-cron-secret");
-  const isCron = cronSecret !== null && !!CRON_SYNC_SECRET && timingSafeEqual(cronSecret, CRON_SYNC_SECRET);
+  const isCron =
+    cronSecret !== null && !!CRON_SYNC_SECRET && timingSafeEqual(cronSecret, CRON_SYNC_SECRET);
 
   if (!isCron) {
     const authHeader = req.headers.get("Authorization");
@@ -272,7 +273,8 @@ Deno.serve(async (req: Request) => {
       .delete()
       .not("notion_page_id", "in", `(${currentIds.join(",")})`)
       .select("id");
-    if (deleteError) return json({ error: "delete_stale_failed", detail: deleteError.message }, 500);
+    if (deleteError)
+      return json({ error: "delete_stale_failed", detail: deleteError.message }, 500);
     deleted = deletedRows?.length ?? 0;
   }
 

@@ -55,9 +55,7 @@ export function AccountPage() {
       navigate("/", { replace: true });
     } catch (err) {
       setDeleting(false);
-      setDeleteError(
-        err instanceof Error ? err.message : "La suppression a échoué. Réessayez.",
-      );
+      setDeleteError(err instanceof Error ? err.message : "La suppression a échoué. Réessayez.");
     }
   };
 
@@ -68,9 +66,7 @@ export function AccountPage() {
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
           Information du profil
         </p>
-        <h1 className="mb-10 text-4xl font-medium text-on-surface md:text-5xl">
-          Mon compte
-        </h1>
+        <h1 className="mb-10 text-4xl font-medium text-on-surface md:text-5xl">Mon compte</h1>
 
         <div className="space-y-6 rounded-2xl border border-white/5 bg-surface-container-low p-6">
           <Field label="Nom complet" value={fullName ?? "—"} />

@@ -31,7 +31,9 @@ export function Footer() {
             </NavLink>
             <NavLink
               to="/aide"
-              className={({ isActive }) => cn("inline-flex items-center gap-1.5", footerLinkClass({ isActive }))}
+              className={({ isActive }) =>
+                cn("inline-flex items-center gap-1.5", footerLinkClass({ isActive }))
+              }
             >
               <CircleHelp aria-hidden="true" size={16} />
               Aide

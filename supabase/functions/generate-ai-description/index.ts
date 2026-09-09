@@ -94,9 +94,21 @@ const STRUCTURE_TOOL = {
           type: "string",
           description: `L'impact final et les retours, en francais, avec formatage Markdown (gras, listes) si pertinent. ${FIELD_MAX_LENGTH} caracteres maximum -- termine imperativement sur une phrase complete, jamais en plein mot.`,
         },
-        tools_suggestions: { type: "array", items: { type: "string" }, description: "Outils probables (ex: Figma, Notion)." },
-        keywords_suggestions: { type: "array", items: { type: "string" }, description: "Mots-cles courts pertinents." },
-        types_suggestions: { type: "array", items: { type: "string" }, description: "Types de design concernes (ex: UX-UI, Branding)." },
+        tools_suggestions: {
+          type: "array",
+          items: { type: "string" },
+          description: "Outils probables (ex: Figma, Notion).",
+        },
+        keywords_suggestions: {
+          type: "array",
+          items: { type: "string" },
+          description: "Mots-cles courts pertinents.",
+        },
+        types_suggestions: {
+          type: "array",
+          items: { type: "string" },
+          description: "Types de design concernes (ex: UX-UI, Branding).",
+        },
       },
       required: ["short_desc", "probleme", "decisions", "resultat"],
     },
@@ -180,7 +192,10 @@ Deno.serve(async (req: Request) => {
       structured[field] = truncateToLastSentence(value, FIELD_MAX_LENGTH);
     }
   }
-  if (typeof structured.short_desc === "string" && structured.short_desc.length > SHORT_DESC_MAX_LENGTH) {
+  if (
+    typeof structured.short_desc === "string" &&
+    structured.short_desc.length > SHORT_DESC_MAX_LENGTH
+  ) {
     structured.short_desc = truncateToLastSentence(structured.short_desc, SHORT_DESC_MAX_LENGTH);
   }
 

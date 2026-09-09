@@ -5,9 +5,21 @@ export const SLUG = "enora-le-turnier";
 // Comptes seed du projet (PersonaSwitcher.tsx, deja utilises cette session
 // -- confirmes explicitement par l'utilisatrice pour cette session de QA).
 export const PERSONAS = {
-  admin: { email: "enoraleturnier+enora-persona@gmail.com", password: "Test1234!", name: "Enora Le Turnier" },
-  pending: { email: "enoraleturnier+sophie-persona@gmail.com", password: "Test1234!", name: "Sophie Michelle" },
-  validated: { email: "enoraleturnier+karim-persona@gmail.com", password: "Test1234!", name: "Karim Mansouri" },
+  admin: {
+    email: "enoraleturnier+enora-persona@gmail.com",
+    password: "Test1234!",
+    name: "Enora Le Turnier",
+  },
+  pending: {
+    email: "enoraleturnier+sophie-persona@gmail.com",
+    password: "Test1234!",
+    name: "Sophie Michelle",
+  },
+  validated: {
+    email: "enoraleturnier+karim-persona@gmail.com",
+    password: "Test1234!",
+    name: "Karim Mansouri",
+  },
 } as const;
 
 type Fixtures = {
@@ -31,7 +43,10 @@ export const test = base.extend<Fixtures>({
     });
     await use(errors);
     if (errors.length > 0) {
-      await testInfo.attach("console-errors.txt", { body: errors.join("\n"), contentType: "text/plain" });
+      await testInfo.attach("console-errors.txt", {
+        body: errors.join("\n"),
+        contentType: "text/plain",
+      });
     }
   },
 });
@@ -94,7 +109,10 @@ export async function submitFreshAccessRequest(page: Page, label = "qaadmin"): P
   const email = `enoraleturnier+${label}${Date.now()}@gmail.com`;
   await page.goto(`/${SLUG}/projects`);
   await humanPause(page, 500);
-  await page.getByRole("button", { name: /demander l'accès au projet/i }).first().click();
+  await page
+    .getByRole("button", { name: /demander l'accès au projet/i })
+    .first()
+    .click();
   await expect(page.getByRole("dialog", { name: /demander l'accès/i })).toBeVisible();
   await page.locator("#ar-name").fill("QA Admin Flow");
   await page.locator("#ar-company").fill("QA Admin Co");
@@ -104,7 +122,9 @@ export async function submitFreshAccessRequest(page: Page, label = "qaadmin"): P
   await page.locator("#ar-gdpr").check();
   await humanPause(page, 300);
   await page.getByRole("button", { name: "Envoyer ma demande" }).click();
-  await expect(page.getByRole("heading", { name: "Demande envoyée" })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Demande envoyée" })).toBeVisible({
+    timeout: 15_000,
+  });
   return email;
 }
 

@@ -163,7 +163,10 @@ export function NotificationBell() {
                     >
                       <span className="font-medium">{notificationLabel(n)}</span>
                       <span className="text-xs text-on-surface-variant/70">
-                        {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: fr })}
+                        {formatDistanceToNow(new Date(n.createdAt), {
+                          addSuffix: true,
+                          locale: fr,
+                        })}
                       </span>
                     </button>
                   ))}

@@ -32,7 +32,8 @@ const activeClasses: Record<keyof FilterState, string> = {
 };
 
 const hoverClasses: Record<keyof FilterState, string> = {
-  designType: "hover:border-tag-design-type/40 hover:bg-tag-design-type/15 hover:text-tag-design-type",
+  designType:
+    "hover:border-tag-design-type/40 hover:bg-tag-design-type/15 hover:text-tag-design-type",
   sector: "hover:border-tag-sector/40 hover:bg-tag-sector/15 hover:text-tag-sector",
   tools: "hover:border-tag-tools/40 hover:bg-tag-tools/15 hover:text-tag-tools",
   keywords: "hover:border-tag-keywords/40 hover:bg-tag-keywords/15 hover:text-tag-keywords",

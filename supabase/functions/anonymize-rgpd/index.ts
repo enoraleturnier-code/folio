@@ -57,7 +57,8 @@ Deno.serve(async (req: Request) => {
     .eq("id", userId)
     .select("id")
     .maybeSingle();
-  if (profileError) return json({ error: "profile_anonymize_failed", detail: profileError.message }, 500);
+  if (profileError)
+    return json({ error: "profile_anonymize_failed", detail: profileError.message }, 500);
   if (!profileRow) return json({ error: "profile_not_found" }, 404);
 
   // 2) access_requests : le message initial (donnee personnelle) est efface,
@@ -69,7 +70,10 @@ Deno.serve(async (req: Request) => {
     .update({ message: null })
     .eq("user_id", userId);
   if (accessRequestsError) {
-    return json({ error: "access_requests_anonymize_failed", detail: accessRequestsError.message }, 500);
+    return json(
+      { error: "access_requests_anonymize_failed", detail: accessRequestsError.message },
+      500,
+    );
   }
 
   // 3) contacts : la table porte deja en commentaire de colonne le pattern

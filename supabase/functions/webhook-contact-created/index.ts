@@ -113,7 +113,9 @@ Deno.serve(async (req: Request) => {
       </div>
     `;
     results.admins = await Promise.all(
-      admins.map((a: { email: string }) => sendEmail(a.email, "Nouveau message de contact", adminHtml)),
+      admins.map((a: { email: string }) =>
+        sendEmail(a.email, "Nouveau message de contact", adminHtml),
+      ),
     );
   }
 

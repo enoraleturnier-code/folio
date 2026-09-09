@@ -1,7 +1,10 @@
 import { test, expect, SLUG, humanPause, humanScroll } from "./fixtures";
 
 test.describe("Catalogue public (anon)", () => {
-  test("page profil : contenu de base et navigation vers le catalogue", async ({ page, consoleErrors }) => {
+  test("page profil : contenu de base et navigation vers le catalogue", async ({
+    page,
+    consoleErrors,
+  }) => {
     await page.goto(`/${SLUG}`);
     await humanPause(page, 600);
     await expect(page.getByRole("heading", { name: "Enora Le Turnier" })).toBeVisible();
