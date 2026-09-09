@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { deleteDesignerCv } from "@/lib/storage";
 
 import type { Designer } from "./types";
 
@@ -17,24 +18,30 @@ export const designer: Designer = {
   avatar:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuAJ6gHuqRXyMQser0KzvPIMw2L6EtYW15caFUVyuRkSeKTfo_NrEAM-VRq-KMzq6agx4LKN3LZ9IZ7NUraU-wbpcv94etLyE7jXcvor4s-clkIo2aQV9VhwJwjIyNjOdzrrjxPSQbDel4qKEA0M88G0OZtKYxIiY9M7VgmyzxYJBPOI6JwJtWeQ8R_MYJqi-jFe6Jg2Sr-ZviF-Bkqj2q1IxyhH-ZudRLvzHwnZmKFJ-TVvUBOL3D7hi8DbOoY7BKgVOV26c89gtdk",
   linkedin: "https://example.com/in/demo-linkedin",
-  twitter: "https://example.com/demo-x",
   website: "https://example.com",
   calUsername: "enora-le-turnier",
   email: "enoraleturnier@gmail.com",
   location: "Paris — remote friendly",
+  cvUrl: "",
+  experiencesIntro: "",
 };
 
 /**
- * Identité (nom/slug/email/localisation) reste statique -- aucune colonne DB pour ces
- * champs, hors périmètre de ParametresTab (cf. CLAUDE.md). Seuls les champs réellement
- * persistés (designer_profiles + admin_settings) sont fusionnés par-dessus le mock.
- * `designer_profiles_select_public` et `get_public_cal_username()` sont lisibles par
- * anon -- utilisable aussi bien par ProfilePage (public) que par ParametresTab (admin).
+ * Identité (nom/slug/localisation) reste statique -- aucune colonne DB pour ces
+ * champs, hors périmètre de ParametresTab (cf. CLAUDE.md). `email` a rejoint les
+ * champs réellement persistés le 09/09 (remplace `twitter`, colonne `twitter_url`
+ * supprimée -- plus aucun usage public depuis le retrait du bouton "X" du Hero).
+ * Seuls les champs réellement persistés (designer_profiles + admin_settings) sont
+ * fusionnés par-dessus le mock. `designer_profiles_select_public` et
+ * `get_public_cal_username()` sont lisibles par anon -- utilisable aussi bien par
+ * ProfilePage (public) que par ParametresTab (admin).
  */
 export async function getDesignerProfile(): Promise<Designer> {
   const { data: profile, error: profileError } = await supabase
     .from("designer_profiles")
-    .select("photo_url, profession, adjective, bio, linkedin_url, twitter_url, website_url")
+    .select(
+      "photo_url, profession, adjective, bio, linkedin_url, website_url, email, cv_url, experiences_intro",
+    )
     .eq("slug", designer.slug)
     .maybeSingle();
   if (profileError) throw profileError;
@@ -49,9 +56,11 @@ export async function getDesignerProfile(): Promise<Designer> {
     adjective: profile?.adjective ?? designer.adjective,
     bio: profile?.bio ?? designer.bio,
     linkedin: profile?.linkedin_url ?? "",
-    twitter: profile?.twitter_url ?? "",
     website: profile?.website_url ?? "",
+    email: profile?.email ?? designer.email,
     calUsername: calUsername ?? "",
+    cvUrl: profile?.cv_url ?? "",
+    experiencesIntro: profile?.experiences_intro ?? "",
   };
 }
 
@@ -61,9 +70,11 @@ export interface DesignerProfileInput {
   adjective: string;
   bio: string;
   linkedin: string;
-  twitter: string;
   website: string;
+  email: string;
   calUsername: string;
+  cvUrl: string;
+  experiencesIntro: string;
 }
 
 /**
@@ -80,6 +91,17 @@ export async function updateDesignerProfile(input: DesignerProfileInput): Promis
   const userId = userData.user?.id;
   if (!userId) throw new Error("updateDesignerProfile: utilisateur non authentifié");
 
+  // Lecture fraîche de cv_url juste avant l'UPDATE (pas la valeur du
+  // formulaire potentiellement périmée) -- nécessaire pour savoir si
+  // l'ancien fichier doit être nettoyé du Storage après coup.
+  const { data: currentRow, error: currentError } = await supabase
+    .from("designer_profiles")
+    .select("cv_url")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (currentError) throw currentError;
+  const previousCvUrl = currentRow?.cv_url ?? null;
+
   const { data: profileRow, error: profileError } = await supabase
     .from("designer_profiles")
     .update({
@@ -88,8 +110,10 @@ export async function updateDesignerProfile(input: DesignerProfileInput): Promis
       adjective: input.adjective || null,
       bio: input.bio || null,
       linkedin_url: input.linkedin || null,
-      twitter_url: input.twitter || null,
       website_url: input.website || null,
+      email: input.email || null,
+      cv_url: input.cvUrl || null,
+      experiences_intro: input.experiencesIntro || null,
     })
     .eq("user_id", userId)
     .select("id")
@@ -97,6 +121,17 @@ export async function updateDesignerProfile(input: DesignerProfileInput): Promis
   if (profileError) throw profileError;
   if (!profileRow) {
     throw new Error("updateDesignerProfile: aucune ligne designer_profiles mise à jour");
+  }
+
+  // Nettoyage best-effort de l'ancien fichier Storage -- un échec ici ne
+  // doit pas faire échouer un update déjà acté en base (même logique que
+  // le nettoyage Storage de softDeleteProject).
+  if (previousCvUrl && previousCvUrl !== input.cvUrl) {
+    try {
+      await deleteDesignerCv(previousCvUrl);
+    } catch (err) {
+      console.error("updateDesignerProfile: failed to clean up Storage CV", err);
+    }
   }
 
   const { data: settingsRow, error: settingsError } = await supabase

@@ -9,7 +9,9 @@ export function cn(...inputs: ClassValue[]) {
  * les transitions/animations CSS mais pas les options behavior:"smooth" de scrollTo/
  * scrollIntoView, qui restent a verifier explicitement cote JS. */
 export function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 /** Selecteur des elements focusables au clavier -- utilise pour le piege a
@@ -22,6 +24,27 @@ export const FOCUSABLE_SELECTOR =
  * ScrollToTopButton, ProjectCard...). A composer avec cn(). */
 export const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+/** Vide = optionnel, valide -- rempli mais mal formé ou protocole non http(s) = invalide. */
+export function isValidUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Vide = optionnel, valide -- même convention que `isValidUrl`. */
+export function isValidEmail(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  return EMAIL_RULE.test(trimmed);
+}
 
 export function initials(name: string): string {
   return name
