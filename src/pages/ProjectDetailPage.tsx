@@ -2,7 +2,6 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
-import { IconTooltip } from "@/components/IconTooltip";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
@@ -10,12 +9,9 @@ import { designer } from "@/data/designer";
 import { getProjectById } from "@/data/projects";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
-import { cn, prefersReducedMotion } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { formatSecteur } from "@/lib/secteurLabels";
 import type { ProjectImage, SizeVariant } from "@/types/project";
-
-/** Vitesse de translation de l'image hero relative au scroll de page (0 = fixe, 1 = vitesse normale). */
-const PARALLAX_FACTOR = 0.35;
 
 /** Mapping taille -> nombre de colonnes occupées (largeur uniquement -- la
  * hauteur/row-span n'est plus fixe par taille, cf. `computeGalleryRowSpan`
@@ -146,49 +142,6 @@ function ProjectGallery({
   );
 }
 
-/** Premier effet scroll-continu du codebase -- mutation directe du style via
- * ref (pas de setState par tick) + requestAnimationFrame pour throttle,
- * cohérent avec les précédents de perf mobile documentés (incident du 23/07).
- * `prefersReducedMotion()` est une garde obligatoire ici : contrairement à une
- * transition CSS, la règle globale @media (prefers-reduced-motion: reduce)
- * ne neutralise pas un transform piloté en JS. */
-function useHeroParallax(factor = PARALLAX_FACTOR) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    if (prefersReducedMotion()) return;
-    let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const section = sectionRef.current;
-        const img = imgRef.current;
-        if (!section || !img) return;
-        // rect.top est relatif au viewport -- reflète donc correctement la
-        // position réelle du hero même décalé par un margin-top (mt-32, pour
-        // démarrer sous la navbar), contrairement à window.scrollY seul qui
-        // supposerait implicitement que le hero démarre à scrollY=0.
-        const rect = section.getBoundingClientRect();
-        if (rect.bottom <= 0) return; // hero entièrement défilé, rien à mettre à jour
-        // `progress` plafonne à ~heroHeight (juste avant que la garde ci-dessus ne
-        // coupe), donc translateY max ≈ heroHeight * factor -- doit toujours rester
-        // sous la marge de débordement de l'image (cf. `top`/`h-[...]` ci-dessous).
-        const progress = Math.max(0, -rect.top);
-        img.style.transform = `translateY(${progress * factor}px)`;
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, [factor]);
-
-  return { sectionRef, imgRef };
-}
-
 type ProjectDetailLoaderData =
   | {
       deleted: false;
@@ -234,7 +187,6 @@ export async function projectDetailLoader({
 export function ProjectDetailPage() {
   const { deleted, title, project } = useLoaderData() as ProjectDetailLoaderData;
   useDocumentTitle(deleted ? title : project.title);
-  const { sectionRef, imgRef } = useHeroParallax();
 
   if (deleted) {
     return (
@@ -267,26 +219,46 @@ export function ProjectDetailPage() {
   const blocks = [
     { label: "Problème", content: project.ai_structured_desc?.probleme },
     { label: "Décisions", content: project.ai_structured_desc?.decisions },
-    { label: "Résultat", content: project.ai_structured_desc?.resultat },
+    { label: "Résultats", content: project.ai_structured_desc?.resultat },
   ];
 
-  const contentBlock = (
-    <div className="space-y-14">
-      <header className="space-y-4">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-          Détails du projet
+  const headerBlock = (
+    <header className="space-y-4">
+      <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
+        Détails du projet
+      </p>
+      <h1 className="text-5xl font-medium text-on-surface md:text-6xl">{project.title}</h1>
+      {project.client_name && (
+        <p className="font-display-accent text-5xl italic text-primary md:text-6xl">
+          {project.client_name}
         </p>
-        <h1 className="text-5xl font-medium text-on-surface md:text-6xl">{project.title}</h1>
-        {project.client_name && (
-          <p className="font-display-accent text-5xl italic text-primary md:text-6xl">
-            {project.client_name}
-          </p>
-        )}
-        {project.short_desc && (
-          <p className="max-w-2xl text-lg text-on-surface-variant">{project.short_desc}</p>
-        )}
-      </header>
+      )}
+      {project.short_desc && (
+        <p className="max-w-2xl text-lg text-on-surface-variant">{project.short_desc}</p>
+      )}
+    </header>
+  );
 
+  const thumbnailBlock = project.thumbnail_url && (
+    <div className="relative w-full overflow-hidden rounded-2xl">
+      <img
+        src={project.thumbnail_url}
+        alt={project.title}
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
+        className="h-auto w-full"
+      />
+      {project.status === "confidential" && (
+        <div className="absolute right-4 top-4">
+          <StatusBadge kind="confidential" size="md" />
+        </div>
+      )}
+    </div>
+  );
+
+  const resultsBlock = (
+    <div className="space-y-14">
       {project.show_long_desc && project.long_desc && (
         <section className="flex items-start gap-8">
           <div aria-hidden="true" className="hidden shrink-0 flex-col md:flex">
@@ -320,7 +292,7 @@ export function ProjectDetailPage() {
   );
 
   const asideCard = (
-    <div className="sticky top-28 max-w-xs space-y-8 rounded-2xl border border-white/5 bg-surface-container-low p-6">
+    <div className="space-y-8 rounded-2xl border border-white/5 bg-surface-container-low p-6 md:sticky md:top-28">
       <div className="divide-y divide-white/5">
         <MetaRow label="Entreprise" value={project.company_name} />
         <MetaRow label="Client" value={project.client_name} />
@@ -407,62 +379,36 @@ export function ProjectDetailPage() {
   );
 
   return (
-    <>
-      <section
-        ref={sectionRef}
-        className="relative mt-24 aspect-[3/1] w-full overflow-hidden max-md:aspect-[4/3]"
-      >
-        <img
-          ref={imgRef}
-          src={project.thumbnail_url ?? ""}
-          alt={project.title}
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-          className="absolute inset-x-0 h-[180%] w-full object-cover will-change-transform"
-          style={{ top: "-40%" }}
-        />
-        <div className="absolute left-6 top-6 z-10">
-          <IconTooltip label="Retour à la liste">
-            <Link
-              to={`/${designer.slug}/projects`}
-              aria-label="Retour à la liste"
-              className="glass-card flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:border-primary hover:text-primary max-md:h-11 max-md:w-11"
-            >
-              <ArrowLeft aria-hidden="true" size={18} />
-            </Link>
-          </IconTooltip>
-        </div>
-        {project.status === "confidential" && (
-          <div className="absolute right-6 top-6 z-10">
-            <StatusBadge kind="confidential" size="md" />
-          </div>
-        )}
-      </section>
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16"
+    >
+      {/* Mobile (< md) : empilé -- détails + titre, thumbnail, bloc info,
+       * problème/décisions/résultats, galerie en dernier. */}
+      <div className="flex flex-col gap-14 md:hidden">
+        {headerBlock}
+        {thumbnailBlock}
+        <aside>{asideCard}</aside>
+        {resultsBlock}
+        {gallerySectionMobile}
+      </div>
 
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 md:px-16"
-      >
-        {/* Mobile (< md) : empilé, contenu -> galerie -> bloc info (en dernier). */}
-        <div className="mt-16 flex flex-col gap-14 md:hidden">
-          {contentBlock}
-          {gallerySectionMobile}
-          <aside>{asideCard}</aside>
+      {/* Desktop (md+) : grille 2 colonnes -- contenu (détails + thumbnail +
+       * problème/décisions/résultats) à gauche, bloc info sticky à droite. La
+       * galerie est un sibling APRÈS cette grille (pas un membre), pour que le
+       * "containing block" du sticky s'arrête net à la fin du contenu et ne
+       * s'étende pas jusque dans la galerie. */}
+      <div className="hidden gap-12 md:grid md:grid-cols-12">
+        <div className="space-y-14 md:col-span-8">
+          {headerBlock}
+          {thumbnailBlock}
+          {resultsBlock}
         </div>
-
-        {/* Desktop (md+) : grille 2 colonnes (bloc info à gauche, sticky, contenu à
-         * droite) -- la galerie est un sibling APRÈS cette grille (pas un membre),
-         * pour que le "containing block" du sticky s'arrête net à la fin du
-         * contenu et ne s'étende pas jusque dans la galerie. */}
-        <div className="hidden gap-12 md:mt-16 md:grid md:grid-cols-12">
-          <aside className="md:col-span-3">{asideCard}</aside>
-          <div className="md:col-span-9">{contentBlock}</div>
-        </div>
-        <div className="hidden md:block">{gallerySectionDesktop}</div>
-      </main>
-    </>
+        <aside className="md:col-span-4">{asideCard}</aside>
+      </div>
+      <div className="hidden md:block">{gallerySectionDesktop}</div>
+    </main>
   );
 }
 

@@ -22,7 +22,13 @@ export function RouteAnnouncer() {
     // Laisse le useEffect de useDocumentTitle (dans la page qui vient de
     // monter) s'exécuter d'abord -- les effets enfants sont commit avant ceux
     // du parent, document.title reflète donc déjà la nouvelle page ici.
-    document.getElementById("main-content")?.focus();
+    // `preventScroll` : sans lui, ce focus() programmatique fait défiler la
+    // page pour amener #main-content dans le viewport -- sur les pages dont
+    // le <main> démarre bas (ex. ProjectDetailPage, sous un hero pleine
+    // largeur), ça atterrissait au milieu de page au lieu du tout en haut,
+    // en plus/à la place du <ScrollRestoration/> de RootLayout.tsx qui gère
+    // déjà le défilement en haut de page à chaque navigation.
+    document.getElementById("main-content")?.focus({ preventScroll: true });
     setAnnouncement(document.title);
   }, [location.pathname]);
 
