@@ -1107,9 +1107,9 @@ function ProjetsTab({
       <SectionAurora color="teal" />
       <header className="flex flex-col gap-6 md:flex-row md:items-baseline md:justify-between">
         <div>
-          <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
+          <h1 className="text-4xl font-medium text-on-surface sm:text-5xl md:text-6xl">
             Mon catalogue{" "}
-            <span className="font-display-accent text-5xl italic text-primary md:text-6xl">
+            <span className="font-display-accent text-4xl italic text-primary sm:text-5xl md:text-6xl">
               Projets
             </span>
           </h1>
@@ -3476,9 +3476,9 @@ function TabHeader({
   return (
     <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
       <div>
-        <h1 className="text-4xl font-medium text-on-surface md:text-5xl">
+        <h1 className="text-4xl font-medium text-on-surface sm:text-5xl md:text-6xl">
           {titleWithSpacer(title)}
-          <span className="font-display-accent text-5xl italic text-primary md:text-6xl">
+          <span className="font-display-accent text-4xl italic text-primary sm:text-5xl md:text-6xl">
             {capitalize(emphasis)}
           </span>
         </h1>
