@@ -2,6 +2,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { IconTooltip } from "@/components/IconTooltip";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -408,9 +409,19 @@ export function ProjectDetailPage() {
 
   return (
     <>
+      <div className="relative z-10 mx-auto mt-24 max-w-[1440px] px-5 pb-8 md:px-16">
+        <Breadcrumb
+          items={[
+            { label: "Accueil", href: `/${designer.slug}` },
+            { label: "Projets", href: `/${designer.slug}/projects` },
+            { label: project.title },
+          ]}
+        />
+      </div>
+
       <section
         ref={sectionRef}
-        className="relative mt-24 aspect-[3/1] w-full overflow-hidden max-md:aspect-[4/3]"
+        className="relative aspect-[3/1] w-full overflow-hidden max-md:aspect-[4/3]"
       >
         <img
           ref={imgRef}
