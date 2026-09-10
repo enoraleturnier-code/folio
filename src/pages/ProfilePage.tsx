@@ -116,7 +116,7 @@ function ProjectAction({ project, accessResult, onRequestAccess }: ProjectAction
     <div className="flex justify-center">
       <Link
         to={detailHref}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-bold text-primary transition-all duration-[var(--duration-standard)] ease-signature hover:scale-105 hover:border-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-[70%]"
+        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-[70%]"
       >
         Détails du projet
         <ArrowRight aria-hidden="true" size={16} />
@@ -135,7 +135,7 @@ function ProjectAction({ project, accessResult, onRequestAccess }: ProjectAction
         <button
           type="button"
           onClick={() => onRequestAccess(project)}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-secondary-container px-5 py-2.5 text-sm font-bold text-on-secondary-container shadow-lg shadow-secondary/20 transition-all duration-[var(--duration-standard)] ease-signature hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-secondary px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
         >
           <LockOpen aria-hidden="true" size={16} />
           Accéder au projet confidentiel
@@ -249,7 +249,9 @@ function ExperienceAccordionItem({
                 ))}
               </ul>
             )}
-            {exp.impact && <Alert type="info" icon={Zap} title="Impact" description={exp.impact} />}
+            {exp.impact && (
+              <Alert type="success" icon={Zap} title="Impact" description={exp.impact} />
+            )}
             <ProjectAction
               project={project}
               accessResult={accessResult}
@@ -352,7 +354,7 @@ export function ProfilePage() {
             <div className={"mt-2 h-px w-8 " + SECTION_NUMBER_CLASSES.hero.rule} />
           </div>
 
-          <div className="rounded-[32px] border border-white/10 bg-surface-container/30 p-8 backdrop-blur-sm md:col-span-7 md:p-12">
+          <div className="glass-card rounded-[32px] p-8 md:col-span-7 md:p-12">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
               {designer.profession}
             </p>
@@ -440,10 +442,7 @@ export function ProfilePage() {
 
         {/* EXPÉRIENCES */}
         {experiences.length > 0 && (
-          <section
-            id="experiences"
-            className="mb-32 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:-mr-12"
-          >
+          <section id="experiences" className="mb-32 grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="hidden lg:col-span-1 lg:block">
               <span
                 className={
@@ -457,8 +456,8 @@ export function ProfilePage() {
             </div>
 
             <div className="lg:col-span-11">
-              <div className="glass-card rounded-2xl p-8 md:p-12">
-                <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1fr_3fr] lg:gap-28">
+              <div className="glass-card rounded-[32px] p-8 md:p-12">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_3fr] lg:gap-28">
                   {/* Colonne éditoriale — sticky desktop uniquement, alignée sur le
                       texte du premier item (pt-8 compense le py-8 du premier en-tête). */}
                   <div className="lg:sticky lg:top-28 lg:self-start lg:pt-8">
@@ -513,7 +512,7 @@ export function ProfilePage() {
                           type="button"
                           onClick={() => setShowAllExperiences((v) => !v)}
                           aria-expanded={showAllExperiences}
-                          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all duration-[var(--duration-standard)] ease-signature hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background max-md:min-h-11 max-md:w-full"
                         >
                           {showAllExperiences ? "Réduire" : "Voir plus d'expériences"}
                           {showAllExperiences ? (
@@ -545,7 +544,7 @@ export function ProfilePage() {
           </div>
 
           {/* Contact form */}
-          <div className="rounded-[32px] border border-white/10 bg-surface-container-low p-8 backdrop-blur-md lg:col-span-5 md:p-12">
+          <div className="glass-card rounded-[32px] p-8 lg:col-span-5 md:p-12">
             <h2 className="mb-8 text-4xl font-medium text-on-surface">Collaborons ensemble</h2>
             <ContactForm />
           </div>

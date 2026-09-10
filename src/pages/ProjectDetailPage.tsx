@@ -2,6 +2,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
@@ -384,6 +385,15 @@ export function ProjectDetailPage() {
       tabIndex={-1}
       className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16"
     >
+      <div className="mb-8">
+        <Breadcrumb
+          items={[
+            { label: "Accueil", href: `/${designer.slug}` },
+            { label: "Projets", href: `/${designer.slug}/projects` },
+            { label: project.title },
+          ]}
+        />
+      </div>
       {/* Mobile (< md) : empilé -- détails + titre, thumbnail, bloc info,
        * problème/décisions/résultats, galerie en dernier. */}
       <div className="flex flex-col gap-14 md:hidden">

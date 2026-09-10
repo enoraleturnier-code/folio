@@ -221,6 +221,33 @@
     background: color-mix(in oklab, var(--primary) 40%, transparent);
     color: var(--on-primary);
   }
+  /* Scrollbar globale, plus fine et arrondie que le rendu natif du navigateur
+   * -- Firefox (scrollbar-width/-color) et Chrome/Safari/Edge (::-webkit-*)
+   * séparément, aucune propriété standard commune aux deux à ce jour. Le
+   * "padding" visuel du thumb Chrome vient de `border` + `background-clip:
+   * padding-box` (le fond ne colore que l'intérieur de la bordure, qui reste
+   * transparente) -- pas de valeur `padding` réelle, non supportée sur les
+   * pseudo-éléments de scrollbar. */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--outline-variant) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--outline-variant);
+    border-radius: 999px;
+    border: 2px solid var(--background);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary);
+  }
 }
 
 /* `transition-all` casse le ring focus-visible : le box-shadow composé par les utilitaires

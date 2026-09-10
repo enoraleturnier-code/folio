@@ -4,6 +4,7 @@ import { Link, useLoaderData, useSearchParams, type LoaderFunctionArgs } from "r
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
 import { getMyAccessRequests, type MyAccessRequest } from "@/data/accessRequests";
@@ -108,17 +109,21 @@ export function CataloguePage() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16"
+        className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-24 md:px-16"
       >
-        <header className="mb-16 flex flex-wrap items-end justify-between gap-6">
+        <Breadcrumb
+          items={[{ label: "Accueil", href: `/${designer.slug}` }, { label: "Projets" }]}
+        />
+
+        <header className="mb-16 mt-10 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
               Projets
             </p>
-            <h1 className="text-5xl font-medium text-on-surface md:text-6xl">
+            <h1 className="text-4xl font-medium text-on-surface sm:text-5xl md:text-6xl">
               {designer.fullName}
               <br />
-              <span className="font-display-accent text-5xl italic font-normal text-primary md:text-6xl">
+              <span className="font-display-accent text-4xl italic font-normal text-primary sm:text-5xl md:text-6xl">
                 Catalogue de projets
               </span>
             </h1>
