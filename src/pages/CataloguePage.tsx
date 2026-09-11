@@ -124,7 +124,7 @@ export function CataloguePage() {
               {designer.fullName}
               <br />
               <span className="font-display-accent text-4xl italic font-normal text-primary sm:text-5xl md:text-6xl">
-                Catalogue de projets
+                Projets et réalisations
               </span>
             </h1>
           </div>
