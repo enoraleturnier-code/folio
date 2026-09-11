@@ -17,6 +17,7 @@ import { Link, useLoaderData, useLocation, type LoaderFunctionArgs } from "react
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { Alert } from "@/components/Alert";
 import { AuroraBackground } from "@/components/AuroraBackground";
+import { BoldText } from "@/components/BoldText";
 import { ComingSoonBadge } from "@/components/ComingSoonBadge";
 import { ContactForm } from "@/components/ContactForm";
 import { IconTooltip } from "@/components/IconTooltip";
@@ -358,14 +359,14 @@ export function ProfilePage() {
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
               {designer.profession}
             </p>
-            <h1 className="text-5xl font-medium leading-[1.1] text-on-surface md:text-6xl">
+            <h1 className="text-5xl font-medium text-on-surface md:text-6xl">
               {designer.fullName}
             </h1>
-            <p className="mt-2 font-display-accent text-5xl leading-tight text-primary md:text-6xl">
+            <p className="mt-2 font-display-accent text-5xl text-primary md:text-6xl">
               {designer.adjective}
             </p>
             <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-on-surface">
-              {designer.bio}
+              <BoldText text={designer.bio} />
             </p>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:justify-start md:gap-12">
@@ -545,7 +546,7 @@ export function ProfilePage() {
 
           {/* Contact form */}
           <div className="glass-card rounded-[32px] p-8 lg:col-span-5 md:p-12">
-            <h2 className="mb-8 text-4xl font-medium text-on-surface">Collaborons ensemble</h2>
+            <h2 className="mb-8 text-4xl font-medium text-on-surface">Travaillons ensemble</h2>
             <ContactForm />
           </div>
 
@@ -564,13 +565,8 @@ export function ProfilePage() {
                   <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-on-primary/10">
                     <Calendar aria-hidden="true" className="text-primary" size={36} />
                   </div>
-                  <p className="mb-2 text-base text-on-surface">
-                    Chargement du calendrier interactif…
-                  </p>
-                  <p className="flex items-center gap-2 text-xs text-on-surface-variant">
-                    cal.com/<span className="text-primary">{designer.calUsername}</span>
-                    <ComingSoonBadge />
-                  </p>
+                  <ComingSoonBadge />
+                  <p className="mt-3 text-base text-on-surface">Calendrier interactif</p>
                 </div>
               </div>
             </div>

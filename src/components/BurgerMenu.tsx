@@ -46,7 +46,7 @@ export function BurgerMenu({ open, onClose }: { open: boolean; onClose: () => vo
         <p className="font-display-accent text-4xl text-primary-container md:text-5xl">
           {designer.fullName}
         </p>
-        <nav className="flex flex-col items-center gap-6">
+        <nav className="flex w-full flex-col items-center gap-6">
           <BurgerLink to={`/${designer.slug}`} label="Profil" onClose={onClose} end />
           <BurgerLink to={`/${designer.slug}/projects`} label="Projets" onClose={onClose} />
         </nav>
@@ -73,7 +73,7 @@ function BurgerLink({
       onClick={onClose}
       className={({ isActive }) =>
         cn(
-          "rounded-xl px-6 py-2 text-4xl transition-colors duration-[var(--duration-fast)] ease-signature",
+          "block w-full rounded-xl px-6 py-2 text-center text-4xl transition-colors duration-[var(--duration-fast)] ease-signature",
           isActive
             ? "bg-primary/15 font-bold text-primary"
             : "font-medium text-on-surface-variant hover:text-primary",

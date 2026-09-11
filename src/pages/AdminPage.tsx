@@ -2339,6 +2339,10 @@ function ParametresTab() {
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
               className={inputCls + " mt-2 resize-y"}
             />
+            <p className="mt-1 text-xs text-on-surface-variant/70">
+              Entoure un mot ou groupe de mots avec <strong>**deux astérisques**</strong> pour
+              l'afficher en gras.
+            </p>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
