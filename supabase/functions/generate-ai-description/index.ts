@@ -144,34 +144,49 @@ Deno.serve(async (req: Request) => {
 
   if (!MISTRAL_API_KEY) return json({ error: "mistral_not_configured" }, 500);
 
-  const mistralRes = await fetch("https://api.mistral.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${MISTRAL_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "mistral-small-latest",
-      messages: [
-        {
-          role: "system",
-          content: `Tu structures la description longue d'un projet design d'un designer freelance, pour son portfolio. Reponds en francais, ton professionnel. Le champ short_desc doit imperativement faire ${SHORT_DESC_MAX_LENGTH} caracteres maximum (prose simple, sans Markdown, affiche tel quel en texte brut) -- contrainte stricte a respecter. Pour probleme, decisions et resultat, reste imperativement sous ${FIELD_MAX_LENGTH} caracteres chacun : termine toujours sur une phrase complete, jamais en plein mot ni en pleine puce -- quitte a etre plus concis ou a omettre un dernier point secondaire pour tenir dans la limite tout en finissant proprement. Utilise le Markdown pour structurer ces 3 champs : **gras** pour les termes-cles et chiffres importants, listes a puces ("- item") si pertinent pour enumerer plusieurs decisions ou plusieurs resultats -- mais la limite de caracteres et la phrase complete priment toujours sur le formatage. Ces 3 champs sont rendus par un moteur Markdown cote portfolio (react-markdown), donc la syntaxe sera affichee formatee, jamais telle quelle.`,
-        },
-        { role: "user", content: `Description longue du projet :\n\n${longDesc}` },
-      ],
-      tools: [STRUCTURE_TOOL],
-      tool_choice: "any",
-      max_tokens: MAX_OUTPUT_TOKENS,
-    }),
-  });
+  // `fetch` peut rejeter (timeout, DNS, TLS) sans jamais renvoyer de Response --
+  // sans ce try/catch, une telle erreur reseau plantait la fonction de facon
+  // opaque (crash EDGE_FUNCTION_ERROR cote gateway Supabase, aucune trace
+  // applicative puisque rien n'etait logge nulle part dans cette fonction).
+  let mistralRes: Response;
+  try {
+    mistralRes = await fetch("https://api.mistral.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${MISTRAL_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "mistral-small-latest",
+        messages: [
+          {
+            role: "system",
+            content: `Tu structures la description longue d'un projet design d'un designer freelance, pour son portfolio. Reponds en francais, ton professionnel. Le champ short_desc doit imperativement faire ${SHORT_DESC_MAX_LENGTH} caracteres maximum (prose simple, sans Markdown, affiche tel quel en texte brut) -- contrainte stricte a respecter. Pour probleme, decisions et resultat, reste imperativement sous ${FIELD_MAX_LENGTH} caracteres chacun : termine toujours sur une phrase complete, jamais en plein mot ni en pleine puce -- quitte a etre plus concis ou a omettre un dernier point secondaire pour tenir dans la limite tout en finissant proprement. Utilise le Markdown pour structurer ces 3 champs : **gras** pour les termes-cles et chiffres importants, listes a puces ("- item") si pertinent pour enumerer plusieurs decisions ou plusieurs resultats -- mais la limite de caracteres et la phrase complete priment toujours sur le formatage. Ces 3 champs sont rendus par un moteur Markdown cote portfolio (react-markdown), donc la syntaxe sera affichee formatee, jamais telle quelle.`,
+          },
+          { role: "user", content: `Description longue du projet :\n\n${longDesc}` },
+        ],
+        tools: [STRUCTURE_TOOL],
+        tool_choice: "any",
+        max_tokens: MAX_OUTPUT_TOKENS,
+      }),
+    });
+  } catch (err) {
+    console.error("mistral_fetch_failed", err instanceof Error ? err.message : err);
+    return json({ error: "mistral_unreachable" }, 502);
+  }
 
   if (!mistralRes.ok) {
+    const bodyText = await mistralRes.text().catch(() => "");
+    console.error("mistral_error", mistralRes.status, bodyText.slice(0, 500));
     return json({ error: "mistral_error", status: mistralRes.status }, 502);
   }
 
   const mistralData = await mistralRes.json();
   const toolCall = mistralData.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall) return json({ error: "no_structured_output" }, 502);
+  if (!toolCall) {
+    console.error("no_structured_output", JSON.stringify(mistralData).slice(0, 500));
+    return json({ error: "no_structured_output" }, 502);
+  }
 
   // Contrairement au tool-use Anthropic (input deja un objet parse), l'API
   // Mistral (format function-calling OpenAI-style) renvoie les arguments en
@@ -179,7 +194,12 @@ Deno.serve(async (req: Request) => {
   let structured: Record<string, unknown>;
   try {
     structured = JSON.parse(toolCall.function.arguments);
-  } catch {
+  } catch (err) {
+    console.error(
+      "invalid_tool_arguments",
+      err instanceof Error ? err.message : err,
+      toolCall.function.arguments?.slice(0, 500),
+    );
     return json({ error: "invalid_tool_arguments" }, 502);
   }
 
