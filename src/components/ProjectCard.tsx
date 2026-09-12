@@ -153,7 +153,7 @@ export function ProjectCard({
           {project.short_desc}
         </p>
         {(project.company_name || project.role) && (
-          <div className="space-y-3 border-t border-white/5 pt-3">
+          <div className="flex items-start justify-between gap-3 border-t border-white/5 pt-3">
             {project.company_name && (
               <div className="flex flex-col gap-0.5">
                 <span className="text-[10px] uppercase tracking-widest text-on-surface-variant">
@@ -163,7 +163,7 @@ export function ProjectCard({
               </div>
             )}
             {project.role && (
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col items-end gap-0.5">
                 <span className="text-[10px] uppercase tracking-widest text-on-surface-variant">
                   Rôle
                 </span>
@@ -177,7 +177,7 @@ export function ProjectCard({
           <div className="mt-auto pt-2">
             <span
               className="flex w-full items-center justify-center gap-2 rounded-full bg-primary-container py-2.5
-                text-[11px] font-bold tracking-[0.1em] text-on-primary-container transition-all duration-300
+                text-sm font-bold text-on-primary-container transition-all duration-300
                 group-hover:scale-[1.02] group-hover:brightness-110 group-focus-visible:scale-[1.02]
                 group-focus-visible:brightness-110 group-active:scale-95"
             >

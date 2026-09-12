@@ -2032,13 +2032,27 @@ function emptyParametresForm(): ParametresForm {
   };
 }
 
-/** Nom de fichier affiché admin -- l'URL stocke un timestamp brut
- * (`uploadDesignerCv`), pas de nom lisible à en tirer autrement. */
+/** Nom de fichier affiché admin -- extrait du chemin de Storage (lisible
+ * depuis le passage à un nom fixe basé sur le nom du designer, cf.
+ * `uploadDesignerCv`), en ignorant le `?v=<timestamp>` de cache-busting. */
 function cvFileNameFromUrl(url: string): string {
   const marker = "/designer-cv/";
   const idx = url.indexOf(marker);
   if (idx === -1) return "CV.pdf";
   return url.slice(idx + marker.length).split("?")[0];
+}
+
+/** "Enora Le Turnier" -> "CV-Enora-Le-Turnier.pdf" -- nom de fichier Storage
+ * fixe et lisible pour le CV (cf. `uploadDesignerCv`), pour qu'un RH qui
+ * télécharge le PDF obtienne un nom de fichier correct plutôt qu'un
+ * timestamp brut. */
+function cvFileName(fullName: string): string {
+  const slug = fullName
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `CV-${slug}.pdf`;
 }
 
 function ParametresTab() {
@@ -2188,7 +2202,7 @@ function ParametresTab() {
       }
       let cvUrl = form.cvUrl;
       if (pendingCvFile) {
-        cvUrl = await uploadDesignerCv(pendingCvFile);
+        cvUrl = await uploadDesignerCv(pendingCvFile, cvFileName(designer.fullName));
       }
       await updateDesignerProfile({
         photoUrl,
