@@ -1,11 +1,11 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLoaderData, useSearchParams, type LoaderFunctionArgs } from "react-router-dom";
 
 import { AccessRequestModal } from "@/components/AccessRequestModal";
 import { AuroraBackground } from "@/components/AuroraBackground";
-import { Breadcrumb } from "@/components/Breadcrumb";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
+import { IconTooltip } from "@/components/IconTooltip";
 import { ProjectCard } from "@/components/ProjectCard";
 import { getMyAccessRequests, type MyAccessRequest } from "@/data/accessRequests";
 import { designer } from "@/data/designer";
@@ -111,19 +111,27 @@ export function CataloguePage() {
         tabIndex={-1}
         className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-24 md:px-16"
       >
-        <Breadcrumb
-          items={[{ label: "Accueil", href: `/${designer.slug}` }, { label: "Projets" }]}
-        />
+        <div className="mb-8">
+          <IconTooltip label="Retour au profil">
+            <Link
+              to={`/${designer.slug}`}
+              aria-label="Retour au profil"
+              className="glass-card flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:border-primary hover:text-primary max-md:h-11 max-md:w-11"
+            >
+              <ArrowLeft aria-hidden="true" size={18} />
+            </Link>
+          </IconTooltip>
+        </div>
 
         <header className="mb-16 mt-10 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-primary">
               Projets
             </p>
-            <h1 className="text-4xl font-medium text-on-surface sm:text-5xl md:text-6xl">
+            <h1 className="text-5xl font-medium text-on-surface sm:text-6xl md:text-7xl">
               {designer.fullName}
               <br />
-              <span className="font-display-accent text-4xl italic font-normal text-primary sm:text-5xl md:text-6xl">
+              <span className="font-display-accent text-5xl italic font-normal text-primary sm:text-6xl md:text-7xl">
                 Projets et réalisations
               </span>
             </h1>

@@ -73,18 +73,25 @@ export const ALLOWED_CV_TYPES = ["application/pdf"];
  * cette visionneuse, plus besoin de forcer `Content-Disposition: attachment`
  * à la source. `deleteDesignerCv` gère quand même un éventuel `?download`
  * hérité d'une URL enregistrée avant ce changement.
+ *
+ * `fileName` (ex. "CV-Enora-Le-Turnier.pdf") sert de chemin de Storage fixe
+ * (`upsert: true`, remplace l'ancien fichier en place) -- contrairement aux
+ * autres upload*() de ce fichier qui utilisent `Date.now()` : le CV est le
+ * seul fichier régulièrement téléchargé tel quel par un tiers (un RH), pour
+ * qui un nom lisible compte. Un suffixe `?v=<timestamp>` est ajouté à l'URL
+ * publique (pas au chemin de Storage) pour invalider le cache HTTP à chaque
+ * remplacement sans changer le nom de fichier suggéré au téléchargement --
+ * les navigateurs se basent sur le segment de chemin, pas la query string.
  */
-export async function uploadDesignerCv(file: File): Promise<string> {
-  const path = `${Date.now()}.pdf`;
-
-  const { error } = await supabase.storage.from(DESIGNER_CV_BUCKET).upload(path, file, {
+export async function uploadDesignerCv(file: File, fileName: string): Promise<string> {
+  const { error } = await supabase.storage.from(DESIGNER_CV_BUCKET).upload(fileName, file, {
     cacheControl: "3600",
-    upsert: false,
+    upsert: true,
   });
   if (error) throw error;
 
-  const { data } = supabase.storage.from(DESIGNER_CV_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  const { data } = supabase.storage.from(DESIGNER_CV_BUCKET).getPublicUrl(fileName);
+  return `${data.publicUrl}?v=${Date.now()}`;
 }
 
 /** Même piège RLS Storage que `deleteProjectGalleryImage`/`deleteProjectThumbnail`

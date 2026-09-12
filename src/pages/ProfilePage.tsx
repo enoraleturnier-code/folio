@@ -359,10 +359,10 @@ export function ProfilePage() {
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
               {designer.profession}
             </p>
-            <h1 className="text-5xl font-medium text-on-surface md:text-6xl">
-              {designer.fullName}
+            <h1 className="text-6xl font-medium text-on-surface md:text-7xl">
+              {designer.firstName} <span className="whitespace-nowrap">{designer.lastName}</span>
             </h1>
-            <p className="mt-2 font-display-accent text-5xl text-primary md:text-6xl">
+            <p className="mt-2 font-display-accent text-6xl text-primary md:text-7xl">
               {designer.adjective}
             </p>
             <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-on-surface">

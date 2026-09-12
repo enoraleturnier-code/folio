@@ -125,8 +125,15 @@ export async function updateDesignerProfile(input: DesignerProfileInput): Promis
 
   // Nettoyage best-effort de l'ancien fichier Storage -- un échec ici ne
   // doit pas faire échouer un update déjà acté en base (même logique que
-  // le nettoyage Storage de softDeleteProject).
-  if (previousCvUrl && previousCvUrl !== input.cvUrl) {
+  // le nettoyage Storage de softDeleteProject). Comparaison sur le chemin
+  // seul (sans le `?v=<timestamp>` de cache-busting) : `uploadDesignerCv`
+  // réutilise désormais un chemin de Storage fixe (`upsert: true`), donc un
+  // simple remplacement de CV garde le même chemin -- l'ancien fichier est
+  // déjà remplacé en place, un `deleteDesignerCv` sur l'URL précédente
+  // supprimerait le fichier qu'on vient d'uploader. Seul un vrai changement
+  // de chemin (CV retiré, ou nom du designer modifié) déclenche un nettoyage.
+  const stripQuery = (url: string) => url.split("?")[0];
+  if (previousCvUrl && stripQuery(previousCvUrl) !== stripQuery(input.cvUrl ?? "")) {
     try {
       await deleteDesignerCv(previousCvUrl);
     } catch (err) {

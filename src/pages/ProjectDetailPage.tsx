@@ -2,7 +2,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
-import { Breadcrumb } from "@/components/Breadcrumb";
+import { IconTooltip } from "@/components/IconTooltip";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TagBadge } from "@/components/TagBadge";
@@ -386,13 +386,15 @@ export function ProjectDetailPage() {
       className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16"
     >
       <div className="mb-8">
-        <Breadcrumb
-          items={[
-            { label: "Accueil", href: `/${designer.slug}` },
-            { label: "Projets", href: `/${designer.slug}/projects` },
-            { label: project.title },
-          ]}
-        />
+        <IconTooltip label="Retour à la liste">
+          <Link
+            to={`/${designer.slug}/projects`}
+            aria-label="Retour à la liste"
+            className="glass-card flex h-10 w-10 items-center justify-center rounded-full text-on-surface hover:border-primary hover:text-primary max-md:h-11 max-md:w-11"
+          >
+            <ArrowLeft aria-hidden="true" size={18} />
+          </Link>
+        </IconTooltip>
       </div>
       {/* Mobile (< md) : empilé -- détails + titre, thumbnail, bloc info,
        * problème/décisions/résultats, galerie en dernier. */}
