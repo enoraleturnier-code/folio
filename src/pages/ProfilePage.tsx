@@ -347,22 +347,22 @@ export function ProfilePage() {
         className="relative z-10 mx-auto max-w-[1440px] px-5 pb-24 pt-32 md:px-16"
       >
         {/* HERO — 01 */}
-        <section className="mb-32 grid grid-cols-1 items-center gap-6 md:grid-cols-12">
-          <div className="hidden md:col-span-1 md:block">
+        <section className="mb-32 grid grid-cols-1 items-center gap-6 md:grid-cols-12 lg:gap-16">
+          <div className="hidden lg:col-span-1 lg:block">
             <span className={"text-6xl font-medium " + SECTION_NUMBER_CLASSES.hero.number}>
               {sectionNumber("hero")}
             </span>
             <div className={"mt-2 h-px w-8 " + SECTION_NUMBER_CLASSES.hero.rule} />
           </div>
 
-          <div className="glass-card rounded-[32px] p-8 md:col-span-7 md:p-12">
+          <div className="glass-card rounded-[32px] py-8 px-8 md:col-span-7 md:py-12 md:px-12 lg:col-span-6 lg:pr-8">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
               {designer.profession}
             </p>
             <h1 className="text-6xl font-medium text-on-surface md:text-7xl">
               {designer.firstName} <span className="whitespace-nowrap">{designer.lastName}</span>
             </h1>
-            <p className="mt-2 font-display-accent text-6xl text-primary md:text-7xl">
+            <p className="mt-2 font-display-accent text-5xl text-primary md:text-6xl">
               {designer.adjective}
             </p>
             <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-on-surface">
@@ -425,8 +425,8 @@ export function ProfilePage() {
             </div>
           </div>
 
-          <div className="flex justify-center md:col-span-4 md:justify-end">
-            <div className="relative w-full max-w-[360px]">
+          <div className="flex justify-center md:col-span-4 md:justify-end lg:col-span-5 lg:py-8">
+            <div className="relative w-full max-w-[360px] lg:max-w-[400px]">
               <div
                 className="aspect-square overflow-hidden border border-white/10"
                 style={{ borderRadius: "63% 37% 54% 46% / 55% 48% 52% 45%" }}

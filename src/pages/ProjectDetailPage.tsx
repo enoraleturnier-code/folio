@@ -2,6 +2,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
+import { BoldText } from "@/components/BoldText";
 import { IconTooltip } from "@/components/IconTooltip";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -235,7 +236,9 @@ export function ProjectDetailPage() {
         </p>
       )}
       {project.short_desc && (
-        <p className="max-w-2xl text-lg text-on-surface-variant">{project.short_desc}</p>
+        <p className="max-w-2xl text-lg text-on-surface-variant">
+          <BoldText text={project.short_desc} />
+        </p>
       )}
     </header>
   );

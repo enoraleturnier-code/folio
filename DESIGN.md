@@ -2,6 +2,8 @@
 
 Document de référence **unique** pour l'implémentation des tokens couleur dans Claude Code (Tailwind v4, `src/styles.css`, `:root` / `.dark`). Nomenclature Material 3. Tous les ratios sont vérifiés programmatiquement (WCAG 2.1), pas estimés.
 
+**Dernière mise à jour** : 13 septembre 2026 — audit couleurs dark mode : valeurs des tables comparées ligne à ligne à `styles.css` (`:root, .dark`), pas estimées. Corrections : `on-surface`/`inverse-surface` (`#DDE4E0` → `#DDE4E1`), `on-primary` (`#003731` → `#042F2E`), `error` (`#FFB4AB` → `#F87171`), et résolution de la divergence `secondary` connue depuis le 9/07 (`#D2BBFF` théorique → `#7C3AED` réel, `on-secondary` `#3F008E` → `#FFFFFF`) — tous les ratios concernés recalculés. Ajout de la section "🎨 Success / Info" (tokens `--success`/`--info`, utilisés par `StatusBadge` mais jamais documentés) et signalement de `--violet-text` comme token mort (défini, jamais utilisé). Tables "Fixed roles" et lignes `surface-variant`/`error-container`/`on-error-container` marquées ⚠️ non implémentées (aucune custom property correspondante dans le code, rôles M3 théoriques uniquement). Aucun changement côté light (hors périmètre de cette passe). **Complément typographie (même jour)** : la police/le poids `.font-display-accent` (Lora italic 500) restent bien uniformes partout (Cormorant Garamond toujours absent de l'import Google Fonts, `font-serif` toujours inutilisé — les deux vérifiés à nouveau), mais la **taille** ne l'est plus — les passes d'agrandissement/retour de titres de cette session ont réintroduit une divergence par page (`text-5xl md:text-6xl` à `text-5xl sm:text-6xl md:text-7xl` selon la page) ; l'ancien "80px" unique de la table Typographie et le récit "taille unifiée" de la section "🧭 Amélioration navigation (09/09)" ne reflètent plus l'état réel — relevé à jour ajouté section "✍️ Typographie".
+
 **Dernière mise à jour** : 10 septembre 2026 — fusion des branches `feat/amelioration-projets-page-projet` et `feat/amelioration-navigation` sur `main` : fiche projet restructurée (hero/parallax retirés, ordre du contenu retravaillé desktop/mobile, miniature non recadrée, "Résultat"→"Résultats", bloc d'informations pleine largeur en mobile/élargi en desktop) **et** fil d'Ariane (`Breadcrumb.tsx`) réintégré sous la navbar sur la fiche projet et le catalogue (texte "Accueil", sans icône maison) — la flèche retour en haut de page et la transparence de navbar sur la fiche projet, essayées puis explicitement écartées côté `feat/amelioration-projets-page-projet`, restent non conservées à la fusion. **Dernière mise à jour** : 9 septembre 2026 (branche `feat/amelioration-navigation`, suite) — card "Parcours" recentrée : `lg:-mr-12` (bleed asymétrique à droite ajouté le même jour dans une passe précédente) retiré, la card repartage à nouveau exactement la largeur de Hero/Contact. Avant ça, même branche — nouveau composant `Breadcrumb` (fil d'Ariane sous la navbar, Catalogue + fiche projet) ; bouton "retour en haut" redescendu en bas d'écran (était centré verticalement) ; cards projet : bloc Entreprise/Rôle passé en étiquette au-dessus de la valeur (était côte à côte) ; scrollbar globale restylée (fine, arrondie, tokens `--outline-variant`/`--primary`) ; titres de page + accent italique unifiés sur une seule échelle `text-4xl md:text-6xl` partout (dashboard admin aligné sur les pages visiteur, l'ancienne exception où l'accent dépassait le titre est supprimée) et réduits en mobile (`text-5xl`→`text-4xl`, 48px→36px). Voir section "🧭 Amélioration navigation (09/09)" pour le détail. Avant ça, 9 septembre 2026 (6e passe) — marge desktop entre la colonne "Parcours" et l'accordéon ré-agrandie (`lg:gap-20` → `lg:gap-28`) ; dates de la colonne fixe desktop passées sur deux lignes (`formatExperiencePeriodParts`, sans tiret — mobile inchangé, une ligne) ; boutons "Afficher le CV en pdf"/"Détails du projet"/"Accéder au projet confidentiel"/"Voir plus d'expériences" passés en pleine largeur mobile (`max-md:w-full`), puis "Détails du projet" ramené à 70% sur retour immédiat (`max-md:w-[70%]`, reste centré). Avant ça, même jour (5e passe) — marge entre la colonne éditoriale ("Parcours") et l'accordéon agrandie au-delà de la valeur d'origine (`gap-6` → `gap-10` empilé, `lg:gap-12` → `lg:gap-20` côte à côte), sur retour immédiat après la réduction de la passe précédente. Avant ça, même jour (4e passe, nouveaux retours sur l'accordéon) — bouton "Détails du projet" repassé en outline **au style des boutons icône du Hero** (`border-white/15`/`text-primary`, plus de couleur `secondary`) ; boutons projet ("Détails du projet"/"Accéder au projet confidentiel") centrés horizontalement dans le contenu déplié ; marge au-dessus de l'accordéon réduite en mobile/tablette empilé (`gap-10` → `gap-6`) ; section "Parcours" élargie de 48px à droite uniquement (`lg:-mr-12` sur la `<section>`, numéro de section resté aligné avec Hero/Contact) ; titre "Expériences" renommé **"Parcours"** (public et admin — libellé "Description courte — section Parcours", placeholder assorti), cohérent avec le titre déjà utilisé côté admin ("Mon Parcours"). Avant ça, 8 septembre 2026 (3e passe, nouveaux retours utilisatrice sur l'accordéon) — marges de la card Expériences réalignées sur celles de la card Hero (`md:p-12`, était `md:p-16`) ; description de l'en-tête d'accordéon multi-lignes (`truncate` retiré) et chevron recentré verticalement sur toute la hauteur de l'en-tête (plus seulement sur la ligne de titre) ; coins carrés sur les items d'accordéon (`rounded-xl` retiré, sur demande explicite) ; première mission dépliée par défaut (`openId` initialisé au premier id plutôt que `null`) ; boutons "Voir le projet"/"Accéder au projet confidentiel" unifiés en un même style **secondary** (`bg-secondary-container`) et premier renommé "Détails du projet" ; bouton "Voir plus d'expériences" sorti de la liste `divide-y` et transformé en bouton **primary** autonome centré sous la liste ; bouton CV renommé "Afficher le CV en pdf" (ouverture inline dans un nouvel onglet inchangée, déjà conforme à la maquette navigateur fournie) ; champs "Description courte — section Expériences" et "CV (PDF)" déplacés du formulaire "Mes Paramètres" vers la section "Mon Parcours" côté admin (`ExperiencesManager`, état/sauvegarde restés dans `ParametresTab`, descendus en props). Avant ça, même jour (2e passe, retours utilisatrice sur le premier jet de l'accordéon) — numéro de section sorti de la card (position externe façon Hero/Contact) ; fond de l'item déplié étendu à tout le wrapper (en-tête + contenu, plus seulement l'en-tête — corrige aussi un décalage entre le fond et les filets `divide-y`, désormais portés par le même élément) ; accordéon rendu **exclusif** (`openId` unique, plus un `Set` d'ids simultanément ouverts) ; contenu déplié en pleine largeur (spacer de colonne date retiré) ; bouton "Voir le projet" passé en primary, "Accéder au projet confidentiel" recalé sur le même gabarit ; accordéon élargi (ratio colonnes 1fr/3fr, gutter réduit) ; `short_desc`/`context` fusionnés en un seul champ (`context` supprimée en base) avec le contenu retravaillé à partir du CV le plus récent de l'utilisatrice ; format de date restauré en mois abrégé + année complète des deux côtés ("Févr. 2022 - Janv. 2024", "Aujourd'hui" si poste en cours) ; bouton CV renommé "Voir le CV en détail", ouvre désormais le PDF inline dans un nouvel onglet (`target="_blank"`, plus de `?download` forcé) au lieu de le télécharger directement. Avant ça, même jour (1er jet) — section "Expériences" reprise en **accordéon 3 colonnes** (card unique `glass-card`, colonne éditoriale sticky + accordéon, filets `divide-y` entre items uniquement, états de fond repos/survol/déplié avec contrastes AAA vérifiés programmatiquement, animation CSS Grid `0fr→1fr` sans JS) — remplace le premier jet du 07/09 (liste de cartes empilées, section "🧭 Bloc « Parcours »" ci-dessous entièrement réécrite). Bouton "Accéder au projet confidentiel" déplacé du Hero (générique) vers chaque item d'accordéon lié à un projet confidentiel (F-12, `resolveAccess` désormais extrait en helper partagé `src/lib/accessState.ts`, réutilisé par `CataloguePage.tsx`). Voir section dédiée plus bas pour le détail complet (anatomie, table des états de fond, clavier/a11y). Avant ça, 7 septembre 2026 — premier jet "Bloc Parcours" (page profil publique + CRUD admin `ParametresTab`) : nouvelle section numérotée entre Hero et Contact (extension du pattern `BLOCK_NUMBER_CLASSES`/numérotation calculée déjà en place sur `ProjectDetailPage.tsx`), 3e couleur `text-tag-keywords` réutilisée pour Contact, bouton "Télécharger le CV (PDF)" conditionnel (`cv_url`, bucket Storage `designer-cv`). Avant ça, 2 septembre 2026 — légende de galerie repassée en overlay **bas-droite** sur la photo (était un bloc statique sous l'image depuis la retouche précédente le même jour) ; le calcul de `row-span` par image (cf. juste en dessous) n'a alors plus besoin de réserver de budget de hauteur pour elle, l'image reprend 100% de sa cellule. Avant ça, même jour — galerie fiche projet : le `row-span` de chaque vignette n'est plus fixe par `size_variant` (qui forçait soit un recadrage `object-cover`, soit des bandes vides `object-contain`) mais **calculé par image** à partir de son vrai ratio (`naturalWidth`/`naturalHeight` au `onLoad`) et de la largeur réelle de sa cellule (mesurée via `ResizeObserver`, la galerie étant fluide/pleine largeur) — `size_variant` ne contrôle plus que la largeur (`SIZE_VARIANT_COL_SPAN`), la hauteur suit le ratio réel via une unité de grille très fine (`grid-auto-rows: 8px`) ; `object-cover` repris (le recadrage résiduel devient de l'ordre de quelques px, imperceptible). **Piège rencontré** : `grid-row: span N` n'a aucun effet cohérent sans que `grid-auto-rows` soit explicitement posé à la même unité (8px) — oublié une première fois, symptôme repéré en comparant ratio réel vs ratio rendu (`getBoundingClientRect`) plutôt qu'en se fiant au visuel seul. Voir section "🖼️ Fiche projet — hero parallax, flèche header, galerie grille + légendes" pour le détail complet (dérivation, clamp de ratio, les deux instances `ProjectGallery` mobile/desktop). Avant ça, même jour — **bug corrigé : `position: sticky` cassé site-wide** par `overflow-x: hidden` déclaré sur `body` en plus de `html` (fixup CSS overflow-x non-visible → overflow-y calcule à `auto` sur le même élément → `body` devenait un second conteneur de scroll aux yeux de `sticky`, qui s'y comportait comme `static`) — déplacé sur `html` seul (`styles.css`) ; seul usage de `sticky` du codebase (l'aside de `ProjectDetailPage.tsx`) désormais réellement fonctionnel, vérifié par scroll réel + lecture de `rect.top` (pas juste `getComputedStyle`). Même passe : hero ramené à sa taille d'origine (`aspect-[3/1]`/`aspect-[4/3]`, un agrandissement à `aspect-[2/1]`/`aspect-square` tenté plus tôt dans la journée s'est avéré trop imposant) et espacement sous la navbar encore resserré (`mt-24`) ; images de galerie passées d'`object-cover` (recadrées) à `object-contain` (image entière toujours visible, fond `bg-surface-container-lowest` en letterboxing) — voir section "🖼️ Fiche projet — hero parallax, flèche header, galerie grille + légendes" pour le détail complet. Avant ça, même jour — espacement hero/navbar resserré (`mt-24` depuis `mt-32`), hero agrandi (`aspect-[2/1]`/`aspect-square`) et parallax accentué (`PARALLAX_FACTOR` 0.2→0.35, marge de débordement de l'image relevée en conséquence pour rester sans bord vide) ; galerie passée en pleine largeur de page (breakout `-mx-[50vw] w-screen`, hors de la contrainte `max-w-[1440px]` de `<main>`) et rangées agrandies (`auto-rows-[220px]`/`[280px]`) ; bloc d'info toujours sticky mais désormais rendu en deux dispositions distinctes mobile/desktop (`contentBlock`/`asideCard`/`gallerySection` calculés une fois, rendus deux fois) au lieu d'un simple `order` CSS, pour que la galerie devienne un sibling hors de la grille 2 colonnes et que le *containing block* du sticky s'arrête net à la fin du contenu. Avant ça, même jour — ajustements layout fiche projet : hero repositionné sous la navbar (`mt-32`, plus de "plein page dès le haut") sans dégradé, parallax recalculé via `getBoundingClientRect` pour rester robuste au décalage ; bloc d'informations projet passé à gauche (`order` CSS), réduit (`md:col-span-3` + `max-w-xs`) ; galerie : légende sortie de l'overlay vers un bloc statique sous chaque image, coins arrondis retirés, espacements resserrés (`gap-2`/`gap-3`) — voir section "🖼️ Fiche projet — hero parallax, flèche header, galerie grille + légendes" pour le détail. Avant ça, même jour — galerie d'images de la fiche projet : bascule du masonry CSS-columns vers une vraie grille CSS (`col-span`/`row-span` + `grid-flow-dense`, 5 tailles dont une inédite « portrait » 1×2), ajout d'une légende par image (toujours visible, overlay bas-gauche, pré-remplie depuis le nom de fichier) et d'une numérotation d'ordre dans le formulaire — voir section "🖼️ Fiche projet — hero parallax, flèche header, galerie grille + légendes" pour le détail (mapping des tailles, migration des 11 images déjà en base au moment de la bascule). Avant ça, 1er septembre 2026 — fiche projet (`ProjectDetailPage.tsx`) : hero plein écran avec effet parallax (premier transform JS continu piloté par le scroll de l'app), flèche retour intégrée au header au scroll (`Header.tsx`, troisième branchement par route après `isAdminRoute`), galerie d'images secondaires (nouvelle table `project_images`, bucket Storage `project-gallery`, gestion admin dans `ProjectDrawer.tsx`), y compris un piège Storage RLS découvert et corrigé en vérifiant le flux en conditions réelles (documenté dans `CLAUDE.md`). Avant ça, 28 août 2026 — retouche du tiroir burger (`BurgerMenu`, cf. section "Navigation mobile") : fond glass façon `.glass-card` (au lieu du fond neutre uni d'origine) + entrée "bouncy" (scale + easing overshoot, `SlideSheet` props `panelClassName`/`bouncy`/`zIndexClassName`) ; bouton de fermeture `X` dédié retiré, le tiroir passe sous le header (`z-40`) pour que le bouton hamburger→croix du header reste le seul contrôle ouvrir/fermer, visible au même endroit. Juste avant, même jour : refonte menu Folio+ (header desktop, header/drawer mobile) — voir bloc "Refonte menu Folio+ (28/08)" pour le détail complet (hamburger→croix CSS, tiroir plein écran, nom du designer en accent italique `primary-container`, header desktop transparent→fond au scroll). Avant ça, 27 août 2026 — fond Aurora (section dédiée plus bas) refondu en shader WebGL "Soft Aurora" (composant installé depuis reactbits.dev, dépendance `ogl`), étendu à 4 couleurs, remplace l'ancien fond CSS partout ; désactivé sous 768px et `prefers-reduced-motion`. Juste avant, même jour : police d'accent (`--font-display-accent`, section Typographie) remplacée de Cormorant Garamond vers Lora (italic 500 conservé) ; testée d'abord isolément sur la page Profil (`.font-accent-test`) avant généralisation à toute l'app une fois validée. Avant ça, 17 juillet 2026 : refonte navigation mobile (`< md`, 768px) : header mobile commun pages publiques/dashboard admin (burger + thème + compte), primitive `SlideSheet` (feuilles plein écran bas / tiroir gauche), `MobileThemeSheet`/`MobileAccountSheet` remplaçant les dropdowns desktop, `MobileNotificationsView` branchée sur la table `notifications` existante, `AdminMobileBottomNav` (5 entrées) remplaçant la sidebar admin sur mobile — voir section dédiée plus bas. Convention actée : toute retouche visuelle mobile ne s'applique jamais au desktop par défaut (dupliquer le JSX `md:hidden`/`hidden md:flex` si la mise en page diffère structurellement). Avant ça, 13 juillet : onglet "Veille Design Hebdo" renommé "Veille Hebdo" ; couleurs de nav active + badges de notification redéfinies par section (`NAV_ACTIVE_CLASSES`, dashboard admin) : fuchsia (Catalogue projets), tertiary-container plein (Messages), neutre `surface-container` (Paramètres) — voir table dédiée plus bas, halos `SectionAurora` volontairement laissés inchangés (dissociés de la nav désormais). Juste avant : amélioration du sidebar admin (fusion "Dashboard" dans la nav, tooltip custom en mode icône-seule, survol avec fond, badge `text-[10px]`, état replié persisté) + deux règles globales `styles.css` (`cursor: pointer` systématique, icônes Lucide uniformisées à `stroke-width: 1.5`, plus d'exception 2px sous 16px). Voir les sections dédiées plus bas. Avant ça, 12 juillet : passe de finitions UI (branche `style/ux-ui-ameliorations`) : badges et boutons resserrés, titres de page harmonisés, modales de confirmation standardisées (icône + fond boréal + ombre), fonds boréals différenciés par page/section admin, accent italique du dashboard admin agrandi au-delà du titre (retouche demandée après coup), puis deux passes successives de renforcement du fond aurora (alphas remontés à plusieurs reprises, 4ᵉ couleur indigo ajoutée à la composition principale, variant modal avec ses propres alphas plus marqués) ; en parallèle sur `main` : ajout des sections "États d'erreur de formulaire" et "Badge de statut avec suffixe". Avant ça : section badges d'accès F-12 corrigée (11/07). Reste : dark mode conforme AA + système de filtres, badges d'accès et alertes.**Fond dark de référence officiel** : `#0E1513` (remplace `#050507`, obsolète).
 **Fond light de référence** : `#F9FBFA`.
 
@@ -20,7 +22,7 @@ Le rôle `primary` **n'est pas** la couleur de bouton. C'est `primary-container`
 
 **Règles d'usage validées :**
 - **Boutons / CTA** : `bg-primary-container` + `text-on-primary-container`.
-- **Éléments décoratifs** (avatars à initiales, cercles d'icônes non cliquables) : fond `on-primary` (`#003731` dark) + contenu `text-primary` (`#57F1DB` dark). Distingue visuellement du bouton CTA (ratio 9.44:1). Ne **pas** utiliser `primary-container` pour ces éléments.
+- **Éléments décoratifs** (avatars à initiales, cercles d'icônes non cliquables) : fond `on-primary` (`#042F2E` dark) + contenu `text-primary` (`#57F1DB` dark). Distingue visuellement du bouton CTA (ratio 10.34:1). Ne **pas** utiliser `primary-container` pour ces éléments.
 - **Ne jamais** poser une icône `primary` directement sur un fond `primary-container` (contraste 1.51:1 en light). Utiliser `on-primary-container` dans ce cas.
 
 ---
@@ -37,13 +39,15 @@ Le rôle `primary` **n'est pas** la couleur de bouton. C'est `primary-container`
 | `surface-container` | `#1A211F` | `#EFF1F0` | — | — |
 | `surface-container-high` | `#242B29` | `#E9ECEB` | — | — |
 | `surface-container-highest` | `#2F3634` | `#E4E7E6` | — | — |
-| `on-surface` | `#DDE4E0` | `#171C19` | 16.61:1 | ✅ AAA |
+| `on-surface` | `#DDE4E1` | `#171C19` | 14.32:1 | ✅ AAA |
 | `on-surface-variant` | `#BACAC5` | `#425750` | dark 10.87 · light 7.45 | ✅ AAA |
 | `outline` | `#859490` | `#72827E` | dark 5.84 · light 3.88 | ✅ AA (seuil UI 3:1) |
 | `outline-variant` | `#3C4A46` | `#C7D1CE` | 1.50:1 | ⚠️ FAIL — voir règle |
-| `inverse-surface` | `#DDE4E0` | `#0E1513` | — | réutilise l'autre thème (M3) |
-| `inverse-on-surface` | `#2B3230` | `#DDE4E0` | — | réutilise l'autre thème (M3) |
-| `surface-variant` | `#2F3634` | `#E4E7E6` | — | — |
+| `inverse-surface` | `#DDE4E1` | `#0E1513` | — | réutilise l'autre thème (M3) |
+| `inverse-on-surface` | `#2B3230` | `#DDE4E1` | — | réutilise l'autre thème (M3) |
+| `surface-variant` | — | — | — | ⚠️ non implémenté (pas de `--surface-variant` dans `styles.css`) |
+
+> Corrigé 13/09 (audit dark mode) : `on-surface`/`inverse-surface` listaient `#DDE4E0`, valeur réelle `#DDE4E1` (`styles.css`) — écart d'un chiffre hexadécimal, ratio recalculé en conséquence (reste ✅ AAA). `surface-variant` n'existe pas comme custom property dans le code (rôle M3 théorique, jamais implémenté) — ligne conservée pour mémoire mais ne pas s'y fier.
 
 ### ⚠️ `outline-variant` — restriction d'usage (dark ET light)
 
@@ -58,13 +62,14 @@ Le rôle `primary` **n'est pas** la couleur de bouton. C'est `primary-container`
 | Token | Dark | Light | Ratio | Statut |
 |---|---|---|---|---|
 | `primary` (icônes/accents) | `#57F1DB` | `#085C50` | dark 13.22 · light 7.61 | ✅ AAA |
-| `on-primary` | `#003731` | `#FFFFFF` | — | fond déco (dark) / texte (light) |
+| `on-primary` | `#042F2E` | `#FFFFFF` | — | fond déco (dark) / texte (light) |
 | `primary-container` (CTA) | `#2DD4BF` | `#0A7A6A` | dark 9.94 · light 5.05 | ✅ AA+ |
 | `on-primary-container` | `#00201C` | `#FAFFFE` | dark 9.22 · light 5.19 | ✅ AA+ |
 | `inverse-primary` | `#006B5F` | `#57F1DB` | — | réutilise l'autre thème |
 | `surface-tint` | `#3CDDC7` | `#0A7A6A` | — | — |
 
 > `on-primary-container` dark corrigé 9/07 : `#00574D` (4.57, limite) → `#00201C` (9.22).
+> `on-primary` dark corrigé 13/09 (audit dark mode) : listait `#003731`, valeur réelle `#042F2E` (`styles.css`) — ratio `primary` sur ce fond recalculé à 10.34:1 (reste ✅ AAA).
 
 ---
 
@@ -72,12 +77,12 @@ Le rôle `primary` **n'est pas** la couleur de bouton. C'est `primary-container`
 
 | Token | Dark | Light | Ratio | Statut |
 |---|---|---|---|---|
-| `secondary` | `#D2BBFF` ⚠️ | `#4500CC` | light 9.51 | voir note |
-| `on-secondary` | `#3F008E` | `#FCFAFF` | — | — |
+| `secondary` | `#7C3AED` | `#4500CC` | dark (texte) 3.25 ⚠️ · light 9.51 | voir note |
+| `on-secondary` | `#FFFFFF` | `#FCFAFF` | dark 5.70 (sur fill `secondary`) | ✅ AA |
 | `secondary-container` | `#6001D1` | `#E3CCFF` | — | fond de badge |
 | `on-secondary-container` | `#EADDFF` | `#1A004C` | dark 6.72 · light 12.49 | ✅ AA+ |
 
-> **Divergence connue à trancher** : token `secondary` = `#7c3aed` dans le code, cible M3 dark = `#D2BBFF`. À arbitrer lors de la passe light. Le badge `confidential` (StatusBadge) utilise `secondary` (`#7c3aed`) en fill `/80` — conforme AA (5.79), conservé volontairement.
+> **Divergence résolue 13/09 (audit dark mode)** : cette table listait `secondary` = `#D2BBFF` (cible M3 théorique jamais implémentée) et `on-secondary` = `#3F008E` — la valeur réelle dans `styles.css` est `secondary` = `#7C3AED` (violet confidentiel, cf. section dédiée) et `on-secondary` = `#FFFFFF`. Table alignée sur le code. `secondary` en **texte plein** sur un fond `surface` échoue l'AA (3.25:1, sous le seuil 4.5) — ne jamais l'utiliser ainsi (cf. bouton "Accéder au projet confidentiel", passé sur `text-on-surface` pour cette raison). En **fill** (fond plein, ex. badge `confidential` `bg-secondary/80` + texte `white`), le contraste réel est bon : 5.70:1 (✅ AA), cf. section "🔒 Violet confidentiel".
 > `on-secondary-container` dark corrigé 9/07 : `#C9AEFF` (4.53) → `#EADDFF` (6.72).
 
 ---
@@ -99,10 +104,12 @@ Le rôle `primary` **n'est pas** la couleur de bouton. C'est `primary-container`
 
 | Token | Dark | Light | Ratio | Statut |
 |---|---|---|---|---|
-| `error` | `#FFB4AB` | `#CC1600` | dark 10.89 (vs surface) · light 5.51 | ✅ AA+ |
+| `error` | `#F87171` | `#CC1600` | dark 6.69 (vs surface) · light 5.51 | ✅ AA |
 | `on-error` | `#690005` | `#FFFAFA` | — | — |
-| `error-container` | `#93000A` | `#FFCCCF` | — | fond de badge |
-| `on-error-container` | `#FFDAD6` | `#520800` | dark 7.24 · light 10.61 | ✅ AA+ |
+| `error-container` | ⚠️ non implémenté | `#FFCCCF` | — | pas de `--error-container` dark dans `styles.css` |
+| `on-error-container` | ⚠️ non implémenté | `#520800` | — | pas de `--on-error-container` dark dans `styles.css` |
+
+> Corrigé 13/09 (audit dark mode) : `error` listait `#FFB4AB` (10.89:1), valeur réelle `#F87171` (`styles.css`) — ratio recalculé à 6.69:1, reste ✅ AA mais n'atteint plus l'AAA (7:1). `error-container`/`on-error-container` n'existent pas comme custom properties en dark (seules les valeurs light, théoriques, restent listées) — `on-error` (`#690005`) sert de fond de badge/alerte teinté (`bg-error/15`) plutôt qu'un vrai `error-container` dédié.
 
 ---
 
@@ -118,7 +125,22 @@ Aucun équivalent n'existait dans la palette avant cette session. Seule vraie no
 
 ---
 
-## 🎨 Fixed roles (identiques dans les deux thèmes — convention M3, ne pas dupliquer)
+## 🎨 Success / Info (StatusBadge — jamais documentés jusqu'ici)
+
+Ajouté 13/09 (audit dark mode) : `--success`/`--info` existent dans `styles.css` et sont réellement utilisés par `StatusBadge.tsx` (`kind="approved"`/`"traite"` → success, `kind="nouveau"` → info) — mais n'avaient jamais été ajoutés à ce document. **Distincts** du composant `Alert` (voir section "🔔 Système d'alertes" ci-dessus), qui réutilise `primary`/`tertiary` pour ses propres types "succès"/"info" plutôt que ces tokens.
+
+| Token | Dark | Light | Ratio (texte sur fill `/10`, usage réel `StatusBadge`) | Statut |
+|---|---|---|---|---|
+| `success` | `#34D399` | ⏳ non défini (`:root:not(.dark)` ne le redéfinit pas, hérite du dark) | 8.09:1 | ✅ AAA |
+| `info` | `#818CF8` | ⏳ non défini (idem) | 5.44:1 | ✅ AA |
+
+> `--violet-text: #A78BFA` existe aussi dans `styles.css` mais n'est utilisé **nulle part** dans le code actuel (`grep` sur tous les `.tsx` : aucun résultat) — token mort, à supprimer ou à documenter le jour où un usage réel apparaît. Ratio pour mémoire si besoin futur : 6.80:1 vs `surface` (✅ AA).
+
+---
+
+## 🎨 Fixed roles (référence M3 théorique — ⚠️ non implémenté dans le code)
+
+> Vérifié 13/09 (audit dark mode) : **aucun** de ces tokens n'existe comme custom property dans `styles.css` — table de référence Material 3 générique, jamais câblée dans ce projet. Ne pas les utiliser en classe Tailwind (`bg-primary-fixed`, etc.), ils ne résoudraient à rien.
 
 | Token | Valeur | Token | Valeur |
 |---|---|---|---|
@@ -269,7 +291,7 @@ Resserrés le 12/07 (passe de finitions UI) — trop imposants par rapport au re
 | info | `tertiary` (`#D9D6FF` dark) | `Info` | Token existant réutilisé |
 | succès | `primary` (`#57F1DB` dark) | `CheckCircle2` | Token existant réutilisé |
 | avertissement | `warning` (`#FBBF24` dark) | `AlertTriangle` | **Nouveau token** (voir section Warning) |
-| erreur | `error`/`on-error` (`#FFB4AB` dark) | `AlertCircle` | Token existant réutilisé |
+| erreur | `error`/`on-error` (`#F87171` dark) | `AlertCircle` | Token existant réutilisé |
 
 **Structure** : fond teinté ~15% de la couleur du type, bordure ~40% opacité, icône alignée en haut à gauche. Titre en poids 500 dans la couleur du type, description en poids 400 (`text-on-surface-variant`, `text-sm` en `rem`).
 
@@ -715,7 +737,7 @@ Animation d'entrée ~250ms (`translate-y-full→0`, `-translate-x-full→0` ou `
 
 | Niveau | Police | Poids | Taille | Usage |
 |---|---|---|---|---|
-| `display-accent` | Lora | Italic 500 | 80px | Un seul mot-clé par écran |
+| `display-accent` | Lora | Italic 500 | ⚠️ pas de taille unique, cf. note 13/09 | Un seul mot-clé par écran |
 | `headline-xl` | Outfit | 500 | 64px | — |
 | `headline-lg` | Outfit | 500 | 40px (32px mobile) | — |
 | `body-md` | Outfit | 300 | 18px | — |
@@ -727,7 +749,20 @@ Toutes les tailles doivent utiliser des unités `rem`/classes Tailwind, jamais d
 
 Import : `fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Lora:ital,wght@1,500`
 
-> **Remplacement Cormorant Garamond → Lora (27/08)** : testé d'abord sur `ProfilePage.tsx` seul (classe `.font-accent-test` isolée, `--font-display-accent` inchangée ailleurs), validé puis généralisé à toute l'app en changeant uniquement la valeur de `--font-display-accent` dans `styles.css` (`.font-display-accent` reste italic/500, seule la police change) — les 8 usages (`AdminPage.tsx` ×2, `CataloguePage.tsx`, `ProfilePage.tsx`, `ProjectDetailPage.tsx` ×3, `NotFoundPage.tsx`) en héritent automatiquement, aucun n'a été touché individuellement. Cormorant Garamond retiré de l'import Google Fonts (`index.html`) — plus aucun usage dans le code (`--font-serif` référence encore son nom en valeur de repli théorique, mais la classe `font-serif` n'est utilisée nulle part).
+> **Remplacement Cormorant Garamond → Lora (27/08)** : testé d'abord sur `ProfilePage.tsx` seul (classe `.font-accent-test` isolée, `--font-display-accent` inchangée ailleurs), validé puis généralisé à toute l'app en changeant uniquement la valeur de `--font-display-accent` dans `styles.css` (`.font-display-accent` reste italic/500, seule la police change) — tous les usages en héritent automatiquement, aucun n'a été touché individuellement pour la police elle-même. Cormorant Garamond retiré de l'import Google Fonts (`index.html`, vérifié 13/09 — toujours vrai) — plus aucun usage dans le code (`--font-serif` référence encore son nom en valeur de repli théorique, mais la classe `font-serif` n'est utilisée nulle part, vérifié 13/09).
+>
+> **⚠️ Taille non unifiée (vérifié 13/09, audit typographie)** : la police/le poids (Lora italic 500) sont bien homogènes partout, mais **la taille `.font-display-accent` diverge par page** — les passes d'agrandissement/retour de cette session (titres H1 "page projet"/"page profil"/"catalogue") ont réintroduit une vraie divergence, au-delà de la seule exception mobile déjà documentée en 09/09 (section "🧭 Amélioration navigation"). Relevé réel (`grep font-display-accent`, 7 occurrences) :
+>
+> | Fichier | Classe de taille |
+> |---|---|
+> | `ProfilePage.tsx` (accent hero) | `text-6xl md:text-7xl` |
+> | `ProjectDetailPage.tsx` (client) | `text-5xl md:text-6xl` |
+> | `CataloguePage.tsx` (accent hero) | `text-5xl sm:text-6xl md:text-7xl` |
+> | `AdminPage.tsx` (`TabHeader` ×2) | `text-4xl sm:text-5xl md:text-6xl` |
+> | `BurgerMenu.tsx` (nom du designer) | `text-4xl md:text-5xl` |
+> | `NotFoundPage.tsx` | pas de classe de taille propre, hérite du parent |
+>
+> Ne pas se fier à un unique "80px" ni à la table "09/09" ci-dessus (section "🧭 Amélioration navigation") pour la taille — seules police/graisse/italique restent une règle unique. Si une prochaine demande vise à ré-harmoniser les tailles, partir de ce relevé, pas de l'historique narratif (obsolète sur ce point précis).
 
 ---
 
@@ -779,11 +814,11 @@ Repéré lors de la vérification en conditions réelles (DevTools, pas juste le
 
 ## ✅ État & checklist
 
-**Dark mode** : ✅ conforme AA. Mapping primary/primary-container corrigé, badges d'accès (4 états), filtres par catégorie, système d'alertes, token warning ajouté.
+**Dark mode** : ✅ conforme AA. Mapping primary/primary-container corrigé, badges d'accès (4 états), filtres par catégorie, système d'alertes, token warning ajouté. Audit complet des valeurs contre `styles.css` le 13/09 (voir "Dernière mise à jour" en tête de document) — toutes les tables reflètent désormais le code réel.
 
 **Light mode** : ⏳ à faire. `primary`/`secondary`/`tertiary` et variantes héritent silencieusement du dark. `warning` n'a pas encore de valeur light. Valeurs cibles = colonnes "Light" de ce document.
 
-**À trancher** : divergence `secondary` = `#7c3aed` (code) vs `#D2BBFF` (cible M3 dark).
+**Résolu 13/09** : divergence `secondary` = `#7c3aed` (code) vs `#D2BBFF` (cible M3 dark théorique) — tranché en faveur du code réel, `#D2BBFF` n'était jamais implémenté. Voir section "🎨 Secondary" pour le détail.
 
 **Ne pas toucher** : shadcn/ui sous `src/components/ui/` = code mort.
 
