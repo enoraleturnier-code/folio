@@ -8,6 +8,7 @@ import { SENSITIVITY_LABELS } from "@/lib/sensitivityLabels";
 import { FOCUS_RING } from "@/lib/utils";
 import type { Project } from "@/types/project";
 import { Alert } from "./Alert";
+import { BoldText } from "./BoldText";
 import { StatusBadge } from "./StatusBadge";
 import { TagBadge } from "./TagBadge";
 
@@ -150,7 +151,7 @@ export function ProjectCard({
           )}
         </div>
         <p className="line-clamp-2 min-h-[2.5rem] text-sm text-on-surface-variant">
-          {project.short_desc}
+          <BoldText text={project.short_desc ?? ""} />
         </p>
         {(project.company_name || project.role) && (
           <div className="flex items-start justify-between gap-3 border-t border-white/5 pt-3">
