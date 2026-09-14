@@ -5,13 +5,19 @@ import { Fragment } from "react";
  * (react-markdown + plugins), qui alourdirait le bundle initial de la page
  * profil (statique, non lazy-loaded, cf. CLAUDE.md "Code-splitting par
  * route"). */
-export function BoldText({ text }: { text: string }) {
+export function BoldText({
+  text,
+  boldClassName = "font-medium text-on-surface",
+}: {
+  text: string;
+  boldClassName?: string;
+}) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
     <>
       {parts.map((part, i) =>
         part.startsWith("**") && part.endsWith("**") ? (
-          <strong key={i} className="font-medium text-on-surface">
+          <strong key={i} className={boldClassName}>
             {part.slice(2, -2)}
           </strong>
         ) : (

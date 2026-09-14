@@ -366,7 +366,7 @@ export function ProfilePage() {
               {designer.adjective}
             </p>
             <p className="mt-8 max-w-xl text-base font-light leading-relaxed text-on-surface">
-              <BoldText text={designer.bio} />
+              <BoldText text={designer.bio} boldClassName="font-bold text-on-surface" />
             </p>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:justify-start md:gap-12">
