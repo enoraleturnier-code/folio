@@ -115,7 +115,10 @@ function ProjectGallery({
           return (
             <div
               key={img.id}
-              className={cn("relative overflow-hidden", SIZE_VARIANT_COL_CLASS[img.size_variant])}
+              className={cn(
+                "relative overflow-hidden bg-white",
+                SIZE_VARIANT_COL_CLASS[img.size_variant],
+              )}
               style={{ gridRow: `span ${rowSpan}` }}
             >
               <img
@@ -162,9 +165,9 @@ function formatPeriod(start: string | null, end: string | null): string {
 /** Numéro + filet — reprend exactement le style "01"/"02" de ProfilePage.tsx (hero + contact),
  * "03" ajouté ici en indigo (tag-keywords) pour le 3e bloc narratif. */
 const BLOCK_NUMBER_CLASSES = [
-  { number: "text-primary/90", rule: "bg-on-primary/20" },
-  { number: "text-secondary/90", rule: "bg-secondary/20" },
-  { number: "text-tag-keywords/90", rule: "bg-tag-keywords/20" },
+  { number: "text-foreground/90", rule: "bg-foreground/20" },
+  { number: "text-foreground/90", rule: "bg-foreground/20" },
+  { number: "text-foreground/90", rule: "bg-foreground/20" },
 ] as const;
 
 export async function projectDetailLoader({

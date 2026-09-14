@@ -25,6 +25,19 @@ function uniq(xs: string[]) {
   return Array.from(new Set(xs)).sort();
 }
 
+/** Date de tri d'un projet -- `end_date` sinon :
+ * - `start_date` seule renseignée (`end_date` null) = mission en cours,
+ *   traitée comme la plus récente (date très lointaine).
+ * - les deux nulles = projet confidentiel dont les dates sont masquées pour
+ *   ce visiteur (RLS/vue catalogue, cf. CLAUDE.md), pas une mission en cours
+ *   -- date réelle inconnue, ne doit surtout pas remonter en tête ; traitée
+ *   comme la plus ancienne possible. */
+function projectSortDate(p: Project): string {
+  if (p.end_date) return p.end_date;
+  if (p.start_date) return "9999-12-31";
+  return "0000-01-01";
+}
+
 export function CataloguePage() {
   const { designer, projects } = useLoaderData() as Awaited<ReturnType<typeof catalogueLoader>>;
   useDocumentTitle("Projets");
@@ -90,11 +103,18 @@ export function CataloguePage() {
       return true;
     })
     // Venant d'une notification de résolution de demande d'accès : le projet concerné
-    // remonte en tête de liste (tri, pas de scroll vers sa position).
+    // remonte en tête de liste (tri, pas de scroll vers sa position) -- prioritaire
+    // sur le tri par date ci-dessous, quel que soit le filtre de type actif.
+    // "Tous les types" (aucun filtre de type) : tri par date décroissante (plus
+    // récent en premier), sur demande explicite.
     .sort((a, b) => {
-      if (!notifProjectId) return 0;
-      if (a.id === notifProjectId) return -1;
-      if (b.id === notifProjectId) return 1;
+      if (notifProjectId) {
+        if (a.id === notifProjectId) return -1;
+        if (b.id === notifProjectId) return 1;
+      }
+      if (filters.designType === "") {
+        return projectSortDate(b).localeCompare(projectSortDate(a));
+      }
       return 0;
     });
 
