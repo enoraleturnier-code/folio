@@ -53,9 +53,9 @@ export async function profileLoader({ params }: LoaderFunctionArgs) {
  * que si au moins une expérience existe, auquel cas "Contact" redevient
  * automatiquement "02"/"03" sans intervention manuelle. */
 const SECTION_NUMBER_CLASSES = {
-  hero: { number: "text-primary/90", rule: "bg-on-primary/20" },
-  experiences: { number: "text-secondary/90", rule: "bg-secondary/20" },
-  contact: { number: "text-tag-keywords/90", rule: "bg-tag-keywords/20" },
+  hero: { number: "text-foreground/90", rule: "bg-on-primary/20" },
+  experiences: { number: "text-foreground/90", rule: "bg-secondary/20" },
+  contact: { number: "text-foreground/90", rule: "bg-tag-keywords/20" },
 } as const;
 
 const formatExperienceDate = (iso: string) =>
