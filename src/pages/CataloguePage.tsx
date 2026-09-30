@@ -149,7 +149,7 @@ export function CataloguePage() {
               Projets
             </p>
             <h1 className="text-5xl font-medium text-on-surface sm:text-6xl md:text-7xl">
-              {designer.fullName}
+              {designer.firstName} <span className="whitespace-nowrap">{designer.lastName}</span>
               <br />
               <span className="font-display-accent text-5xl italic font-normal text-primary sm:text-6xl md:text-7xl">
                 Projets et réalisations
