@@ -135,20 +135,20 @@ export function ProjectCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-6">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-1 md:flex-row md:items-start md:justify-between md:gap-3">
+          {duration && (
+            <span className="shrink-0 whitespace-nowrap text-[10px] font-medium uppercase tracking-widest text-on-surface-variant md:order-2">
+              {duration}
+            </span>
+          )}
           <h2
             className={
-              "line-clamp-2 min-h-[3.5rem] text-xl font-medium leading-tight text-on-surface" +
+              "text-xl font-medium leading-tight text-on-surface md:order-1 md:line-clamp-2 md:min-h-[3.5rem]" +
               (isInteractive ? " transition-colors group-hover:text-primary" : "")
             }
           >
             {project.title}
           </h2>
-          {duration && (
-            <span className="shrink-0 whitespace-nowrap text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">
-              {duration}
-            </span>
-          )}
         </div>
         <p className="line-clamp-2 min-h-[2.5rem] text-sm text-on-surface-variant">
           <BoldText text={project.short_desc ?? ""} />
